@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <ApplicationIcon />
+    <StartupObject />
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SadConsole" Version="9.1.1" />
+    <PackageReference Include="SadConsole.Host.MonoGame" Version="9.1.1" />
+  </ItemGroup>
+
+</Project>
