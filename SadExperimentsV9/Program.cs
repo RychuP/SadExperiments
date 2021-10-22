@@ -33,38 +33,17 @@ namespace SadExperiments
             Game.Instance.Dispose();
         }
 
-        #region Helper Functions
-
-        // returns a random color
-        public static Color RandomColor => Color.White.GetRandomColor(Game.Instance.Random);
-
-        // replaces the starting console with a screenobject s
-        public static void ReplaceSC(IScreenObject s)
-        {
-            Game.Instance.Screen = s;
-            Game.Instance.DestroyDefaultStartingConsole();
-        }
-
-        // returns an array with a seed of characters for a background
-        public static ColoredGlyph[] GetRandomBackgroundGlyphs(int count)
-        {
-            var cg = new List<ColoredGlyph>();
-            for (int i = 0; i < count; i++)
-            {
-                cg.Add(new ColoredGlyph(RandomColor, RandomColor, 177 /*Game.Instance.Random.Next(176, 178)*/));
-            }
-            return cg.ToArray();
-        }
-
-        #endregion
-
         #region Inits
 
         static void Init()
         {
-            var sc = Game.Instance.StartingConsole;
-            sc.Children.Add(new UpdateAndRenderDifference(Width, Height));
-            
+            Test(new KeyboardStates(Width, Height));
+        }
+
+        // testing both Render and Update steps over a period of one second to see how many times they get called
+        static void InitTestComponentUpdateAndRender()
+        {
+            Test(new UpdateAndRenderDifference(Width, Height));
         }
 
         // testing a simple rectangle manipulation
@@ -648,6 +627,36 @@ namespace SadExperiments
             sc.SetBackground(18, 4, Color.DarkCyan);
             sc.SetGlyph(4, 4, 64);
             sc.SetMirror(10, 4, Mirror.Vertical);
+        }
+
+        #endregion
+
+        #region Helper Functions
+
+        // returns a random color
+        public static Color RandomColor => Color.White.GetRandomColor(Game.Instance.Random);
+
+        // replaces the starting console with a screenobject s
+        public static void ReplaceSC(IScreenObject s)
+        {
+            Game.Instance.Screen = s;
+            Game.Instance.DestroyDefaultStartingConsole();
+        }
+
+        // returns an array with a seed of characters for a background
+        public static ColoredGlyph[] GetRandomBackgroundGlyphs(int count)
+        {
+            var cg = new List<ColoredGlyph>();
+            for (int i = 0; i < count; i++)
+            {
+                cg.Add(new ColoredGlyph(RandomColor, RandomColor, 177 /*Game.Instance.Random.Next(176, 178)*/));
+            }
+            return cg.ToArray();
+        }
+
+        static void Test(IScreenObject s)
+        {
+            ReplaceSC(s);
         }
 
         #endregion
