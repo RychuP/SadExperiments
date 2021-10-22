@@ -31,7 +31,7 @@ namespace SadExperimentsV9.Components
             if (host is ScreenSurface s)
             {
                 s.Surface.Print(1, 5, $"Update Counter: {_updateCounter}");
-                s.Surface.Print(1, 6, $"Render Counter: {_updateCounter}");
+                s.Surface.Print(1, 6, $"Render Counter: {_renderCounter}");
                 s.Surface.Print(1, 7, $"Update Time: {_timeUpdate}");
                 s.Surface.Print(1, 8, $"Render Time: {_timeRender}");
             }
