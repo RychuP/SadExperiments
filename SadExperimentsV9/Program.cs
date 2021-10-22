@@ -35,9 +35,10 @@ namespace SadExperiments
 
         #region Inits
 
-        static void Init()
+        // testing keyboard KeysDown, KeysPressed and KeysReleased processing
+        static void InitVisualisationOfKeyboardProcessing()
         {
-            Test(new KeyboardStates(Width, Height));
+            Test(new KeyboardProcessing(Width, Height));
         }
 
         // testing both Render and Update steps over a period of one second to see how many times they get called

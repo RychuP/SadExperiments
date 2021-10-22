@@ -36,14 +36,14 @@ namespace SadExperimentsV9.Consoles
      *
      */
 
-    class KeyboardStates : ScreenSurface
+    class KeyboardProcessing : ScreenSurface
     {
         int _xKeysDown = 1,
             _xKeysPressed = 21,
             _xKeysReleased = 41;
         Rectangle _drawArea;
 
-        public KeyboardStates(int w, int h) : base (w, h)
+        public KeyboardProcessing(int w, int h) : base (w, h)
         {
             _drawArea = new(0, 2, w, h - 2);
             Surface.Print(_xKeysDown, 1, "Keys Down:");
@@ -55,10 +55,7 @@ namespace SadExperimentsV9.Consoles
         public override bool ProcessKeyboard(Keyboard keyboard)
         {
             Surface.Clear(_drawArea);
-            if (keyboard.HasKeysDown)
-            {
-                PrintKeys(keyboard.KeysDown, _xKeysDown);
-            }
+            if (keyboard.HasKeysDown) PrintKeys(keyboard.KeysDown, _xKeysDown);
             if (keyboard.HasKeysPressed) PrintKeys(keyboard.KeysPressed, _xKeysPressed);
             if (keyboard.KeysReleased.Count > 0) PrintKeys(keyboard.KeysReleased, _xKeysReleased);
             return true;
