@@ -5,11 +5,16 @@
     <TargetFramework>net5.0</TargetFramework>
     <ApplicationIcon />
     <StartupObject />
+	<Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="SadConsole" Version="9.1.1" />
     <PackageReference Include="SadConsole.Host.MonoGame" Version="9.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Other\" />
   </ItemGroup>
 
 </Project>

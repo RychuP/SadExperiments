@@ -5,6 +5,7 @@ using SadConsole.Input;
 using SadConsole.Effects;
 using SadRogue.Primitives;
 using SadConsole.Instructions;
+using SadExperimentsV9.Consoles;
 using Console = SadConsole.Console;
 
 namespace SadExperiments
@@ -24,7 +25,7 @@ namespace SadExperiments
             // Game.Instance.ToggleFullScreen();
 
             // Hook the start event so we can add consoles to the system.
-            Game.Instance.OnStart += InitMovableCharacter2;
+            Game.Instance.OnStart += Init;
             //Game.Instance.DefaultFontSize = IFont.Sizes.Two;
 
             // Start the game.
@@ -62,7 +63,7 @@ namespace SadExperiments
         static void Init()
         {
             var sc = Game.Instance.StartingConsole;
-
+            sc.Children.Add(new UpdateAndRenderDifference(Width, Height));
             
         }
 
@@ -137,7 +138,7 @@ namespace SadExperiments
 
         static void InitInstructions()
         {
-            int gradientPositionX = -50, gradientChange = 1, angle = 45, angleChange = 15;
+            int gradientPositionX = -50, gradientChange = 1, angle = 45; //angleChange = 15;
             var logoText = new ColorGradient(new[] { Color.Magenta, Color.Yellow }, new[] { 0.0f, 1f })
                                .ToColoredString("[| Powered by SadConsole |]");
             var logoText2 = new ColorGradient(Color.Magenta, Color.Yellow)
