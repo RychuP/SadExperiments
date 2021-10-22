@@ -25,7 +25,7 @@ namespace SadExperiments
             // Game.Instance.ToggleFullScreen();
 
             // Hook the start event so we can add consoles to the system.
-            Game.Instance.OnStart += Init;
+            Game.Instance.OnStart += InitTestComponentUpdateAndRender;
             //Game.Instance.DefaultFontSize = IFont.Sizes.Two;
 
             // Start the game.
