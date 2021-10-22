@@ -11,10 +11,11 @@ namespace SadExperimentsV9.Consoles
 {
     /*
      * This class shows the difference in the number of calls to Update and Render in SadConsole. On some systems Render will be called less frequently than Update.
+     * Or so we thought...
      * 
      * Chris3606 explains:
      * 
-     * the number of times Render is called is sytem dependent, on my system I get something in the neighborhood of 49; 
+     * the number of times Render is called is system dependent, on my system I get something in the neighborhood of 49; 
      * the behavior is also host dependent, because for example if you switch to SMFL both Update and Render are called around 49 times on my system.  
      * Bottom line, the behavior is up to the back-end renderer and its config.
      * In MonoGame, that behavior appears to be a side effect of MonoGame's FixedTimeStep implementation: 
@@ -25,7 +26,20 @@ namespace SadExperimentsV9.Consoles
      * If I recall correctly it's not actually advisable to do any drawing to surfaces or anything in Render, that should be done in Update; 
      * Render is mostly just for rendering cached textures to the screen in the back-end. 
      * 
+     * ----
+     * 
+     * (Rychu) When I inserted Chris' explanation above, I wanted to add the line Game.Instance.MonoGameInstance.IsFixedTimeStep = false; 
+     * that Chris talks about, so the component (when finished the first pass) would reinsert an instance of itself to the host with the above modification, 
+     * but by accident I forgot to paste it. To my astonishment, the second run of the component presented perfectly synced runs of both Update and Render.
+     * 
+     * ---
+     * 
+     * Chris3606 explains:
+     * 
+     * ... it makes sense that the first few would be laggy because it (presumably) involves actually initializing the renderer(s) 
+     *
      */
+
     class UpdateAndRenderDifference : ScreenSurface
     {
         public UpdateAndRenderDifference(int w, int h) : base(w, h)
