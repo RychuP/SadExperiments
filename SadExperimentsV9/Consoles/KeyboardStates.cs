@@ -14,6 +14,10 @@ using SadRogue.Primitives;
 namespace SadExperimentsV9.Consoles
 {
     /*
+     * This class visualizes how the SadConsole processes keyboard. Especially interesting is how the KeysPressed collection registers and holds keys.
+     * Holding down several keys produces an interesting effect in the Keys Pressed column, where the keys appear to overlap each other
+     * (especially noticable when the keys were NOT presses at the same time).
+     * 
      * Chris3606 Explains:
      * 
      * ... an interesting (and as far as I know, intended) characteristic of that system; 
