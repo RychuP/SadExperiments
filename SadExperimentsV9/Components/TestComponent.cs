@@ -43,7 +43,7 @@ namespace SadExperimentsV9.Components
             if (s_firstCall)
             {
                 s_firstCall = !s_firstCall;
-                Game.Instance.MonoGameInstance.IsFixedTimeStep = false;
+                //Game.Instance.MonoGameInstance.IsFixedTimeStep = false;
                 host.SadComponents.Add(new TestComponent());
             }
         }
