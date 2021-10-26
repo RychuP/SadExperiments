@@ -5,7 +5,7 @@ using SadConsole.Input;
 using SadRogue.Primitives;
 using Console = SadConsole.Console;
 
-namespace SadExperiments
+namespace SadExperimentsV9
 {
     class RandomBackgroundKeyboardComponent : KeyboardConsoleComponent
     {

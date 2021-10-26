@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SadExperimentsV9.Components
+namespace SadExperimentsV9
 {
     class TestComponent : LogicComponent
     {

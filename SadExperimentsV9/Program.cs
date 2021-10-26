@@ -5,11 +5,21 @@ using SadConsole.Input;
 using SadConsole.Effects;
 using SadRogue.Primitives;
 using SadConsole.Instructions;
-using SadExperimentsV9.Consoles;
 using Console = SadConsole.Console;
 
-namespace SadExperiments
+namespace SadExperimentsV9
 {
+    /*
+     * Tests of various features of SadConsole. 
+     * 
+     * Start by collapsing all the definitions (in Visual Studio ctrl+m, o), 
+     * and replace the 
+     *    Game.Instance.OnStart += Init; 
+     * in the Main() with the Init name of your choice.
+     * I recommend starting with InitAnimatedGlobe.
+     * 
+     */
+
     public static class Program
     {
         public static int Width = 80;
@@ -25,7 +35,7 @@ namespace SadExperiments
             // Game.Instance.ToggleFullScreen();
 
             // Hook the start event so we can add consoles to the system.
-            Game.Instance.OnStart += InitTestComponentUpdateAndRender;
+            Game.Instance.OnStart += InitAnimatedGlobe;
             //Game.Instance.DefaultFontSize = IFont.Sizes.Two;
 
             // Start the game.
@@ -34,6 +44,50 @@ namespace SadExperiments
         }
 
         #region Inits
+
+        // testing referencing the same cell surface, flags and cell surface resizing
+        static void InitCellSurfaceResizing()
+        {
+            var sc = Game.Instance.StartingConsole;
+
+            // test the absolute position
+            sc.Position = (3, 1);
+            sc.Print(1, 1, sc.AbsolutePosition.ToString());
+            sc.Print(1, 2, sc.UsePixelPositioning.ToString());
+
+            // create a test surface
+            var newSurface = new ScreenSurface(10, 5) { Position = (20, 1), Parent = sc };
+            newSurface.Surface.DefaultBackground = Color.LightGreen;
+            newSurface.Surface.Clear();
+
+            // another surface that references the same cell surface as the test surface above
+            var otherSurface = new ScreenSurface(newSurface.Surface) { Parent = sc };
+            otherSurface.Position = (1, 5);
+
+            // testing flags
+            byte x = 7;
+            otherSurface.Surface.Print(1, 2, Helpers.HasFlag(x, 2).ToString());
+            int y = Helpers.UnsetFlag(x, 2);
+            otherSurface.Surface.Print(1, 3, Helpers.HasFlag(y, 2).ToString());
+
+            // testing cell surface resizing
+            (otherSurface.Surface as CellSurface)?.Resize(15, 10, 10, 10, false);
+            otherSurface.Surface.Print(1, 5, otherSurface.Surface.ViewWidth.ToString());
+
+            // resizing with a wipe
+            sc.Surface.DefaultBackground = Color.Brown;
+            (sc.Surface as CellSurface)?.Resize(Width - 5, Height - 5, Width - 5, Height - 5, true);
+
+            // print absolute position again
+            sc.Print(1, 20, sc.AbsolutePosition.ToString());
+            sc.Print(1, 22, sc.UsePixelPositioning.ToString());
+        }
+
+        // turning globe animation created with image conversion and AnimatedScreenSurface class
+        static void InitAnimatedGlobe()
+        {
+            Test(new AnimatedGlobe(Width, Height));
+        }
 
         // testing keyboard KeysDown, KeysPressed and KeysReleased processing
         static void InitVisualisationOfKeyboardProcessing()
@@ -285,6 +339,7 @@ namespace SadExperiments
 
             // modify fade on the neighbour
             var clonedFade = sc.GetEffect(6, 4) as Fade;
+            if (clonedFade is null) return;
             clonedFade.UseCellBackground = true;
             clonedFade.DestinationBackground = new ColorGradient(Color.Green, Color.Blue, Color.Red);
             clonedFade.FadeForeground = true;
@@ -355,7 +410,7 @@ namespace SadExperiments
             // apply chain
             sc.SetEffect(10, 4, effectsChain);
             ClearDecorators(sc[10, 4]);
-            (sc.GetEffect(10, 4) as EffectsChain).Start();
+            if (sc.GetEffect(10, 4) is EffectsChain ec) ec.Start();
 
             void ClearDecorators(ColoredGlyph cg)
             {

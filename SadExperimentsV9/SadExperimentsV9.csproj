@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -10,7 +10,14 @@
 
   <ItemGroup>
     <PackageReference Include="SadConsole" Version="9.1.1" />
+    <PackageReference Include="SadConsole.Extended" Version="9.1.2" />
     <PackageReference Include="SadConsole.Host.MonoGame" Version="9.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Images\globe.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
