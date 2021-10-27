@@ -1,29 +1,87 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using SadConsole;
 using SadConsole.Input;
+using SadConsole.Instructions;
+using SadConsole.Readers;
 using SadRogue.Primitives;
 
 namespace SadExperimentsV9
 {
     /*
-     * Turning globe animation that uses image conversion and AnimatedScreenSurface class.
+     * Turning globe animation that uses instructions, image conversion and AnimatedScreenSurface class.
      * 
      * Submitted to FeatureDemo project in Thraka's SadConsole repo.
      * 
      */
 
-    class AnimatedGlobe : Console
+    class AnimatedGlobe : SadConsole.Console
     {
+        readonly TheDrawFont _drawFont;
+        readonly ScreenSurface _animationScreen;
+        readonly AnimatedGlobeClip _clip;
+        readonly ScreenSurface _titleScreen;
+
         public AnimatedGlobe(int w, int h) : base(w, h)
         {
+            // draw font
+            string fontFileName = "DESTRUCX.TDF";
+            var fontEnumerable = TheDrawFont.ReadFonts($"Fonts/{fontFileName}");
+            if (fontEnumerable is null) throw new ArgumentException();
+            _drawFont = fontEnumerable.ToArray()[0];
+
+            // animation screen
+            _animationScreen = new ScreenSurface(w, h);
+
             // random noise simulating stars
             var staticNoise = AnimatedScreenSurface.CreateStatic(w, h, 48, 0.9d);
             staticNoise.AnimationDuration = 48 * 0.1f;
-            Children.Add(staticNoise);
+            _animationScreen.Children.Add(staticNoise);
 
-            // the animated globe
-            var clip = new AnimatedGlobeClip(this);
-            clip.Start();
+            // globe animation
+            _clip = new AnimatedGlobeClip(_animationScreen);
+
+            // title screen
+            _titleScreen = new ScreenSurface(w, h);
+            _titleScreen.Surface.DefaultBackground = Color.Black;
+
+            Start();
+        }
+
+        void Start()
+        {
+            _clip.Stop();
+            Children.Add(_animationScreen);
+            Children.Add(_titleScreen);
+
+            // reset title screen
+            byte opacity = 255;
+            _titleScreen.Surface.Clear();  /* to make the whole surface opaque */
+            _titleScreen.Surface.PrintTheDraw(3, "globe", _drawFont, HorizontalAlignment.Center);
+            ((SadConsole.Renderers.ScreenSurfaceRenderer)_titleScreen.Renderer).Opacity = opacity;
+            _titleScreen.Tint = Color.Black;
+
+            // instructions
+            var animationInstructions = new InstructionSet() { RemoveOnFinished = true }
+                .Instruct(new FadeTextSurfaceTint(_titleScreen, new ColorGradient(Color.Black, Color.Transparent), TimeSpan.FromSeconds(1)))
+                .Code(() =>
+                {
+                    Children.Add(new SadConsole.SplashScreens.Simple());
+                })
+                .Wait(TimeSpan.FromSeconds(4))
+                .Instruct(new FadeTextSurfaceTint(_titleScreen, new ColorGradient(Color.Transparent, Color.Black), TimeSpan.FromSeconds(1)))
+                .Code(() =>
+                {
+                    _clip.Start();
+                    _titleScreen.Surface.Clear();
+                    _titleScreen.Tint = Color.Transparent;
+                })
+                .Code((s, d) =>
+                {
+                    ((SadConsole.Renderers.ScreenSurfaceRenderer)_titleScreen.Renderer).Opacity = opacity--;
+                    return opacity == 0 ? true : false;
+                });
+            SadComponents.Add(animationInstructions);
         }
     }
 
@@ -32,11 +90,11 @@ namespace SadExperimentsV9
         static readonly (int Width, int Height, int Count, float Duration) _frame = (46, 46, 48, 0.17f);
         readonly Rectangle _frameArea;
 
-        public AnimatedGlobeClip(SadConsole.Console c) : base("Animated Globe", _frame.Width, _frame.Height / 2)
+        public AnimatedGlobeClip(ScreenSurface c) : base("Animated Globe", _frame.Width, _frame.Height / 2)
         {
             Parent = c;
-            int x = (c.Width - Surface.Width) / 2,
-                y = (c.Height - Surface.Height) / 2;
+            int x = (c.Surface.Width - Surface.Width) / 2,
+                y = (c.Surface.Height - Surface.Height) / 2;
             Position = (x, y);
 
             // used to advance the point on the film where frames are copied from 
@@ -69,3 +127,4 @@ namespace SadExperimentsV9
         }
     }
 }
+

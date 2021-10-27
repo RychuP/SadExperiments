@@ -718,3 +718,10 @@ namespace SadExperimentsV9
         #endregion
     }
 }
+
+/*
+     * Turning globe animation that uses image conversion and AnimatedScreenSurface class.
+     * 
+     * Submitted to FeatureDemo project in Thraka's SadConsole repo.
+     * 
+     */
