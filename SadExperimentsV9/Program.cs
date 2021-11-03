@@ -23,7 +23,7 @@ namespace SadExperimentsV9
     public static class Program
     {
         public static int Width = 80;
-        public static int Height = 30;
+        public static int Height = 40;
 
         static void Main()
         {
@@ -35,7 +35,7 @@ namespace SadExperimentsV9
             // Game.Instance.ToggleFullScreen();
 
             // Hook the start event so we can add consoles to the system.
-            Game.Instance.OnStart += InitAnimatedGlobe;
+            Game.Instance.OnStart += Init;
             //Game.Instance.DefaultFontSize = IFont.Sizes.Two;
 
             // Start the game.
@@ -44,6 +44,11 @@ namespace SadExperimentsV9
         }
 
         #region Inits
+
+        static void Init()
+        {
+            Test(new Donut());
+        }
 
         // testing referencing the same cell surface, flags and cell surface resizing
         static void InitCellSurfaceResizing()
