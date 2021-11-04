@@ -14,7 +14,7 @@ namespace SadExperimentsV9
     {
         public Donut() : base()
         {
-            Game.Instance.LoadFont("Fonts/square.font");
+            Game.Instance.LoadFont("Fonts/square10.font");
             AddCentered(new Donut3D());
         }
     }
@@ -58,7 +58,7 @@ namespace SadExperimentsV9
             };
 
             SadComponents.Add(Cursor);
-            Font = Game.Instance.Fonts["Square8"];
+            Font = Game.Instance.Fonts["Square10"];
         }
 
         public override void Update(TimeSpan delta)
