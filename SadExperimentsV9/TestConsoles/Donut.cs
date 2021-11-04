@@ -36,7 +36,7 @@ namespace SadExperimentsV9
 
         double _a = 0.1, _b = 0.1;
 
-        public Donut3D() : base(Program.Height, Program.Height)
+        public Donut3D() : base(50, 50)
         {
             // Calculate K1 based on screen size: the maximum x-distance occurs
             // roughly at the edge of the torus, which is at x=R1+R2, z=0.  we
