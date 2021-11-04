@@ -23,7 +23,7 @@ namespace SadExperimentsV9
     public static class Program
     {
         public static int Width = 80;
-        public static int Height = 40;
+        public static int Height = 30;
 
         static void Main()
         {
@@ -45,6 +45,7 @@ namespace SadExperimentsV9
 
         #region Inits
 
+        // the famous spinning donut code ported to the SadConsole
         static void Init()
         {
             Test(new Donut());
