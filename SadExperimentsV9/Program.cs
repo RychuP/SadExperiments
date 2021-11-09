@@ -35,7 +35,7 @@ namespace SadExperimentsV9
             // Game.Instance.ToggleFullScreen();
 
             // Hook the start event so we can add consoles to the system.
-            Game.Instance.OnStart += Init;
+            Game.Instance.OnStart += InitDonut;
             //Game.Instance.DefaultFontSize = IFont.Sizes.Two;
 
             // Start the game.
@@ -45,8 +45,44 @@ namespace SadExperimentsV9
 
         #region Inits
 
-        // the famous spinning donut code ported to the SadConsole
+        // converting an image file and testing resulting brightness and conversion glyph
         static void Init()
+        {
+            var sc = Game.Instance.StartingConsole;
+
+            // convert 4 pixel vertical image file
+            var image = GameHost.Instance.GetTexture("Images/test_opacity.png");
+            var s = image.ToSurface(TextureConvertMode.Foreground, 1, 4);
+            s.DefaultBackground = Color.Black;
+            if ((s as CellSurface)?.Cells is ColoredGlyph[] a)
+            {
+                Array.ForEach(a, (c) => { c.Background = Color.Black; });
+            }
+            var surface = new ScreenSurface(s) { Parent = sc };
+            PrintInfo(s as CellSurface, 0);
+
+            // convert the second 4 pixel image file with different colors
+            image = GameHost.Instance.GetTexture("Images/test_opacity2.png");
+            var s2 = image.ToSurface(TextureConvertMode.Foreground, 1, 4);
+            var surface2 = new ScreenSurface(s2) { Parent = sc };
+            surface2.Position = (0, 5);
+            PrintInfo(s2 as CellSurface, 5);
+
+            void PrintInfo(CellSurface? s, int y)
+            {
+                if (s is not CellSurface) return;
+
+                for (int i = 0; i < 4; i++)
+                {
+                    sc.Print(2, y + i, $"Glyph: {Align(s[i].Glyph)}, Brightness: {Align(s[i].Foreground.GetBrightness())}, FG: {s[i].Foreground}");
+                }
+            }
+
+            string Align(object i) => i.ToString().Align(HorizontalAlignment.Left, 3);
+        }
+
+        // the famous spinning donut code ported to the SadConsole
+        static void InitDonut()
         {
             Test(new Donut());
         }
@@ -462,8 +498,8 @@ namespace SadExperimentsV9
         {
             // change font in starting console
             var sc = Game.Instance.StartingConsole;
-            Game.Instance.LoadFont(@"Fonts/chess.font");
-            sc.Font = Game.Instance.Fonts["chess"];
+            Game.Instance.LoadFont(@"Fonts/square10.font");
+            sc.Font = Game.Instance.Fonts["square10"];
 
             // create an additional console with a default font
             var c = new Console(30, 5);
