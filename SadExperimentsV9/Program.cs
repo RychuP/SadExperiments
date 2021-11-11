@@ -34,7 +34,7 @@ namespace SadExperimentsV9
             Game.Create(Width, Height);
 
             // Hook the start event so we can add consoles to the system.
-            Game.Instance.OnStart = InitDonut3D;
+            Game.Instance.OnStart = InitBinaryOperations;
 
             // Start the game.
             Game.Instance.Run();
@@ -43,9 +43,10 @@ namespace SadExperimentsV9
 
         #region Inits
 
-        static void Init()
+        // examples of binary operations on bytes
+        static void InitBinaryOperations()
         {
-            Test(new TestConsole());
+            Test(new BinaryOperations());
         }
 
         // converting an image file and testing resulting brightness and conversion glyph
