@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using SadConsole;
 using SadConsole.Components;
 
-namespace SadExperimentsV9
+namespace SadExperimentsV9.TestConsoles
 {
     /*
      * This class shows the difference in the number of calls to Update and Render in SadConsole. On some systems Render will be called less frequently than Update.
@@ -43,7 +43,7 @@ namespace SadExperimentsV9
     {
         public UpdateAndRenderDifference(int w, int h) : base(w, h)
         {
-            SadComponents.Add(new TestComponent());
+            SadComponents.Add(new TestUpdateRenderComponent());
         }
     }
 }

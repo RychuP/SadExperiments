@@ -3,9 +3,10 @@ using SadConsole;
 using SadConsole.Entities;
 using SadConsole.Input;
 using SadRogue.Primitives;
+using SadExperimentsV9.Entities;
 using Console = SadConsole.Console;
 
-namespace SadExperimentsV9
+namespace SadExperimentsV9.TestConsoles
 {
     class CheckeredRoom : Console
     {
@@ -15,7 +16,6 @@ namespace SadExperimentsV9
         public CheckeredRoom() : base(Program.Width, Program.Height, Program.Width * 2, Program.Height * 2)
         {
             // setup surface
-            Program.ReplaceSC(this);
             DefaultBackground = Color.DarkGray;
             this.Clear();
             FillWithCheckers();

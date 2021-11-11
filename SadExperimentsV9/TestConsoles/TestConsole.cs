@@ -7,20 +7,17 @@ using System.Threading.Tasks;
 using SadConsole;
 using SadRogue.Primitives;
 
-namespace SadExperimentsV9
+namespace SadExperimentsV9.TestConsoles
 {
     class TestConsole : ScreenSurface
     {
-        public TestConsole() : base(Program.Width, Program.Height) { }
-
-        protected void AddCentered(ScreenSurface a)
+        public TestConsole() : base(Program.Width / 2, Program.Height / 2)
         {
-            float fontSizeRatioX = (float)Font.GetFontSize(IFont.Sizes.One).X / a.Font.GetFontSize(IFont.Sizes.One).X,
-                fontSizeRatioY = (float)Font.GetFontSize(IFont.Sizes.One).Y / a.Font.GetFontSize(IFont.Sizes.One).Y;
-            int x = Convert.ToInt32((Surface.Width * fontSizeRatioX - a.Surface.Width) / 2),
-                y = Convert.ToInt32((Surface.Height * fontSizeRatioY - a.Surface.Height) / 2);
-            a.Position = (x, y);
-            Children.Add(a);
+            Surface.DefaultBackground = Color.LightBlue;
+            Surface.DefaultForeground = Color.Black;
+            Surface.Clear();
+            FontSize = (8, 16);
+            Surface.Print(1, 1, FontSize.ToString());
         }
     }
 }

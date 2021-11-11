@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace SadExperimentsV9
 {
-    class TestComponent : LogicComponent
+    class TestUpdateRenderComponent : LogicComponent
     {
         static bool s_firstCall = true;
         int _offset = 10;
@@ -44,7 +44,7 @@ namespace SadExperimentsV9
             {
                 s_firstCall = !s_firstCall;
                 //Game.Instance.MonoGameInstance.IsFixedTimeStep = false;
-                host.SadComponents.Add(new TestComponent());
+                host.SadComponents.Add(new TestUpdateRenderComponent());
             }
         }
 

@@ -8,17 +8,8 @@ using SadConsole;
 using SadConsole.Components;
 using SadRogue.Primitives;
 
-namespace SadExperimentsV9
+namespace SadExperimentsV9.TestConsoles
 {
-    class Donut : TestConsole
-    {
-        public Donut() : base()
-        {
-            Game.Instance.LoadFont("Fonts/square10.font");
-            AddCentered(new Donut3D());
-        }
-    }
-
     // This is my C# implementation of the ASCII donut by Andy Sloane https://www.a1k0n.net/2011/07/20/donut-math.html
     class Donut3D : ScreenSurface
     {
@@ -58,6 +49,7 @@ namespace SadExperimentsV9
             };
 
             SadComponents.Add(Cursor);
+            Game.Instance.LoadFont("Fonts/square10.font");
             Font = Game.Instance.Fonts["Square10"];
         }
 

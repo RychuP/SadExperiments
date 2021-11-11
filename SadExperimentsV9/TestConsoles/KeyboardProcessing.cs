@@ -11,7 +11,7 @@ using System.Collections;
 using System.Collections.ObjectModel;
 using SadRogue.Primitives;
 
-namespace SadExperimentsV9
+namespace SadExperimentsV9.TestConsoles
 {
     /*
      * This class visualizes how the SadConsole processes keyboard. Especially interesting is how the KeysPressed collection registers and holds keys.

@@ -4,7 +4,7 @@ using SadConsole.Input;
 using SadRogue.Primitives;
 using Console = SadConsole.Console;
 
-namespace SadExperimentsV9
+namespace SadExperimentsV9.TestConsoles
 {
     class MapScreen : Console
     {

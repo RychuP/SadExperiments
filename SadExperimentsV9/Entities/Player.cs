@@ -1,7 +1,7 @@
 ﻿using SadConsole.Entities;
 using SadRogue.Primitives;
 
-namespace SadExperimentsV9
+namespace SadExperimentsV9.Entities
 {
     class Player : Entity
     {

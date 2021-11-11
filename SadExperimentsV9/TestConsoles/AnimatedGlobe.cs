@@ -6,7 +6,7 @@ using SadConsole.Instructions;
 using SadConsole.Readers;
 using SadRogue.Primitives;
 
-namespace SadExperimentsV9
+namespace SadExperimentsV9.TestConsoles
 {
     /*
      * Turning globe animation that uses instructions, image conversion and AnimatedScreenSurface class.

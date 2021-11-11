@@ -5,6 +5,7 @@ using SadConsole.Input;
 using SadConsole.Effects;
 using SadRogue.Primitives;
 using SadConsole.Instructions;
+using SadExperimentsV9.TestConsoles;
 using Console = SadConsole.Console;
 
 namespace SadExperimentsV9
@@ -14,9 +15,9 @@ namespace SadExperimentsV9
      * 
      * Start by collapsing all the definitions (in Visual Studio ctrl+m, o), 
      * and replace the 
-     *    Game.Instance.OnStart += Init; 
+     *    Game.Instance.OnStart = Init; 
      * in the Main() with the Init name of your choice.
-     * I recommend starting with InitAnimatedGlobe.
+     * I recommend starting with InitAnimatedGlobe or InitDonut3D.
      * 
      */
 
@@ -28,15 +29,12 @@ namespace SadExperimentsV9
         static void Main()
         {
             Settings.WindowTitle = "SadConsole Experiments";
-            // Settings.ResizeMode = Settings.WindowResizeOptions.Scale;
 
             // Setup the engine and create the main window.
             Game.Create(Width, Height);
-            // Game.Instance.ToggleFullScreen();
 
             // Hook the start event so we can add consoles to the system.
-            Game.Instance.OnStart += InitDonut;
-            //Game.Instance.DefaultFontSize = IFont.Sizes.Two;
+            Game.Instance.OnStart = InitDonut3D;
 
             // Start the game.
             Game.Instance.Run();
@@ -45,8 +43,13 @@ namespace SadExperimentsV9
 
         #region Inits
 
-        // converting an image file and testing resulting brightness and conversion glyph
         static void Init()
+        {
+            Test(new TestConsole());
+        }
+
+        // converting an image file and testing resulting brightness and conversion glyph
+        static void InitImageConversion()
         {
             var sc = Game.Instance.StartingConsole;
 
@@ -82,9 +85,9 @@ namespace SadExperimentsV9
         }
 
         // the famous spinning donut code ported to the SadConsole
-        static void InitDonut()
+        static void InitDonut3D()
         {
-            Test(new Donut());
+            Test(new Donut3D());
         }
 
         // testing referencing the same cell surface, flags and cell surface resizing
@@ -172,11 +175,12 @@ namespace SadExperimentsV9
         }
 
         // another movable character in a colorful, checkered room
-        static void InitMovableCharacter2()
+        static void InitCheckeredRoom()
         {
-            var map = new CheckeredRoom();
+            Test(new CheckeredRoom());
         }
         
+        // fills the console with random garbage and allows panning the window with arrow keys
         static void InitSmoothScrollingConsole()
         {
             var c = new Console(Width, Height, Width * 4, Height * 4);
@@ -212,6 +216,7 @@ namespace SadExperimentsV9
             c.IsFocused = true;
         }
 
+        // shows the use of some instructions
         static void InitInstructions()
         {
             int gradientPositionX = -50, gradientChange = 1, angle = 45; //angleChange = 15;
@@ -752,10 +757,17 @@ namespace SadExperimentsV9
             return cg.ToArray();
         }
 
-        static void Test(IScreenObject s)
+        static void Test(ScreenSurface s, string msg = "", Point? p = null)
         {
-            ReplaceSC(s);
+            var (q, w) = p ?? (1, 1);
+            var sc = Game.Instance.StartingConsole;
+            if (msg != "") sc.Print(q, w, msg);
+
+            sc.Children.Add(s);
+            s.UsePixelPositioning = true;
+            s.Position = (Settings.Rendering.RenderWidth / 2 - s.AbsoluteArea.Width / 2, Settings.Rendering.RenderHeight / 2 - s.AbsoluteArea.Height / 2);
         }
+
 
         #endregion
     }
