@@ -17,6 +17,8 @@ namespace SadExperimentsV9.TestConsoles
     /// </summary>
     internal class CharsAndCursors : Console
     {
+        const int _numberOfCharsForTheEffect = 10;
+
         const int Border = 1, Gap = 2;
         Dictionary<int, (int Y, Color Color, Direction Direction)> _charMods = new();
 
@@ -75,7 +77,7 @@ namespace SadExperimentsV9.TestConsoles
             {
                 _time = TimeSpan.Zero;
 
-                for (int i = 2; i < 10; i++)
+                for (int i = 2; i < _numberOfCharsForTheEffect; i++)
                 {
                     var r = Font.GetGlyphSourceRectangle(i);
                     //ResetCharColors(i, r);
