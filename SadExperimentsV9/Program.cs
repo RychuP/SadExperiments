@@ -34,7 +34,7 @@ namespace SadExperimentsV9
             Game.Create(Width, Height);
 
             // Hook the start event so we can add consoles to the system.
-            Game.Instance.OnStart = InitCharsAndCursors;
+            Game.Instance.OnStart = Init;
 
             // Start the game.
             Game.Instance.Run();
@@ -43,7 +43,12 @@ namespace SadExperimentsV9
 
         #region Inits
 
-        // Playing with chars, consoles, cursors and pixels.
+        static void Init()
+        {
+            Test(new TextureManipulation());
+        }
+
+        // playing with chars, consoles, cursors and pixels.
         static void InitCharsAndCursors()
         {
             Test(new CharsAndCursors());
@@ -754,6 +759,8 @@ namespace SadExperimentsV9
         }
 
         static Console GetSC() => Game.Instance.StartingConsole;
+
+        public static void Print(string s) => GetSC().Print(1, 1, s);
 
         // returns an array with a seed of characters for a background
         public static ColoredGlyph[] GetRandomBackgroundGlyphs(int count)
