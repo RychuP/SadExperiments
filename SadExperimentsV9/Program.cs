@@ -34,7 +34,7 @@ namespace SadExperimentsV9
             Game.Create(Width, Height);
 
             // Hook the start event so we can add consoles to the system.
-            Game.Instance.OnStart = InitBinaryOperations;
+            Game.Instance.OnStart = InitCharsAndCursors;
 
             // Start the game.
             Game.Instance.Run();
@@ -42,6 +42,12 @@ namespace SadExperimentsV9
         }
 
         #region Inits
+
+        // Playing with chars, consoles, cursors and pixels.
+        static void InitCharsAndCursors()
+        {
+            Test(new CharsAndCursors());
+        }
 
         // examples of binary operations on bytes
         static void InitBinaryOperations()
@@ -747,6 +753,8 @@ namespace SadExperimentsV9
             Game.Instance.DestroyDefaultStartingConsole();
         }
 
+        static Console GetSC() => Game.Instance.StartingConsole;
+
         // returns an array with a seed of characters for a background
         public static ColoredGlyph[] GetRandomBackgroundGlyphs(int count)
         {
@@ -760,11 +768,13 @@ namespace SadExperimentsV9
 
         static void Test(ScreenSurface s, string msg = "", Point? p = null)
         {
-            var (q, w) = p ?? (1, 1);
             var sc = Game.Instance.StartingConsole;
-            if (msg != "") sc.Print(q, w, msg);
+
+            var (x, y) = p ?? (1, 1);
+            if (msg != "") sc.Print(x, y, msg);
 
             sc.Children.Add(s);
+
             s.UsePixelPositioning = true;
             s.Position = (Settings.Rendering.RenderWidth / 2 - s.AbsoluteArea.Width / 2, Settings.Rendering.RenderHeight / 2 - s.AbsoluteArea.Height / 2);
         }
@@ -773,10 +783,3 @@ namespace SadExperimentsV9
         #endregion
     }
 }
-
-/*
-     * Turning globe animation that uses image conversion and AnimatedScreenSurface class.
-     * 
-     * Submitted to FeatureDemo project in Thraka's SadConsole repo.
-     * 
-     */
