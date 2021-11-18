@@ -6,3 +6,5 @@ Tests of various features of the SadConsole game library.
 ![Globe](/screenshot.png)
 
 ![Torus](/donut.png)
+
+![ADemo](/a_demo.png)
