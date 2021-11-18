@@ -34,7 +34,7 @@ namespace SadExperimentsV9
             Game.Create(Width, Height);
 
             // Hook the start event so we can add consoles to the system.
-            Game.Instance.OnStart = InitTextureManipulation;
+            Game.Instance.OnStart = Init;
 
             // Start the game.
             Game.Instance.Run();
@@ -42,6 +42,11 @@ namespace SadExperimentsV9
         }
 
         #region Inits
+
+        static void Init()
+        {
+            Test(new Canvas(500, 300, Color.Yellow.ToMonoColor()));
+        }
 
         // a proper way of manipulating pixels using a cache
         static void InitTextureManipulation()
