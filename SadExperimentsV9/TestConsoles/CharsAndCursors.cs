@@ -12,8 +12,8 @@ using Console = SadConsole.Console;
 namespace SadExperimentsV9.TestConsoles
 {
     /// <summary>
-    /// Shows how to display font characters by index in seperate consoles with a help of cursors
-    /// and how to manipulate individual pixels of a font character.
+    /// Shows how to display font characters in seperate consoles with a help of cursors
+    /// and how NOT to manipulate individual pixels of a font character using SetPixel/GetPixel methods (super slow).
     /// </summary>
     internal class CharsAndCursors : Console
     {
