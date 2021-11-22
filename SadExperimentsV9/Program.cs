@@ -45,6 +45,21 @@ namespace SadExperimentsV9
 
         static void Init()
         {
+            var sc = GetSC();
+            var c = new ScreenSurface(10, 5)
+            {
+                Parent = sc,
+                Position = (1, 1)
+            };
+            c.Surface.DefaultBackground = Color.LightBlue;
+            c.Surface.Clear();
+            c.Position = (2, 2);
+            var pos = c.Position + (c.Parent?.AbsolutePosition ?? new Point(0, 0));
+        }
+
+        // not the most graceful way of creating a canvas, but it works...
+        static void InitCanvas()
+        {
             Test(new Canvas(500, 300, Color.Yellow.ToMonoColor()));
         }
 
