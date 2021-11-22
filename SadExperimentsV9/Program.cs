@@ -43,7 +43,7 @@ namespace SadExperimentsV9
 
         #region Inits
 
-        // checking casting colors to byte spans
+        // casting colors to byte spans
         static void Init()
         {
             Color[] colors = new Color[]
@@ -56,11 +56,22 @@ namespace SadExperimentsV9
                 Color.Transparent
             };
 
+            // dummy byte array
             byte[] pixels = new byte[colors.Length * 4];
 
-            var byteSpan = System.Runtime.InteropServices.MemoryMarshal.AsBytes(colors.AsSpan());
+            // convert colors to a byte span
+            Span<byte> byteSpan = System.Runtime.InteropServices.MemoryMarshal.AsBytes(colors.AsSpan());
 
+            // check the length with the dummy array
             bool numberOfBytesIsEqual = pixels.Length == byteSpan.Length;
+
+            // convert the byte span back to array of colors
+            var colors2 = System.Runtime.InteropServices.MemoryMarshal.Cast<byte, Color>(byteSpan).ToArray();
+
+            // test colors
+            var sc = GetSC();
+            var appearance = new ColoredGlyph(colors2[0], colors2[1]);
+            sc.Print(1, 1, "Test of colors.", appearance);
         }
 
         // not the most graceful way of creating a canvas, but it works...
