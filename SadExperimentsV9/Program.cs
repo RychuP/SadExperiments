@@ -43,18 +43,24 @@ namespace SadExperimentsV9
 
         #region Inits
 
+        // checking casting colors to byte spans
         static void Init()
         {
-            var sc = GetSC();
-            var c = new ScreenSurface(10, 5)
+            Color[] colors = new Color[]
             {
-                Parent = sc,
-                Position = (1, 1)
+                Color.Red,
+                Color.Green,
+                Color.Blue,
+                Color.White,
+                Color.Black,
+                Color.Transparent
             };
-            c.Surface.DefaultBackground = Color.LightBlue;
-            c.Surface.Clear();
-            c.Position = (2, 2);
-            var pos = c.Position + (c.Parent?.AbsolutePosition ?? new Point(0, 0));
+
+            byte[] pixels = new byte[colors.Length * 4];
+
+            var byteSpan = System.Runtime.InteropServices.MemoryMarshal.AsBytes(colors.AsSpan());
+
+            bool numberOfBytesIsEqual = pixels.Length == byteSpan.Length;
         }
 
         // not the most graceful way of creating a canvas, but it works...
