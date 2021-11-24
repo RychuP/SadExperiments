@@ -63,6 +63,15 @@ namespace SadExperimentsV9
             textSurface.Surface.DefaultForeground = Color.White;
             textSurface.Surface.Clear();
             textSurface.Surface.Print(1, 1, "Test");
+
+            for (int i = 0; i < 200; i++)
+            {
+                int x = Game.Instance.Random.Next(0, canvas.Width);
+                int y = Game.Instance.Random.Next(0, canvas.Height);
+                Color c = RandomColor;
+                Point p = (x, y);
+                canvas.SetPixel(p, c);
+            }
         }
 
         // casting colors to byte spans
