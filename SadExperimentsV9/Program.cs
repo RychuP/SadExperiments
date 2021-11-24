@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using SadCanvas;
 using SadConsole;
 using SadConsole.Input;
 using SadConsole.Effects;
@@ -43,8 +44,29 @@ namespace SadExperimentsV9
 
         #region Inits
 
-        // casting colors to byte spans
+        // testing the Canvas class from the SadCanvas nuget
         static void Init()
+        {
+            var sc = GetSC();
+            var canvas = new Canvas(200, 100, Color.Yellow)
+            {
+                Parent = sc,
+                UsePixelPositioning = false,
+                Position = (5, 3)
+            };
+            var textSurface = new ScreenSurface(6, 3)
+            {
+                Parent = canvas,
+                Position = (1, 1)
+            };
+            textSurface.Surface.DefaultBackground = Color.Green;
+            textSurface.Surface.DefaultForeground = Color.White;
+            textSurface.Surface.Clear();
+            textSurface.Surface.Print(1, 1, "Test");
+        }
+
+        // casting colors to byte spans
+        static void InitColorCasting()
         {
             Color[] colors = new Color[]
             {
@@ -75,9 +97,9 @@ namespace SadExperimentsV9
         }
 
         // not the most graceful way of creating a canvas, but it works...
-        static void InitCanvas()
+        static void InitFontTextureCanvas()
         {
-            Test(new Canvas(500, 300, Color.Yellow.ToMonoColor()));
+            Test(new FontTextureCanvas(500, 300, Color.Yellow.ToMonoColor()));
         }
 
         // a proper way of manipulating pixels using a cache

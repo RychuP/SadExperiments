@@ -10,13 +10,13 @@ namespace SadExperimentsV9.TestConsoles
     // My first attempt at creating a canvas (hacking way).
     // I've created a separate project for a dedicated class that does it properly.
     // Check out SadCanvas project.
-    internal class Canvas : ScreenSurface, IDisposable
+    internal class FontTextureCanvas : ScreenSurface, IDisposable
     {
         private readonly Texture2D _texture;
 
         public MonoColor[] Cache { get; init; }
 
-        public Canvas(int width, int height, MonoColor? color = null) : base(1, 1)
+        public FontTextureCanvas(int width, int height, MonoColor? color = null) : base(1, 1)
         {
             _texture = new Texture2D(Global.GraphicsDevice, width, height);
             var gameTexture = new GameTexture(_texture);
@@ -40,7 +40,7 @@ namespace SadExperimentsV9.TestConsoles
             IsDirty = true;
         }
 
-        ~Canvas()
+        ~FontTextureCanvas()
         {
             _texture.Dispose();
             base.Dispose(false);
