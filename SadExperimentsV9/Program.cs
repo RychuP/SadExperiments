@@ -64,7 +64,7 @@ namespace SadExperimentsV9
             textSurface.Surface.Clear();
             textSurface.Surface.Print(1, 1, "Test");
 
-            for (int i = 0; i < 200; i++)
+            for (int i = 0; i < 400; i++)
             {
                 int x = Game.Instance.Random.Next(0, canvas.Width);
                 int y = Game.Instance.Random.Next(0, canvas.Height);
