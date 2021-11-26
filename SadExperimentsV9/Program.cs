@@ -48,7 +48,7 @@ namespace SadExperimentsV9
         static void Init()
         {
             var sc = GetSC();
-            var canvas = new Canvas(200, 100, Color.Yellow)
+            var canvas = new Canvas(200, 100, Color.Yellow.ToMonoColor())
             {
                 Parent = sc,
                 UsePixelPositioning = false,
@@ -70,7 +70,7 @@ namespace SadExperimentsV9
                 int y = Game.Instance.Random.Next(0, canvas.Height);
                 Color c = RandomColor;
                 Point p = (x, y);
-                canvas.SetPixel(p, c);
+                canvas.SetPixel(p, c.ToMonoColor());
             }
         }
 
