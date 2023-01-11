@@ -303,7 +303,7 @@ namespace SadExperimentsV9.TestConsoles
                 // this.Print(x, y, new string('x', _rowCharCounts[i]));
 
                 this.Erase(x, y, _rowCharCounts[i]);
-        }
+            }
             ResetRowCounter();
         }
         #endregion

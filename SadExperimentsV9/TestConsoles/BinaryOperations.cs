@@ -9,16 +9,12 @@ using SadRogue.Primitives;
 
 namespace SadExperimentsV9.TestConsoles
 {
-    class BinaryOperations : ScreenSurface
+    class BinaryOperations : TestConsole
     {
         int _y = 1;
 
-        public BinaryOperations() : base(Program.Width - 2, Program.Height - 2)
+        public BinaryOperations()
         {
-            Surface.DefaultBackground = Color.LightBlue;
-            Surface.DefaultForeground = Color.Black;
-            Surface.Clear();
-
             byte x = 0b1001;
             byte y = 0b1010;
 

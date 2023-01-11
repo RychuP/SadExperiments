@@ -10,8 +10,8 @@ namespace SadExperimentsV9.TestConsoles
 {
     class CheckeredRoom : Console
     {
-        Player player;
-        Renderer entityManager;
+        readonly Player _player;
+        readonly Renderer _entityManager;
 
         public CheckeredRoom() : base(Program.Width, Program.Height, Program.Width * 2, Program.Height * 2)
         {
@@ -27,13 +27,13 @@ namespace SadExperimentsV9.TestConsoles
             this.DrawBox(rectangle, ShapeParameters.CreateBorder(glyph));
 
             // create player
-            player = new Player();
-            SadComponents.Add(new SadConsole.Components.SurfaceComponentFollowTarget() { Target = player });
+            _player = new Player();
+            SadComponents.Add(new SadConsole.Components.SurfaceComponentFollowTarget() { Target = _player });
 
             // entity manager
-            entityManager = new Renderer();
-            SadComponents.Add(entityManager);
-            entityManager.Add(player);
+            _entityManager = new Renderer();
+            SadComponents.Add(_entityManager);
+            _entityManager.Add(_player);
         }
 
         public override bool ProcessKeyboard(Keyboard keyboard)
@@ -63,10 +63,28 @@ namespace SadExperimentsV9.TestConsoles
                 // check if the direction has changed at all
                 if (direction.X != 0 || direction.Y != 0)
                 {
-                    Point point = player.GetNextMove(direction);
+                    Point point = _player.GetNextMove(direction);
                     if (IsWalkable(point))
                     {
-                        player.MoveTo(point);
+                        _player.MoveTo(point);
+                    }
+
+                    // diagonal movement exception: check if one of the directions is walkable
+                    else if (direction.X != 0 && direction.Y != 0)
+                    {
+                        point = _player.GetNextMove(direction.WithY(0));
+                        if (IsWalkable(point))
+                        {
+                            _player.MoveTo(point);
+                        }
+                        else
+                        {
+                            point = _player.GetNextMove(direction.WithX(0));
+                            if (IsWalkable(point))
+                            {
+                                _player.MoveTo(point);
+                            }
+                        }
                     }
                 }
             }

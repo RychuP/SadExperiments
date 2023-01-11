@@ -1,13 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using SadCanvas;
-using SadConsole;
+﻿global using System;
+global using System.Collections.Generic;
+global using SadCanvas;
+global using SadConsole;
+global using SadRogue.Primitives;
+
 using SadConsole.Input;
 using SadConsole.Effects;
-using SadRogue.Primitives;
 using SadConsole.Instructions;
 using SadExperimentsV9.TestConsoles;
 using Console = SadConsole.Console;
+using MonoColor = Microsoft.Xna.Framework.Color;
+using System.Linq;
+using SadConsole.Quick;
 
 namespace SadExperimentsV9
 {
@@ -35,7 +39,7 @@ namespace SadExperimentsV9
             Game.Create(Width, Height);
 
             // Hook the start event so we can add consoles to the system.
-            Game.Instance.OnStart = Init;
+            Game.Instance.OnStart = InitDonut3D;
 
             // Start the game.
             Game.Instance.Run();
@@ -44,8 +48,56 @@ namespace SadExperimentsV9
 
         #region Inits
 
-        // testing the Canvas class from the SadCanvas nuget
         static void Init()
+        {
+            Test(new EasingFunctions());
+        }
+
+        // storing cell data as two-bit pairs and accessing it with Point coordinates
+        static void InitCellDataAsTwoBitPairs()
+        {
+            // cells are two bit pairs (01 - wall, 10 - color, 00 - empty)
+            byte[] data = new byte[]
+            {
+                0b01000000,     // these 6 bytes hold data for 24 cells ->
+                0b00100000,     // in this example a 6x4 grid
+                0b00001000,
+                0b01000000,
+                0b00100000,
+                0b00001000
+            };
+
+            // flags for testing the two-bit pairs
+            int[][] flags = new int[][]
+            {
+                new int[] { 128, 64},
+                new int[] { 32, 16 },
+                new int[] { 8, 4 },
+                new int[] { 2, 1 }
+            };
+
+            // define the conversion rate from 1d array to 2d array
+            int width = 6;
+            float dataWidth = (float)width / 4;
+
+            // define point to test
+            Point p = (0, 2);
+
+            // convert point to two-bit location in data
+            float i = p.Y * dataWidth + (float)p.X / 4;
+            int pointer = (int)Math.Floor(i);
+            float reminder = i - pointer;
+            int cellNumber = Convert.ToInt32(reminder / 0.25f);
+            byte b = data[pointer];
+            int[] flag = flags[cellNumber];
+
+            // pull cell content
+            var cellContent = Helpers.HasFlag(b, flag[1]) ? 1 : Helpers.HasFlag(b, flag[0]) ? 2 : 0;
+        }
+
+        
+        // testing the Canvas class from the SadCanvas nuget
+        static void InitSadCanvas()
         {
             var sc = GetSC();
             var canvas = new Canvas(200, 100, Color.Yellow.ToMonoColor())
@@ -72,6 +124,28 @@ namespace SadExperimentsV9
                 Point p = (x, y);
                 canvas.SetPixel(p, c.ToMonoColor());
             }
+
+            canvas = new Canvas(10, 10, MonoColor.LightBlue)
+            {
+                Parent = sc,
+                Position = (40, 3)
+            };
+
+            // texture rectangle areas
+            var t = canvas.Texture;
+            int amount = 25;
+            var data = new MonoColor[amount];
+            Array.Fill(data, MonoColor.Red);
+            var r = new Rectangle(5, 5, 5, 5);
+            t.SetData(0, r.ToMonoRectangle(), data, 0, data.Length);
+
+            // test
+            canvas = new Canvas(200, 100)
+            {
+                Parent = sc,
+                Position = (1, 20)
+            };
+            canvas.Fill(MonoColor.Red);
         }
 
         // casting colors to byte spans
@@ -132,7 +206,7 @@ namespace SadExperimentsV9
         // converting an image file and testing resulting brightness and conversion glyph
         static void InitImageConversion()
         {
-            var sc = Game.Instance.StartingConsole;
+            var sc = GetSC();
 
             // convert 4 pixel vertical image file
             var image = GameHost.Instance.GetTexture("Images/test_opacity.png");
@@ -154,7 +228,7 @@ namespace SadExperimentsV9
 
             void PrintInfo(CellSurface? s, int y)
             {
-                if (s is not CellSurface) return;
+                if (s is null) return;
 
                 for (int i = 0; i < 4; i++)
                 {
@@ -232,11 +306,18 @@ namespace SadExperimentsV9
         {
             var sc = Game.Instance.StartingConsole;
 
-            ColoredGlyph glyph = new ColoredGlyph(Color.Violet, Color.Black, 177);
+            ColoredGlyph style = new(Color.Violet, Color.Black, 177);
             Rectangle r = new(2, 2, 10, 5);
 
             // draw the first box and display some info about it
-            sc.DrawBox(r, ShapeParameters.CreateStyledBox(ICellSurface.ConnectedLineThick, glyph));
+            var box = ICellSurface.ConnectedLineThick;
+            box[0] = (int)'/';
+            box[1] = (int)'=';
+            box[2] = (int)'\\';
+            box[6] = box[2];
+            box[7] = box[1];
+            box[8] = box[0];
+            sc.DrawBox(r, ShapeParameters.CreateStyledBox(box, style));
             sc.Print(2, 10, "Original rectangle position and size:");
             sc.Print(2, 11, r.Position.ToString());
             sc.Print(2, 12, r.Size.ToString());
@@ -250,9 +331,9 @@ namespace SadExperimentsV9
             sc.Print(2, 16, r2.Size.ToString());
 
             // move the expanded box right and draw
-            glyph.Foreground = Color.Yellow;
+            style.Foreground = Color.Yellow;
             var r3 = r2.ChangeX(15);
-            sc.DrawBox(r3, ShapeParameters.CreateStyledBox(ICellSurface.ConnectedLineThick, glyph));
+            sc.DrawBox(r3, ShapeParameters.CreateStyledBox(ICellSurface.ConnectedLineThin, style));
         }
 
         // another movable character in a colorful, checkered room
@@ -266,7 +347,7 @@ namespace SadExperimentsV9
         {
             var c = new Console(Width, Height, Width * 4, Height * 4);
             c.FillWithRandomGarbage(c.Font);
-            SadConsole.Quick.Keyboard.WithKeyboard(c, (host, k) =>
+            c.WithKeyboard((host, k) =>
             {
                 if (host is Console console && k.HasKeysDown)
                 {
@@ -551,8 +632,7 @@ namespace SadExperimentsV9
         {
             var sc = Game.Instance.StartingConsole;
             sc.Print(2, 2, "Press either space or shift to see both splash screens.");
-
-            Func<IScreenObject, Keyboard, bool> keyboardHandler = (host, keyboard) =>
+            sc.WithKeyboard((host, keyboard) =>
             {
                 if (host is Console c && keyboard.HasKeysPressed)
                 {
@@ -562,7 +642,7 @@ namespace SadExperimentsV9
                     if (keyboard.IsKeyPressed(Keys.Space))
                     {
                         c.Children.Add(new SadConsole.SplashScreens.Simple());
-                        
+
                     }
                     else if (keyboard.IsKeyPressed(Keys.LeftShift))
                     {
@@ -574,9 +654,7 @@ namespace SadExperimentsV9
                 {
                     return false;
                 }
-            };
-
-            SadConsole.Quick.Keyboard.WithKeyboard(sc, keyboardHandler);
+            });
         }
 
         // loading an external font from a file
@@ -585,7 +663,7 @@ namespace SadExperimentsV9
             // change font in starting console
             var sc = Game.Instance.StartingConsole;
             Game.Instance.LoadFont(@"Fonts/square10.font");
-            sc.Font = Game.Instance.Fonts["square10"];
+            sc.Font = Game.Instance.Fonts["Square10"];
 
             // create an additional console with a default font
             var c = new Console(30, 5);
@@ -625,7 +703,7 @@ namespace SadExperimentsV9
         // exercise in moving and resizing of a console and its view with arrow keys
         static void InitMoveAndResizeViewWithArrowKeys()
         {
-            var c = new MoveAndResizeScreen();
+            _ = new MoveAndResizeScreen();
         }
 
         // simple movable character
@@ -653,7 +731,7 @@ namespace SadExperimentsV9
 
             c1.SadComponents.Add(new RandomBackgroundKeyboardComponent());
             c1.MouseMove += OnMouseMove;
-            c1.MouseButtonClicked += OnMouseButtonClicked;
+            //c1.MouseButtonClicked += OnMouseButtonClicked;
             c1.MouseExit += OnMouseExit;
             c1.MouseEnter += OnMouseEnter;
 
@@ -667,8 +745,7 @@ namespace SadExperimentsV9
 
             void OnMouseEnter(object sender, MouseScreenObjectState mouseState)
             {
-                var c = sender as Console;
-                if (c is not null)
+                if (sender is Console c)
                 {
                     c.Cursor.IsVisible = true;
                     c.Cursor.Position = new Point(15, 7);
@@ -677,8 +754,7 @@ namespace SadExperimentsV9
 
             void OnMouseExit(object sender, MouseScreenObjectState mouseState)
             {
-                var c = sender as Console;
-                if (c is not null)
+                if (sender is Console c)
                 {
                     c.Cursor.IsVisible = false;
                     c.Clear();
@@ -687,23 +763,19 @@ namespace SadExperimentsV9
 
             void OnMouseMove(object sender, MouseScreenObjectState mouseState)
             {
-                var c = sender as Console;
-                if (c is not null)
+                if (sender is Console c)
                 {
                     c.Print(1, 1, $"Mouse position: {mouseState.CellPosition}  ");
-                    /*
                     if (mouseState.Mouse.LeftButtonDown)
                         c.Print(1, 2, $"Left button is down");
                     else
                         c.Print(1, 2, $"                   ");
-                    */
                 }
             }
 
             void OnMouseButtonClicked(object sender, MouseScreenObjectState mouseState)
             {
-                var c = sender as Console;
-                if (c is not null)
+                if (sender is Console c)
                 {
                     if (mouseState.Mouse.LeftButtonDown)
                         c.Print(1, 2, $"Left button is down");
