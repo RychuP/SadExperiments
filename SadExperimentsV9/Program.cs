@@ -39,7 +39,7 @@ namespace SadExperimentsV9
             Game.Create(Width, Height);
 
             // Hook the start event so we can add consoles to the system.
-            Game.Instance.OnStart = Init;
+            Game.Instance.OnStart = InitSurfaceShifting;
 
             // Start the game.
             Game.Instance.Run();
