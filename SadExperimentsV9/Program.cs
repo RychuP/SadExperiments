@@ -39,7 +39,7 @@ namespace SadExperimentsV9
             Game.Create(Width, Height);
 
             // Hook the start event so we can add consoles to the system.
-            Game.Instance.OnStart = InitEffectsAndDecorators;
+            Game.Instance.OnStart = InitAnimatedGlobe;
 
             // Start the game.
             Game.Instance.Run();
