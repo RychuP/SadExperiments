@@ -39,7 +39,7 @@ namespace SadExperimentsV9
             Game.Create(Width, Height);
 
             // Hook the start event so we can add consoles to the system.
-            Game.Instance.OnStart = InitDonut3D;
+            Game.Instance.OnStart = Init;
 
             // Start the game.
             Game.Instance.Run();
@@ -50,7 +50,17 @@ namespace SadExperimentsV9
 
         static void Init()
         {
-            Test(new EasingFunctions());
+            Test(new Donut3D());
+        }
+
+        static void InitSurfaceShifting()
+        {
+            Test(new SurfaceShifting());
+        }
+
+        static void InitFocusSettingCheck()
+        {
+            Test(new FocusSettingCheck());
         }
 
         // storing cell data as two-bit pairs and accessing it with Point coordinates
