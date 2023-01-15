@@ -1,15 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using SadConsole;
-using SadConsole.Input;
-using SadConsole.Entities;
-using System.Collections;
+﻿using SadConsole.Input;
 using System.Collections.ObjectModel;
-using SadRogue.Primitives;
 
 namespace SadExperimentsV9.TestConsoles
 {

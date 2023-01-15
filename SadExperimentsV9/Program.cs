@@ -1,17 +1,19 @@
 ﻿global using System;
 global using System.Collections.Generic;
-global using SadCanvas;
 global using SadConsole;
 global using SadRogue.Primitives;
 
+using SadConsole.Quick;
 using SadConsole.Input;
 using SadConsole.Effects;
 using SadConsole.Instructions;
+
+using SadCanvas;
+using SadExperimentsV9.Components;
 using SadExperimentsV9.TestConsoles;
+
 using Console = SadConsole.Console;
 using MonoColor = Microsoft.Xna.Framework.Color;
-using System.Linq;
-using SadConsole.Quick;
 
 namespace SadExperimentsV9
 {
@@ -219,7 +221,7 @@ namespace SadExperimentsV9
             var sc = GetSC();
 
             // convert 4 pixel vertical image file
-            var image = GameHost.Instance.GetTexture("Images/test_opacity.png");
+            var image = GameHost.Instance.GetTexture("Resources/Images/test_opacity.png");
             var s = image.ToSurface(TextureConvertMode.Foreground, 1, 4);
             s.DefaultBackground = Color.Black;
             if ((s as CellSurface)?.Cells is ColoredGlyph[] a)
@@ -230,7 +232,7 @@ namespace SadExperimentsV9
             PrintInfo(s as CellSurface, 0);
 
             // convert the second 4 pixel image file with different colors
-            image = GameHost.Instance.GetTexture("Images/test_opacity2.png");
+            image = GameHost.Instance.GetTexture("Resources/Images/test_opacity2.png");
             var s2 = image.ToSurface(TextureConvertMode.Foreground, 1, 4);
             var surface2 = new ScreenSurface(s2) { Parent = sc };
             surface2.Position = (0, 5);
@@ -672,7 +674,7 @@ namespace SadExperimentsV9
         {
             // change font in starting console
             var sc = Game.Instance.StartingConsole;
-            Game.Instance.LoadFont(@"Fonts/square10.font");
+            Game.Instance.LoadFont(@"Resources/Fonts/square10.font");
             sc.Font = Game.Instance.Fonts["Square10"];
 
             // create an additional console with a default font

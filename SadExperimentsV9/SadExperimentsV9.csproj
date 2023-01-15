@@ -16,8 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Fonts\**" LinkBase="Fonts\" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="Images\**" LinkBase="Images\" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Resources\**" LinkBase="Fonts\" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

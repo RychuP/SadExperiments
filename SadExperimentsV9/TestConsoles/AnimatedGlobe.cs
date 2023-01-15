@@ -26,7 +26,7 @@ namespace SadExperimentsV9.TestConsoles
         {
             // draw font
             string fontFileName = "DESTRUCX.TDF";
-            var fontEnumerable = TheDrawFont.ReadFonts($"Fonts/{fontFileName}");
+            var fontEnumerable = TheDrawFont.ReadFonts($"Resources/Fonts/{fontFileName}");
             if (fontEnumerable is null) throw new ArgumentException();
             _drawFont = fontEnumerable.ToArray()[0];
 
@@ -103,7 +103,7 @@ namespace SadExperimentsV9.TestConsoles
             _frameArea = new(0, 0, _frame.Width, _frame.Height);
 
             // convert png
-            using ITexture sadImage = GameHost.Instance.GetTexture("Images/globe.png");
+            using ITexture sadImage = GameHost.Instance.GetTexture("Resources/Images/globe.png");
             var fontSize = Game.Instance.DefaultFont.GetFontSize(Game.Instance.DefaultFontSize);
             var fontSizeRatio = Game.Instance.DefaultFont.GetGlyphRatio(fontSize);
             var frames = sadImage.ToSurface(TextureConvertMode.Foreground, _frame.Width * _frame.Count, _frame.Height / 2);

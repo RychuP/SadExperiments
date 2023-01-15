@@ -1,4 +1,4 @@
-﻿namespace SadExperimentsV9.TestConsoles;
+﻿namespace SadExperimentsV9;
 
 internal class TestConsole : ScreenSurface
 {

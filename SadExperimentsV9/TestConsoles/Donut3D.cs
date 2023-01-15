@@ -49,7 +49,7 @@ namespace SadExperimentsV9.TestConsoles
             };
 
             SadComponents.Add(Cursor);
-            Game.Instance.LoadFont("Fonts/square10.font");
+            Game.Instance.LoadFont("Resources/Fonts/square10.font");
             Font = Game.Instance.Fonts["Square10"];
         }
 

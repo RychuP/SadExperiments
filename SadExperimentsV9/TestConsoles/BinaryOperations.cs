@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using SadConsole;
+using SadExperimentsV9;
 using SadRogue.Primitives;
 
 namespace SadExperimentsV9.TestConsoles

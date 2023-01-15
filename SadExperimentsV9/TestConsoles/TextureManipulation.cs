@@ -22,7 +22,7 @@ namespace SadExperimentsV9.TestConsoles
 
         public TextureManipulation() : base(3, 3)
         {
-            Font = GameHost.Instance.LoadFont("Fonts/empty_font.font");
+            Font = GameHost.Instance.LoadFont("Resources/Fonts/empty_font.font");
             FontSize = (128, 128);
 
             DefaultBackground = Color.DarkCyan;

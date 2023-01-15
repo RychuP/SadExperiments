@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SadConsole;
 using SadConsole.Components;
+using SadExperimentsV9.Components;
 
 namespace SadExperimentsV9.TestConsoles
 {
