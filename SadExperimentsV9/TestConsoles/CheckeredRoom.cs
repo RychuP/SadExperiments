@@ -109,7 +109,7 @@ namespace SadExperimentsV9.TestConsoles
                 {
                     for (int x = 0; x < Width; x += 3)
                     {
-                        this.Print(x, y, new ColoredGlyph(Program.RandomColor, color, 48));
+                        Surface.SetGlyph(x, y, new ColoredGlyph(Program.RandomColor, color, 48));
                     }
                 }
             }

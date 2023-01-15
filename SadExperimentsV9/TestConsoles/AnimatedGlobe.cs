@@ -63,13 +63,15 @@ namespace SadExperimentsV9.TestConsoles
 
             // instructions
             var animationInstructions = new InstructionSet() { RemoveOnFinished = true }
-                .Instruct(new FadeTextSurfaceTint(_titleScreen, new ColorGradient(Color.Black, Color.Transparent), TimeSpan.FromSeconds(1)))
+                .Instruct(new FadeTextSurfaceTint(_titleScreen, 
+                    new Gradient(Color.Black, Color.Transparent), TimeSpan.FromSeconds(1)))
                 .Code(() =>
                 {
                     Children.Add(new SadConsole.SplashScreens.Simple());
                 })
                 .Wait(TimeSpan.FromSeconds(4))
-                .Instruct(new FadeTextSurfaceTint(_titleScreen, new ColorGradient(Color.Transparent, Color.Black), TimeSpan.FromSeconds(1)))
+                .Instruct(new FadeTextSurfaceTint(_titleScreen, 
+                    new Gradient(Color.Transparent, Color.Black), TimeSpan.FromSeconds(1)))
                 .Code(() =>
                 {
                     _clip.Start();

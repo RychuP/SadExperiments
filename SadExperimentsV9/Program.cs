@@ -28,8 +28,8 @@ namespace SadExperimentsV9
 
     public static class Program
     {
-        public static int Width = 80;
-        public static int Height = 30;
+        public const int Width = 80;
+        public const int Height = 30;
 
         static void Main()
         {
@@ -39,7 +39,7 @@ namespace SadExperimentsV9
             Game.Create(Width, Height);
 
             // Hook the start event so we can add consoles to the system.
-            Game.Instance.OnStart = InitSurfaceShifting;
+            Game.Instance.OnStart = InitEffectsAndDecorators;
 
             // Start the game.
             Game.Instance.Run();
@@ -110,7 +110,7 @@ namespace SadExperimentsV9
         static void InitSadCanvas()
         {
             var sc = GetSC();
-            var canvas = new Canvas(200, 100, Color.Yellow.ToMonoColor())
+            var canvas = new Canvas(200, 100, Color.Yellow)
             {
                 Parent = sc,
                 UsePixelPositioning = false,
@@ -132,10 +132,10 @@ namespace SadExperimentsV9
                 int y = Game.Instance.Random.Next(0, canvas.Height);
                 Color c = RandomColor;
                 Point p = (x, y);
-                canvas.SetPixel(p, c.ToMonoColor());
+                canvas.SetPixel(p, c);
             }
 
-            canvas = new Canvas(10, 10, MonoColor.LightBlue)
+            canvas = new Canvas(10, 10, Color.LightBlue)
             {
                 Parent = sc,
                 Position = (40, 3)
@@ -155,7 +155,7 @@ namespace SadExperimentsV9
                 Parent = sc,
                 Position = (1, 20)
             };
-            canvas.Fill(MonoColor.Red);
+            canvas.Fill(Color.Red);
         }
 
         // casting colors to byte spans
@@ -392,9 +392,9 @@ namespace SadExperimentsV9
         static void InitInstructions()
         {
             int gradientPositionX = -50, gradientChange = 1, angle = 45; //angleChange = 15;
-            var logoText = new ColorGradient(new[] { Color.Magenta, Color.Yellow }, new[] { 0.0f, 1f })
+            var logoText = new Gradient(new[] { Color.Magenta, Color.Yellow }, new[] { 0.0f, 1f })
                                .ToColoredString("[| Powered by SadConsole |]");
-            var logoText2 = new ColorGradient(Color.Magenta, Color.Yellow)
+            var logoText2 = new Gradient(Color.Magenta, Color.Yellow)
                                 .ToColoredString("[| Powered by SadConsole |]");
 
             var s = new ScreenObject
@@ -468,7 +468,7 @@ namespace SadExperimentsV9
                     20, 
                     angle, 
                     new Rectangle(0, 0, Width, Height), 
-                    new ColorGradient(colors, colorStops), 
+                    new Gradient(colors, colorStops), 
                     (f, b, col) => ((IScreenSurface)c).Surface.SetForeground(f, b, col)
                 );
 
@@ -540,12 +540,12 @@ namespace SadExperimentsV9
             {
                 FadeBackground = true,
                 UseCellBackground = false,
-                DestinationBackground = new ColorGradient(Color.Green, Color.Red, Color.Blue),
-                FadeDuration = 3,
+                DestinationBackground = new Gradient(Color.Green, Color.Red, Color.Blue),
+                FadeDuration = TimeSpan.FromSeconds(3),
                 CloneOnAdd = true,
                 Repeat = true,
                 AutoReverse = true,
-                StartDelay = 1
+                StartDelay = TimeSpan.FromSeconds(1)
             };
 
             // apply fade effect
@@ -560,7 +560,7 @@ namespace SadExperimentsV9
             var clonedFade = sc.GetEffect(6, 4) as Fade;
             if (clonedFade is null) return;
             clonedFade.UseCellBackground = true;
-            clonedFade.DestinationBackground = new ColorGradient(Color.Green, Color.Blue, Color.Red);
+            clonedFade.DestinationBackground = new Gradient(Color.Green, Color.Blue, Color.Red);
             clonedFade.FadeForeground = true;
 
             // create a blink glyph effect
@@ -568,7 +568,7 @@ namespace SadExperimentsV9
             {
                 GlyphIndex = 0x05,
                 CloneOnAdd = true,
-                StartDelay = 0.5d
+                StartDelay = TimeSpan.FromSeconds(0.5d)
             };
 
             // apply the blink glyph effect
@@ -576,64 +576,64 @@ namespace SadExperimentsV9
             ClearDecorators(sc[8, 4]);
             
             // create a chain of effects
-            EffectsChain effectsChain = new()
+            EffectSet effectSet = new()
             {
                 Repeat = true,
-                DelayBetweenEffects = 1
+                DelayBetweenEffects = TimeSpan.FromSeconds(1)
             };
 
-            effectsChain.Effects.Add(new Fade
+            effectSet.Effects.AddLast(new Fade
             {
                 FadeBackground = true,
                 UseCellBackground = true,
                 UseCellDestinationReverse = false,
-                DestinationBackground = new ColorGradient(Color.White, Color.Green, Color.Yellow),
-                FadeDuration = 4,
+                DestinationBackground = new Gradient(Color.White, Color.Green, Color.Yellow),
+                FadeDuration = TimeSpan.FromSeconds(4),
                 Repeat = false,
                 AutoReverse = true
             });
 
-            effectsChain.Effects.Add(new Fade
+            effectSet.Effects.AddLast(new Fade
             {
                 FadeForeground = true,
                 UseCellForeground = false,
                 UseCellDestinationReverse = false,
-                DestinationForeground = new ColorGradient(Color.Green, Color.AnsiRed),
-                FadeDuration = 4,
+                DestinationForeground = new Gradient(Color.Green, Color.AnsiRed),
+                FadeDuration = TimeSpan.FromSeconds(4),
                 Repeat = false,
                 AutoReverse = true
             });
 
-            effectsChain.Effects.Add(new Fade
+            effectSet.Effects.AddLast(new Fade
             {
                 FadeBackground = true,
                 UseCellBackground = true,
                 UseCellDestinationReverse = false,
-                DestinationBackground = new ColorGradient(Color.White, Color.Blue, Color.Red),
-                FadeDuration = 4,
+                DestinationBackground = new Gradient(Color.White, Color.Blue, Color.Red),
+                FadeDuration = TimeSpan.FromSeconds(4),
                 Repeat = false,
                 AutoReverse = true
             });
 
-            effectsChain.Effects.Add(new Fade
+            effectSet.Effects.AddLast(new Fade
             {
                 FadeForeground = true,
                 UseCellForeground = true,
                 UseCellDestinationReverse = false,
-                DestinationForeground = new ColorGradient(Color.Green, Color.AnsiBlue),
-                FadeDuration = 4,
+                DestinationForeground = new Gradient(Color.Green, Color.AnsiBlue),
+                FadeDuration = TimeSpan.FromSeconds(4),
                 Repeat = false,
                 AutoReverse = true
             });
 
             // apply chain
-            sc.SetEffect(10, 4, effectsChain);
+            sc.SetEffect(10, 4, effectSet);
             ClearDecorators(sc[10, 4]);
-            if (sc.GetEffect(10, 4) is EffectsChain ec) ec.Start();
+            if (sc.GetEffect(10, 4) is EffectSet es) es.Restart();
 
-            void ClearDecorators(ColoredGlyph cg)
+            static void ClearDecorators(ColoredGlyph cg)
             {
-                cg.Decorators = new CellDecorator[] { };
+                cg.Decorators = Array.Empty<CellDecorator>();
             }
         }
 
@@ -740,10 +740,9 @@ namespace SadExperimentsV9
             c1.Cursor.MouseClickReposition = true;
 
             c1.SadComponents.Add(new RandomBackgroundKeyboardComponent());
-            c1.MouseMove += OnMouseMove;
-            //c1.MouseButtonClicked += OnMouseButtonClicked;
-            c1.MouseExit += OnMouseExit;
-            c1.MouseEnter += OnMouseEnter;
+            c1.MouseMove += OnMouseMove!;
+            c1.MouseExit += OnMouseExit!;
+            c1.MouseEnter += OnMouseEnter!;
 
             var c2 = new Console(30, 15);
             c2.Position = new Point(28, 13);
@@ -776,17 +775,6 @@ namespace SadExperimentsV9
                 if (sender is Console c)
                 {
                     c.Print(1, 1, $"Mouse position: {mouseState.CellPosition}  ");
-                    if (mouseState.Mouse.LeftButtonDown)
-                        c.Print(1, 2, $"Left button is down");
-                    else
-                        c.Print(1, 2, $"                   ");
-                }
-            }
-
-            void OnMouseButtonClicked(object sender, MouseScreenObjectState mouseState)
-            {
-                if (sender is Console c)
-                {
                     if (mouseState.Mouse.LeftButtonDown)
                         c.Print(1, 2, $"Left button is down");
                     else

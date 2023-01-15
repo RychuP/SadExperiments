@@ -11,7 +11,7 @@ namespace SadExperimentsV9.TestConsoles
         const int defaultRowForPrinting = 2;
         const int defaultColumnForPrinting = 3;
         int _currentRow;
-        int[] _rowCharCounts;
+        int[] _rowCharCounts = Array.Empty<int>();
         bool _initialized = false;
 
         enum ActionType
