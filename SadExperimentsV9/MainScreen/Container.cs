@@ -7,6 +7,10 @@ internal class Container : ScreenObject
     readonly Header _header;
     readonly Page[] _pages =
     {
+        new WelcomePage(),
+        new AnimatedGlobe(),
+        new Donut3dPage(),
+        new A_Demo(),
         new SplashScreens(),
         new SmoothScrolling(),
         new RectangleManipulation(),
@@ -25,9 +29,6 @@ internal class Container : ScreenObject
         new FocusSetting(),
         new SurfaceShifting(),
         new CheckeredRoom(),
-        new AnimatedGlobe(),
-        new Donut3dPage(),
-        new A_Demo(),
         new PixelNoise(),
     };
 
