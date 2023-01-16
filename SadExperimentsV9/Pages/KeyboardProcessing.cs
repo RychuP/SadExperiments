@@ -1,9 +1,8 @@
-﻿using SadConsole.Input;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 
-namespace SadExperimentsV9.TestConsoles
-{
-    /*
+namespace SadExperiments.Pages;
+
+/*
      * This class visualizes how the SadConsole processes keyboard. Especially interesting is how the KeysPressed collection registers and holds keys.
      * Holding down several keys produces an interesting effect in the Keys Pressed column, where the keys appear to overlap each other
      * (especially noticable when the keys were NOT presses at the same time).
@@ -26,37 +25,56 @@ namespace SadExperimentsV9.TestConsoles
      *
      */
 
-    class KeyboardProcessing : ScreenSurface
+class KeyboardProcessing : Page
+{
+    const int _xKeysDown = 1,
+        _xKeysPressed = 21,
+        _xKeysReleased = 41;
+    const int ColumnWidth = 10,
+        HeaderRowY = 5,
+        Gap = (Program.Width - ColumnWidth * 3) / 4,
+        Col1X = Gap,
+        Col2X = Col1X + ColumnWidth + Gap,
+        Col3X = Col2X + ColumnWidth + Gap;
+    Rectangle _drawArea;
+    Color _headerColor = Color.LightGreen;
+
+    public KeyboardProcessing()
     {
-        int _xKeysDown = 1,
-            _xKeysPressed = 21,
-            _xKeysReleased = 41;
-        Rectangle _drawArea;
+        Title = "Keyboard Processing";
+        Summary = "Visualisation of how the SadConsole processes keyboard.";
 
-        public KeyboardProcessing(int w, int h) : base (w, h)
-        {
-            _drawArea = new(0, 2, w, h - 2);
-            Surface.Print(_xKeysDown, 1, "Keys Down:");
-            Surface.Print(_xKeysPressed, 1, "Keys Pressed:");
-            Surface.Print(_xKeysReleased, 1, "Keys Released:");
+        Surface.Print(2, "Try pressing and holding single and a few keys at the same time.");
+
+        // print the header for the display of keyboard values
+        _drawArea = new(0, HeaderRowY + 1, Width, Height - HeaderRowY);
+        Surface.Print(Col1X, HeaderRowY, "Keys Down:", _headerColor);
+        Surface.Print(Col2X, HeaderRowY, "Keys Pressed:", _headerColor);
+        Surface.Print(Col3X, HeaderRowY, "Keys Released:", _headerColor);
+    }
+
+    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
+    {
+        if (newParent is Container)
             IsFocused = true;
-        }
 
-        public override bool ProcessKeyboard(Keyboard keyboard)
-        {
-            Surface.Clear(_drawArea);
-            if (keyboard.HasKeysDown) PrintKeys(keyboard.KeysDown, _xKeysDown);
-            if (keyboard.HasKeysPressed) PrintKeys(keyboard.KeysPressed, _xKeysPressed);
-            if (keyboard.KeysReleased.Count > 0) PrintKeys(keyboard.KeysReleased, _xKeysReleased);
-            return true;
-        }
+        base.OnParentChanged(oldParent, newParent);
+    }
 
-        void PrintKeys(ReadOnlyCollection<AsciiKey> keys, int x)
+    public override bool ProcessKeyboard(Keyboard keyboard)
+    {
+        Surface.Clear(_drawArea);
+        if (keyboard.HasKeysDown) PrintKeys(keyboard.KeysDown, Col1X);
+        if (keyboard.HasKeysPressed) PrintKeys(keyboard.KeysPressed, Col2X);
+        if (keyboard.KeysReleased.Count > 0) PrintKeys(keyboard.KeysReleased, Col3X);
+        return base.ProcessKeyboard(keyboard);
+    }
+
+    void PrintKeys(ReadOnlyCollection<AsciiKey> keys, int x)
+    {
+        for (var i = 0; i < keys.Count; i++)
         {
-            for (var i = 0; i < keys.Count; i++)
-            {
-                Surface.Print(x, 3 + i, keys[i].Key.ToString());
-            }
+            Surface.Print(x, HeaderRowY + 2 + i, keys[i].Key.ToString());
         }
     }
 }

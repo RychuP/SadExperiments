@@ -1,15 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SadConsole;
-using SadConsole.Components;
-using SadExperimentsV9.Components;
+﻿using SadExperiments.Components;
 
-namespace SadExperimentsV9.TestConsoles
-{
-    /*
+namespace SadExperiments.Pages;
+
+/*
      * This class shows the difference in the number of calls to Update and Render in SadConsole. On some systems Render will be called less frequently than Update.
      * Or so we thought...
      * 
@@ -40,11 +33,12 @@ namespace SadExperimentsV9.TestConsoles
      *
      */
 
-    class UpdateAndRenderDifference : ScreenSurface
+class UpdateAndRender : Page
+{
+    public UpdateAndRender()
     {
-        public UpdateAndRenderDifference(int w, int h) : base(w, h)
-        {
-            SadComponents.Add(new TestUpdateRenderComponent());
-        }
+        Title = "Update And Render";
+        Summary = "Checking the difference between the Update and Render steps.";
+        SadComponents.Add(new TestUpdateRenderComponent());
     }
 }

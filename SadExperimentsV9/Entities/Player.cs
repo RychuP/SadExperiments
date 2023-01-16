@@ -1,23 +1,21 @@
 ﻿using SadConsole.Entities;
-using SadRogue.Primitives;
 
-namespace SadExperimentsV9.Entities
+namespace SadExperiments.Entities;
+
+class Player : Entity
 {
-    class Player : Entity
+    public Player() : base(Color.Yellow, Color.DarkGray, 1, 1)
     {
-        public Player() : base(Color.Yellow, Color.DarkGray, 1, 1)
-        {
-            Position = (4, 4);
-        }
+        Position = (4, 4);
+    }
 
-        public void MoveTo(Point p)
-        {
-            Position = p;
-        }
+    public void MoveTo(Point p)
+    {
+        Position = p;
+    }
 
-        public Point GetNextMove(Point direction)
-        {
-            return Position.Translate(direction);
-        }
+    public Point GetNextMove(Point direction)
+    {
+        return Position.Translate(direction);
     }
 }
