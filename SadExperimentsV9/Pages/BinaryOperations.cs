@@ -9,7 +9,7 @@ class BinaryOperationsPage : Page
         AddCentered(new BinaryOperations());
 
         Surface.Print(3, "Nothing to do with SadConsole functionality.");
-        Surface.Print(5, "Just me testing various features of C#.");
+        Surface.Print(5, "Just me playing with bits in C#.");
     }
 }
 

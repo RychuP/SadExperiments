@@ -30,6 +30,12 @@ internal class Container : ScreenObject
         new SurfaceShifting(),
         new CheckeredRoom(),
         new PixelNoise(),
+        new CellSurfaceResizing(),
+        new EasingFunctions(),
+        new ImageConversion(),
+        new SadCanvasPage(),
+        new Instructions(),
+        new EffectsAndDecorators(),
     };
 
     public Container()
