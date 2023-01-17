@@ -6,6 +6,8 @@
 
         public string Summary { get; init; } = string.Empty;
 
+        public int Index { get; set; }
+
         public SubPage SubPage
         {
             get => Children[0] as SubPage ?? throw new Exception("There is no SubPage added to the Children of this Page.");
@@ -37,20 +39,22 @@
 
         public override bool ProcessKeyboard(Keyboard keyboard)
         {
-            if (keyboard.HasKeysPressed)
+            if (keyboard.HasKeysPressed && Parent is Container container)
             {
-                if (Parent is Container container)
+                if (keyboard.IsKeyPressed(Keys.F1))
                 {
-                    if (keyboard.IsKeyPressed(Keys.F1))
-                    {
-                        container.PrevPage();
-                        return true;
-                    }
-                    else if (keyboard.IsKeyPressed(Keys.F2))
-                    {
-                        container.NextPage();
-                        return true;
-                    }
+                    container.PrevPage();
+                    return true;
+                }
+                else if (keyboard.IsKeyPressed(Keys.F2))
+                {
+                    container.NextPage();
+                    return true;
+                }
+                else if (keyboard.IsKeyPressed(Keys.F3))
+                {
+                    container.ShowContentsList();
+                    return true;
                 }
             }
 

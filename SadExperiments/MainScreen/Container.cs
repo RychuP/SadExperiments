@@ -1,10 +1,12 @@
-﻿using SadExperiments.Pages;
-
+﻿using SadConsole.UI.Controls;
+using SadConsole.UI;
+using SadExperiments.Pages;
 namespace SadExperiments.MainScreen;
 
 internal class Container : ScreenObject
 {
     readonly Header _header;
+    readonly Page _contentsList;
     readonly Page[] _pages =
     {
         new WelcomePage(),
@@ -40,19 +42,30 @@ internal class Container : ScreenObject
 
     public Container()
     {
+        // set first page as focused
         var firstPage = _pages[0];
         firstPage.IsFocused = true;
 
+        // create a header
         _header = new(firstPage, _pages.Length);
 
+        // create contents list
+        _contentsList = new ContentsList(GetContentsList());
+
+        // remove starting console
         Game.Instance.Screen = this;
         Game.Instance.DestroyDefaultStartingConsole();
 
+        // add children
         Children.Add(_header);
         Children.Add(firstPage);
+
+        // set page indices
+        int i = 0;
+        Array.ForEach(_pages, p => p.Index = i++);
     }
 
-    public Page Page
+    Page Page
     {
         get => Children[1] as Page ?? throw new Exception("Container has not got a Page added to its Children.");
         set
@@ -66,23 +79,58 @@ internal class Container : ScreenObject
         }
     }
 
-    public void NextPage() => ChangePage(_pages.Length - 1, 1, _pages[0]);
+    public void NextPage() => ChangePage(Direction.Right);
 
-    public void PrevPage() => ChangePage(0, -1, _pages.Last());
+    public void PrevPage() => ChangePage(Direction.Left);
 
-    void ChangePage(int testIndex, int step, Page overlappingPage)
+    void ChangePage(Direction direction)
     {
-        // get the index of current page
-        int currentPageIndex = Array.IndexOf(_pages, Page);
-        Children.Remove(Page);
+        int nextIndex = Page.Index + (direction == Direction.Right ? 1 : -1);
+        var page = nextIndex < 0              ? _pages.Last() :
+                   nextIndex >= _pages.Length ? _pages.First() :
+                                                _pages[nextIndex];
+        SetPage(page);
+    }
 
-        // pull the next page from array and display it
-        int nextIndex = currentPageIndex + step;
-        var page = currentPageIndex == testIndex ? overlappingPage : _pages[nextIndex];
-        page.IsFocused = true;
+    public void SetPage(Page page)
+    {
         Page = page;
+        Page.IsFocused = true;
+        _header.SetHeader(page);
+    }
 
-        // change header title and summary to describe the page
-        _header.SetHeader(Page, step == -1 ? Direction.Left : Direction.Right);
+    public void ShowContentsList()
+    {
+        SetPage(_contentsList!);
+    }
+
+    ControlsConsole GetContentsList()
+    {
+        var contentsList = new ControlsConsole(Program.Width, Program.Height);
+        Point position = (1, 1);
+        int buttonWidth = 35;
+
+        foreach (Page page in _pages)
+        {
+            // create new button with a link to the page
+            var button = new Button(buttonWidth, 1)
+            {
+                Text = page.Title,
+                Position = position,
+                UseMouse = true,
+                UseKeyboard = false,
+            };
+            button.Click += (o, e) => SetPage(page);
+            contentsList.Controls.Add(button);
+
+            // increment position
+            position += Direction.Down;
+
+            // if first column is full, start the second column
+            if (position.Y == contentsList.Height - 2)
+                position = (Program.Width - buttonWidth - 1, 1);
+        }
+
+        return contentsList;
     }
 }

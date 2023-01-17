@@ -4,18 +4,26 @@ namespace SadExperiments.Pages;
 
 internal class KeyboardAndMouse : Page
 {
-    Console _console;
+    readonly Console _console;
 
     public KeyboardAndMouse()
     {
         Title = "Keyboard And Mouse";
         Summary = "Input handling via components or events.";
 
-        Surface.Print(45, 2, "Press 'Space' to change color.");
-        Surface.Print(45, 4, "Hover mouse over consoles");
-        Surface.Print(45, 5, "to display position.");
-        Surface.Print(45, 7, "Click to reposition cursor.");
-        Surface.Print(45, 9, "Typing is turned off.");
+        (int Y, string Text)[] prompts = {
+            (2, "Press 'Space' to change color."),
+            (4, "Hover mouse over consoles"),
+            (5, "to display position."),
+            (7, "Click to reposition cursor."),
+            (9, "Typing is turned off.")
+        };
+        Array.ForEach(prompts, p => Surface.Print(45, p.Y, p.Text));
+        //Surface.Print(45, 2, "Press 'Space' to change color.");
+        //Surface.Print(45, 4, "Hover mouse over consoles");
+        //Surface.Print(45, 5, "to display position.");
+        //Surface.Print(45, 7, "Click to reposition cursor.");
+        //Surface.Print(45, 9, "Typing is turned off.");
 
         _console = new(30, 15);
         _console.Position = new Point(10, 1);
@@ -23,7 +31,6 @@ internal class KeyboardAndMouse : Page
         _console.Clear();
         _console.IsFocused = true;
         _console.Cursor.Position = new Point(15, 7);
-        // c1.Cursor.IsEnabled = true;
         _console.Cursor.IsVisible = true;
         _console.Cursor.MouseClickReposition = true;
 

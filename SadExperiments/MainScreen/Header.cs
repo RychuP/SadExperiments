@@ -14,21 +14,12 @@ internal class Header : ScreenSurface
         SetHeader(page);
     }
 
-    public void SetHeader(Page page, Direction d)
-    {
-        SetHeader(page);
-
-        if (d == Direction.Left)
-            _pageCounter.PrevPage();
-        else
-            _pageCounter.NextPage();
-    }
-
-    void SetHeader(Page page)
+    public void SetHeader(Page page)
     {
         Surface.Clear();
         Surface.Print(1, 0, page.Title.ToUpper());
         Surface.Print(1, 1, page.Summary, Color.White);
+        _pageCounter.DisplayPageNumber(page.Index + 1);
     }
 }
 
@@ -36,7 +27,6 @@ internal class PageCounter : ScreenSurface
 {
     const string Title = "Page:";
     readonly int _pageCount;
-    int _currentPage = 1;
 
     public PageCounter(int pageCount) : base(Title.Length + 2, Header.Height)
     {
@@ -45,25 +35,11 @@ internal class PageCounter : ScreenSurface
         Surface.Clear();
         _pageCount = pageCount;
         Surface.Print(0, 0, Title.Align(HorizontalAlignment.Center, Surface.Width));
-        DisplayCounter();
     }
 
-    public void NextPage()
+    public void DisplayPageNumber(int pageNumber)
     {
-        _currentPage++;
-        if (_currentPage > _pageCount) _currentPage = 1;
-        DisplayCounter();
-    }
-
-    public void PrevPage()
-    {
-        _currentPage--;
-        if (_currentPage < 1) _currentPage = _pageCount;
-        DisplayCounter();
-    }
-
-    void DisplayCounter()
-    {
-        Surface.Print(0, 1, $"{_currentPage: 00}/{_pageCount:00}", Color.White);
+        if (pageNumber < 1 || pageNumber > _pageCount) throw new IndexOutOfRangeException($"Page number: {pageNumber} is not valid)");
+        Surface.Print(0, 1, $"{pageNumber: 00}/{_pageCount:00}", Color.White);
     }
 }

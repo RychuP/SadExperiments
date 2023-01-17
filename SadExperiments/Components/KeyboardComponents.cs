@@ -1,5 +1,4 @@
 ﻿using SadConsole.Components;
-using SadConsole.Input;
 
 namespace SadExperiments.Components;
 
@@ -9,17 +8,15 @@ class RandomBackgroundKeyboardComponent : KeyboardConsoleComponent
     {
         handled = false;
 
-        if (host is Console c && keyboard.HasKeysPressed)
+        if (host is Console c && keyboard.HasKeysPressed && keyboard.IsKeyPressed(Keys.Space))
         {
-            if (keyboard.IsKeyPressed(Keys.Space))
-            {
-                c.DefaultBackground = Program.RandomColor;
-                c.Clear();
-                handled = true;
-            }
+            c.DefaultBackground = Program.RandomColor;
+            c.Clear();
+            handled = true;
         }
 
         // allow changing pages by Container
-        host.Parent.ProcessKeyboard(keyboard);
+        if (!handled)
+            handled = host.Parent.ProcessKeyboard(keyboard);
     }
 }
