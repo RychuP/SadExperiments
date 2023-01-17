@@ -5,7 +5,7 @@ namespace SadExperiments.Pages;
 
 // Turning globe animation that uses instructions, image conversion and AnimatedScreenSurface class.
 // Submitted to FeatureDemo project in Thraka's SadConsole repo.
-class AnimatedGlobe : Page
+class AnimatedGlobe : Page, IRestartable
 {
     readonly TheDrawFont _drawFont;
     readonly ScreenSurface _animationScreen;
@@ -37,13 +37,13 @@ class AnimatedGlobe : Page
         // title screen
         _titleScreen = new ScreenSurface(Width, Height);
         _titleScreen.Surface.DefaultBackground = Color.Black;
-
-        Start();
     }
 
-    void Start()
+    public void Restart()
     {
         _clip.Stop();
+
+        Children.Clear();
         Children.Add(_animationScreen);
         Children.Add(_titleScreen);
 
@@ -54,8 +54,12 @@ class AnimatedGlobe : Page
         ((SadConsole.Renderers.ScreenSurfaceRenderer)_titleScreen.Renderer).Opacity = opacity;
         _titleScreen.Tint = Color.Black;
 
-        // instructions
-        var animationInstructions = new InstructionSet() { RemoveOnFinished = true }
+        // remove previous instructions if any
+        var animationInstructions = SadComponents.Where(sc => sc is InstructionSet).FirstOrDefault();
+        if (animationInstructions != null) SadComponents.Remove(animationInstructions);
+
+        // add animation instructions
+        animationInstructions = new InstructionSet() { RemoveOnFinished = true }
             .Instruct(new FadeTextSurfaceTint(_titleScreen,
                 new Gradient(Color.Black, Color.Transparent), TimeSpan.FromSeconds(1)))
             .Code(() =>

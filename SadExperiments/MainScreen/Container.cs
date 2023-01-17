@@ -97,6 +97,7 @@ internal class Container : ScreenObject
         Page = page;
         Page.IsFocused = true;
         _header.SetHeader(page);
+        if (page is IRestartable p) p.Restart();
     }
 
     public void ShowContentsList()
