@@ -8,8 +8,7 @@ internal class FontLoading : Page
         Summary = "Importing a font from a file and using it in a console.";
 
         // load and change font
-        Game.Instance.LoadFont(@"Resources/Fonts/square10.font");
-        Font = Game.Instance.Fonts["Square10"];
+        Font = Fonts.Square10;
         FontSize = Font.GetFontSize(IFont.Sizes.One) * 1.5;
 
         // create an additional console with a default font

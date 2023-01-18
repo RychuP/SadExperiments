@@ -1,6 +1,4 @@
-﻿using Microsoft.VisualBasic;
-using SadConsole.UI;
-using SadConsole.UI.Controls;
+﻿using SadConsole.UI;
 
 namespace SadExperiments.Pages;
 

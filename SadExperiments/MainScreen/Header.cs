@@ -20,7 +20,10 @@ internal class Header : ScreenSurface
         Surface.Print(1, 0, page.Title.ToUpper());
         Surface.Print(1, 1, page.Summary, Color.White);
         _pageCounter.DisplayPageNumber(page.Index + 1);
+        CurrentIndex = page.Index;
     }
+
+    public int CurrentIndex { get; private set; }
 }
 
 internal class PageCounter : ScreenSurface

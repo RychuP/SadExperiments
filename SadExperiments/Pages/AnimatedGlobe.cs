@@ -7,7 +7,7 @@ namespace SadExperiments.Pages;
 // Submitted to FeatureDemo project in Thraka's SadConsole repo.
 class AnimatedGlobe : Page, IRestartable
 {
-    readonly TheDrawFont _drawFont;
+    readonly TheDrawFont _drawFont = Fonts.Destruct;
     readonly ScreenSurface _animationScreen;
     readonly AnimatedGlobeClip _clip;
     readonly ScreenSurface _titleScreen;
@@ -16,12 +16,6 @@ class AnimatedGlobe : Page, IRestartable
     {
         Title = "Animated Globe";
         Summary = "Uses instructions, image conversion and AnimatedScreenSurface class.";
-
-        // draw font
-        string fontFileName = "DESTRUCX.TDF";
-        var fontEnumerable = TheDrawFont.ReadFonts($"Resources/Fonts/{fontFileName}");
-        if (fontEnumerable is null) throw new ArgumentException();
-        _drawFont = fontEnumerable.ToArray()[0];
 
         // animation screen
         _animationScreen = new ScreenSurface(Width, Height);

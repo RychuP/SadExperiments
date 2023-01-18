@@ -85,7 +85,8 @@ internal class Container : ScreenObject
 
     void ChangePage(Direction direction)
     {
-        int nextIndex = Page.Index + (direction == Direction.Right ? 1 : -1);
+        // take index from _header.CurrentIndex rather than Page.Index, because Page can hold contents list which will mess up the order
+        int nextIndex = _header.CurrentIndex + (direction == Direction.Right ? 1 : -1);
         var page = nextIndex < 0              ? _pages.Last() :
                    nextIndex >= _pages.Length ? _pages.First() :
                                                 _pages[nextIndex];
@@ -96,13 +97,16 @@ internal class Container : ScreenObject
     {
         Page = page;
         Page.IsFocused = true;
-        _header.SetHeader(page);
-        if (page is IRestartable p) p.Restart();
+        if (page is not ContentsList)
+            _header.SetHeader(page);
+        if (page is IRestartable p) 
+            p.Restart();
     }
 
     public void ShowContentsList()
     {
-        SetPage(_contentsList!);
+        var page = Page is ContentsList ? _pages[_header.CurrentIndex] : _contentsList;
+        SetPage(page);
     }
 
     ControlsConsole GetContentsList()

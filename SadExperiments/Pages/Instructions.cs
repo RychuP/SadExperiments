@@ -24,8 +24,7 @@ internal class Instructions : Page, IRestartable
 
         // remove previous instructions if any
         var animationInstructions = SadComponents.Where(sc => sc is InstructionSet).FirstOrDefault();
-        if (animationInstructions != null) 
-            SadComponents.Remove(animationInstructions);
+        if (animationInstructions != null) SadComponents.Remove(animationInstructions);
 
         animationInstructions = new InstructionSet() { RemoveOnFinished = true }
             // move the angled gradient spotlight effect

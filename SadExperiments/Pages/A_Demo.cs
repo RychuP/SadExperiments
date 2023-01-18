@@ -21,7 +21,7 @@ internal class TextureManipulation : Console
 
     public TextureManipulation() : base(3, 3)
     {
-        Font = GameHost.Instance.LoadFont("Resources/Fonts/empty_font.font");
+        Font = Fonts.Empty;
         FontSize = (128, 128);
 
         DefaultBackground = Color.DarkCyan;
