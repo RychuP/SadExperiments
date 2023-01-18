@@ -1,5 +1,5 @@
 # SadExperiments
-Tests of various features of the SadConsole and related libraries.
+Tests of various features of the SadConsole and related libraries. Feel free to contribute a page with some bite size content for others to learn from.
 
 ## Screenshots:
 
