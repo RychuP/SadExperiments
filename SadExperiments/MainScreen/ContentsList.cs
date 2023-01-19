@@ -1,6 +1,6 @@
 ﻿using SadConsole.UI;
 
-namespace SadExperiments.Pages;
+namespace SadExperiments.MainScreen;
 
 internal class ContentsList : Page
 {
@@ -9,5 +9,8 @@ internal class ContentsList : Page
         Title = "List of Contents";
         Summary = "Click on the page to load.";
         Children.Add(contentsList);
+        IsVisible = false;
     }
+
+    public bool IsBeingShown => IsFocused;
 }

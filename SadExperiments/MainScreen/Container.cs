@@ -1,12 +1,14 @@
 ﻿using SadConsole.UI.Controls;
 using SadConsole.UI;
 using SadExperiments.Pages;
+
 namespace SadExperiments.MainScreen;
 
 internal class Container : ScreenObject
 {
     readonly Header _header;
-    readonly Page _contentsList;
+    readonly ContentsList _contentsList;
+    Page _currentPage;
     readonly Page[] _pages =
     {
         new WelcomePage(),
@@ -49,34 +51,20 @@ internal class Container : ScreenObject
         // create a header
         _header = new(firstPage, _pages.Length);
 
-        // create contents list
-        _contentsList = new ContentsList(GetContentsList());
+        // instantiate data fields
+        _contentsList = new ContentsList(ButtonsWithLinksToPages);
+        _currentPage = firstPage;
 
         // remove starting console
         Game.Instance.Screen = this;
         Game.Instance.DestroyDefaultStartingConsole();
 
         // add children
-        Children.Add(_header);
-        Children.Add(firstPage);
+        Children.Add(_header, _contentsList, _currentPage);
 
         // set page indices
         int i = 0;
         Array.ForEach(_pages, p => p.Index = i++);
-    }
-
-    Page Page
-    {
-        get => Children[1] as Page ?? throw new Exception("Container has not got a Page added to its Children.");
-        set
-        {
-            if (Children.Count >= 2)
-                Children[1] = value;
-            else if (Children.Count == 1)
-                Children.Add(value);
-            else
-                throw new Exception("Trying to set a Page in Children at a different index than 1.");
-        }
     }
 
     public void NextPage() => ChangePage(Direction.Right);
@@ -85,57 +73,74 @@ internal class Container : ScreenObject
 
     void ChangePage(Direction direction)
     {
-        // take index from _header.CurrentIndex rather than Page.Index, because Page can hold contents list which will mess up the order
-        int nextIndex = _header.CurrentIndex + (direction == Direction.Right ? 1 : -1);
+        if (_contentsList.IsBeingShown) HideContentsList();
+        int nextIndex = _currentPage.Index + (direction == Direction.Right ? 1 : -1);
         var page = nextIndex < 0              ? _pages.Last() :
                    nextIndex >= _pages.Length ? _pages.First() :
                                                 _pages[nextIndex];
-        SetPage(page);
+        ChangePage(page);
     }
 
-    public void SetPage(Page page)
+    void ChangePage(Page page)
     {
-        Page = page;
-        Page.IsFocused = true;
-        if (page is not ContentsList)
-            _header.SetHeader(page);
-        if (page is IRestartable p) 
+        Children.Remove(_currentPage);
+        Children.Add(page);
+        _currentPage = page;
+        _currentPage.IsFocused = true;
+        _header.SetHeader(page);
+        if (page is IRestartable p)
             p.Restart();
     }
 
     public void ShowContentsList()
     {
-        var page = Page is ContentsList ? _pages[_header.CurrentIndex] : _contentsList;
-        SetPage(page);
+        if (!_contentsList.IsBeingShown)
+        {
+            Children.MoveToTop(_contentsList);
+            _contentsList.IsVisible = true;
+            _contentsList.IsFocused = true;
+        }
+        else HideContentsList();
     }
 
-    ControlsConsole GetContentsList()
+    void HideContentsList()
     {
-        var contentsList = new ControlsConsole(Program.Width, Program.Height);
-        Point position = (1, 1);
-        int buttonWidth = 35;
+        Children.MoveToTop(_currentPage);
+        _contentsList.IsVisible = false;
+        _currentPage.IsFocused = true;
+        if (_currentPage is IRestartable p)
+            p.Restart();
+    }
 
-        foreach (Page page in _pages)
+    ControlsConsole ButtonsWithLinksToPages
+    {
+        get
         {
-            // create new button with a link to the page
-            var button = new Button(buttonWidth, 1)
+            var contentsList = new ControlsConsole(Program.Width, Program.Height);
+            Point position = (1, 1);
+            int buttonWidth = 35;
+
+            foreach (Page page in _pages)
             {
-                Text = page.Title,
-                Position = position,
-                UseMouse = true,
-                UseKeyboard = false,
-            };
-            button.Click += (o, e) => SetPage(page);
-            contentsList.Controls.Add(button);
+                // create new button with a link to the page
+                var button = new Button(buttonWidth, 1)
+                {
+                    Text = page.Title,
+                    Position = position,
+                    UseMouse = true,
+                    UseKeyboard = false,
+                };
+                button.Click += (o, e) => ChangePage(page);
+                contentsList.Controls.Add(button);
 
-            // increment position
-            position += Direction.Down;
+                // increment position
+                position += Direction.Down;
 
-            // if first column is full, start the second column
-            if (position.Y == contentsList.Height - 2)
-                position = (Program.Width - buttonWidth - 1, 1);
+                // if first column is full, start the second column
+                if (position.Y == contentsList.Height - 2)
+                    position = (Program.Width - buttonWidth - 1, 1);
+            }
+            return contentsList;
         }
-
-        return contentsList;
     }
 }

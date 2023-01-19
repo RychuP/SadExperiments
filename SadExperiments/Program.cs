@@ -8,35 +8,27 @@ global using SadExperiments.MainScreen;
 global using Console = SadConsole.Console;
 global using MonoColor = Microsoft.Xna.Framework.Color;
 
-namespace SadExperiments
+namespace SadExperiments;
+
+public static class Program
 {
-    // Tests of various features of SadConsole. 
-    public static class Program
+    public const int Width = 80;
+    public const int Height = 30;
+
+    static void Main()
     {
-        public const int Width = 80;
-        public const int Height = 30;
-
-        static void Main()
-        {
-            Settings.WindowTitle = "SadConsole Experiments";
-            Settings.ResizeMode = Settings.WindowResizeOptions.Fit;
-
-            // Setup the engine and create the main window.
-            Game.Create(Width, Height + Header.Height);
-
-            // Hook the start event so we can add consoles to the system.
-            Game.Instance.OnStart = Init;
-
-            // Start the game.
-            Game.Instance.Run();
-            Game.Instance.Dispose();
-        }
-
-        static void Init()
-        {
-            _ = new Container();
-        }
-
-        public static Color RandomColor => Color.White.GetRandomColor(Game.Instance.Random);
+        Settings.WindowTitle = "SadConsole Experiments";
+        Settings.ResizeMode = Settings.WindowResizeOptions.Fit;
+        Game.Create(Width, Height + Header.Height);
+        Game.Instance.OnStart = Init;
+        Game.Instance.Run();
+        Game.Instance.Dispose();
     }
+
+    static void Init()
+    {
+        _ = new Container();
+    }
+
+    public static Color RandomColor => Color.White.GetRandomColor(Game.Instance.Random);
 }
