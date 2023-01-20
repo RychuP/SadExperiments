@@ -74,15 +74,10 @@ internal class SadCanvasPage : Page
         }
     }
 
-    ScreenSurface GetTextSurface()
+    static ScreenSurface GetTextSurface()
     {
-        var textSurface = new ScreenSurface(10, 3)
-        {
-            Position = (1, 1)
-        };
-        textSurface.Surface.DefaultBackground = Color.Green;
-        textSurface.Surface.DefaultForeground = Color.White;
-        textSurface.Surface.Clear();
+        var textSurface = new ScreenSurface(10, 3) { Position = (1, 1) };
+        textSurface.SetDefaultColors(Color.White, Color.Green);
         return textSurface;
     }
 

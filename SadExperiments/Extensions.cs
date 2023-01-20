@@ -12,13 +12,13 @@ public static class Extensions
     public static void Print(this ICellSurface s, int y, string t, Color? c = null) =>
         s.Print(0, y, t.Align(HorizontalAlignment.Center, s.Width), c ?? s.DefaultForeground);
 
-    public static void SetBackgroundBlue(this IScreenSurface s)
-    {
-        s.Surface.DefaultBackground = Color.LightBlue;
-        s.Surface.DefaultForeground = Color.Black;
-        s.Surface.Clear();
-    }
-
     public static void Add(this ScreenObjectCollection collection, params IScreenObject[] childrenList) =>
         Array.ForEach(childrenList, child => collection.Add(child));
+
+    public static void SetDefaultColors(this IScreenSurface screenSurface, Color fg, Color bg)
+    {
+        screenSurface.Surface.DefaultForeground = fg;
+        screenSurface.Surface.DefaultBackground = bg;
+        screenSurface.Surface.Clear();
+    }
 }

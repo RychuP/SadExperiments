@@ -32,7 +32,7 @@ internal class FocusSetting : Page
     {
         public ClickableConsole() : base(20, 3)
         {
-            this.SetBackgroundBlue();
+            this.SetDefaultColors(Color.Black, Color.LightBlue);
             FocusOnMouseClick = true;
 
             // just playing with components
