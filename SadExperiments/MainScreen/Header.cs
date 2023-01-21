@@ -7,7 +7,7 @@ internal class Header : ScreenSurface
 
     public Header(Page page, int pageCount) : base(Program.Width, Height)
     {
-        this.SetDefaultColors(Color.Yellow, Color.DarkGray.GetDarker());
+        Surface.SetDefaultColors(Color.Yellow, Color.DarkGray.GetDarker(), false);
         _pageCounter = new PageCounter(pageCount) { Parent = this };
         _pageCounter.Position = (Surface.Width - _pageCounter.Surface.Width, 0);
         SetHeader(page);
@@ -30,7 +30,7 @@ internal class PageCounter : ScreenSurface
     public PageCounter(int pageCount) : base(Title.Length + 2, Header.Height)
     {
         _pageCount = pageCount;
-        this.SetDefaultColors(Color.Yellow, Color.DarkGray.GetDarker());
+        Surface.SetDefaultColors(Color.Yellow, Color.DarkGray.GetDarker());
         Surface.Print(0, 0, Title.Align(HorizontalAlignment.Center, Surface.Width));
     }
 

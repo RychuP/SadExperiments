@@ -76,9 +76,9 @@ internal class SadCanvasPage : Page
 
     static ScreenSurface GetTextSurface()
     {
-        var textSurface = new ScreenSurface(10, 3) { Position = (1, 1) };
-        textSurface.SetDefaultColors(Color.White, Color.Green);
-        return textSurface;
+        var ts = new ScreenSurface(10, 3) { Position = (1, 1) };
+        ts.Surface.SetDefaultColors(Color.White, Color.Green);
+        return ts;
     }
 
     class ProceduralTriangles : Canvas

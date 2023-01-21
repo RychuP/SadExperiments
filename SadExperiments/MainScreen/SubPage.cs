@@ -9,6 +9,6 @@ internal class SubPage : ScreenSurface
 
     public SubPage(int w, int h) : base(w, h)
     {
-        this.SetDefaultColors(Color.Black, Color.LightBlue);
+        Surface.SetDefaultColors(Color.Black, Color.LightBlue);
     }
 }

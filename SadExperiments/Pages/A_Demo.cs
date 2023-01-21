@@ -90,7 +90,7 @@ internal class TextureManipulation : Console
 
     class Line
     {
-        static readonly Rectangle s_surface = new Rectangle(0, 0, 96, 96);
+        static readonly Rectangle s_surface = new(0, 0, 96, 96);
         readonly int _maxIndex;
         readonly Dir _direction;
         MonoColor _color = Program.RandomColor.ToMonoColor();
@@ -178,7 +178,7 @@ internal class TextureManipulation : Console
                 };
             }
 
-            if (!s_surface.Positions().Contains(_start))
+            if (!s_surface.Positions().ToEnumerable().Contains(_start))
                 ChangeSide();
 
             _end = GetOppositePoint(_start);

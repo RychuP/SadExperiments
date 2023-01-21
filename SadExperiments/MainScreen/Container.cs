@@ -130,7 +130,11 @@ internal class Container : ScreenObject
                     UseMouse = true,
                     UseKeyboard = false,
                 };
-                button.Click += (o, e) => ChangePage(page);
+                button.Click += (o, e) =>
+                {
+                    HideContentsList();
+                    ChangePage(page);
+                };
                 contentsList.Controls.Add(button);
 
                 // increment position
