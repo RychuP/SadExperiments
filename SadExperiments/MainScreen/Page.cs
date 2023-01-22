@@ -61,3 +61,8 @@ class Page : Console
         return base.ProcessKeyboard(keyboard);
     }
 }
+
+internal interface IRestartable
+{
+    void Restart();
+}
