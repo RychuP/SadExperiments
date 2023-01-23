@@ -1,4 +1,7 @@
-﻿namespace SadExperiments;
+﻿using GoRogue.DiceNotation;
+using ShaiRandom.Generators;
+
+namespace SadExperiments;
 
 public static class Extensions
 {
@@ -29,4 +32,21 @@ public static class Extensions
         cellSurface.DefaultBackground = bg is null ? Color.Transparent : bg.Value;
         if (clear) cellSurface.Clear();
     }
+
+    /// <summary>
+    /// Draws a box around the perimeter of the <see cref="ICellSurface.Area"/>.
+    /// </summary>
+    /// <param name="fg">Foreground <see cref="Color"/>.</param>
+    public static void DrawOutline(this ICellSurface cellSurface, Color? fg = null)
+    {
+        cellSurface.DrawBox(cellSurface.Area, ShapeParameters.CreateStyledBox(ICellSurface.ConnectedLineThin,
+            new ColoredGlyph(fg ?? Color.Pink, Color.Black)));
+    }
+
+    /// <summary>
+    /// Rolls a d4 dice to select a random cardinal <see cref="Direction"/>.
+    /// </summary>
+    /// <returns>Random cardinal direction.</returns>
+    public static Direction RandomCardinalDirection(this IEnhancedRandom rand) =>
+        Direction.Up + Dice.Roll("1d4*2");
 }
