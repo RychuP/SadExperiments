@@ -1,5 +1,6 @@
 ﻿using GoRogue;
 using GoRogue.Random;
+using SadConsole;
 using SadConsole.Ansi;
 using SadConsole.Quick;
 using SadConsole.UI;
@@ -45,7 +46,7 @@ internal class GoRogueLineAlgorithms : Page
 
         // create buttons
         int mapHeight = (_map.HeightPixels + _map.FontSize.Y * 2) / FontSize.Y;
-        _buttons = new Buttons(Width - _playerInfo.Width - 2, Height - mapHeight, _map.Lines.CurrentAlgorithm.ToString())
+        _buttons = new Buttons(Width - _playerInfo.Width - 2, Height - mapHeight, _map.LineSurface.CurrentAlgorithm.ToString())
         {
             Parent = this,
             Position = (1, mapHeight)
@@ -55,19 +56,19 @@ internal class GoRogueLineAlgorithms : Page
 
         _buttons.ChangeLineAlgorithm.Click += (o, e) =>
         {
-            _map.Lines.ChangeAlgorithm();
-            if (o is CustomButton b) b.Text = $"2. {_map.Lines.CurrentAlgorithm}";
+            _map.LineSurface.ChangeAlgorithm();
+            if (o is CustomButton b) b.Text = $"2. {_map.LineSurface.CurrentAlgorithm}";
             if (!_map.Player.IsMoving)
             {
-                int length = _map.Lines.DrawLine(_map.Player.Position, PlayerInfo.ReferencePoint);
+                int length = _map.LineSurface.DrawLine(_map.Player.Position, PlayerInfo.ReferencePoint);
                 _playerInfo.PrintInfo(_map.Player, length);
             }
         };
 
         _buttons.ShowHideLine.Click += (o, e) =>
         {
-            _map.Lines.IsVisible = !_map.Lines.IsVisible;
-            if (o is CustomButton b) b.Text = _map.Lines.IsVisible ? "3. Hide Line" : "3. Show Line";
+            _map.LineSurface.IsVisible = !_map.LineSurface.IsVisible;
+            if (o is CustomButton b) b.Text = _map.LineSurface.IsVisible ? "3. Hide Line" : "3. Show Line";
         };
 
         _buttons.StartStopMovement.Click += (o, e) =>
@@ -85,7 +86,7 @@ internal class GoRogueLineAlgorithms : Page
             {
                 if (control is CustomButton cb && keyboard.IsKeyPressed(cb.KeyboardShortcut))
                 {
-                    cb.SimulateClick();
+                    cb.InvokeClick();
                     return true;
                 }
             }
@@ -156,22 +157,19 @@ internal class GoRogueLineAlgorithms : Page
                 {
                     Resize(value.Length + Padding, 1);
                     if (Parent is ControlHost cs)
-                    {
                         Position = Position.WithX(cs.ParentConsole.Surface.Width / 2 - Width / 2);
-                    }
                 }
-                _text = value;
-                IsDirty = true;
+                base.Text = value;
             }
         }
-        public void SimulateClick()
+        public new void InvokeClick()
         {
             // Fancy check to make sure Parent, Parent.Host, and Parent.Host.ParentConsole are all non-null
             if (Parent is { Host.ParentConsole: { } })
                 Parent.Host.ParentConsole.IsFocused = true;
 
             IsFocused = true;
-            InvokeClick();
+            base.InvokeClick();
             DetermineState();
         }
     }
@@ -216,10 +214,8 @@ internal class GoRogueLineAlgorithms : Page
             Print("Euclidean distance", $"{_euclideanDistance.Calculate(ReferencePoint, player.Position):f2}");
         }
 
-        void Print(string label, object value)
-        {
+        void Print(string label, object value) =>
             Cursor.Right(2).Print($"[c:r f:LightBlue]{label,-30}[c:undo] {value.ToString()}").NewLine();
-        }
     }
 
     class PositionChangedEventArgs : EventArgs
@@ -238,7 +234,7 @@ internal class GoRogueLineAlgorithms : Page
 
         public Player Player { get; init; }
 
-        public LineSurface Lines { get; init; }
+        public LineSurface LineSurface { get; init; }
 
         public Map() : base(11, 11)
         {
@@ -269,13 +265,13 @@ internal class GoRogueLineAlgorithms : Page
             Player = new(_grid.Area.Center, Math.Min(_grid.Area.Width, _grid.Area.Height));
 
             // create a lines layer
-            Lines = new LineSurface(width, height)
+            LineSurface = new LineSurface(width, height)
             {
                 Parent = this,
                 FontSize = this.FontSize,
                 Position = (1, 1)
             };
-            Player.PositionChanged += Lines.Player_OnPositionChanged;
+            Player.PositionChanged += LineSurface.Player_OnPositionChanged;
 
             // add event handler
             _deltaTime.TresholdReached += DeltaTime_OnTresholdReached;
@@ -283,7 +279,7 @@ internal class GoRogueLineAlgorithms : Page
 
         public void Redraw()
         {
-            _grid.FillWithFloorAndWalls();
+            _grid.GenerateContent();
             Player.Position = GlobalRandom.DefaultRNG.RandomPosition(_grid.Surface.Area, p => _grid.IsWalkable(p));
         }
 
@@ -302,7 +298,7 @@ internal class GoRogueLineAlgorithms : Page
                     else
                     {
                         // dead end... turn the player back
-                        Player.Direction = currentDirection + 4;
+                        Player.Direction = currentDirection.Inverse();
                     }
                 }
             }
@@ -317,7 +313,7 @@ internal class GoRogueLineAlgorithms : Page
                 else if (!TurnPlayer())
                 {
                     // dead end... turn the player back
-                    Player.Direction = currentDirection + 4;
+                    Player.Direction = currentDirection.Inverse();
                 }
             }
         }
@@ -334,7 +330,7 @@ internal class GoRogueLineAlgorithms : Page
             else
             {
                 // turn the player the other way
-                Player.InverseTurn();
+                Player.InverseDirection();
                 if (_grid.IsWalkable(Player.NextPosition))
                 {
                     MovePlayer();
@@ -346,9 +342,9 @@ internal class GoRogueLineAlgorithms : Page
 
         void MovePlayer()
         {
-            _grid.SetCellToFloor(Player.Position);
+            _grid.DrawFloor(Player.Position);
             Player.Walk();
-            _grid.SetCellAppearance(Player.Position.X, Player.Position.Y, Player);
+            _grid.DrawPlayer(Player);
         }
 
         public override void Update(TimeSpan delta)
@@ -400,10 +396,13 @@ internal class GoRogueLineAlgorithms : Page
         {
             Font = Fonts.Square10;
             FontSize *= FontSizeMultiplier;
-            FillWithFloorAndWalls();
+            GenerateContent();
         }
 
-        public void FillWithFloorAndWalls()
+        /// <summary>
+        /// Fills the grid with floors and walls.
+        /// </summary>
+        public void GenerateContent()
         {
             Surface.Clear();
 
@@ -425,7 +424,10 @@ internal class GoRogueLineAlgorithms : Page
             }
         }
 
-        public void SetCellToFloor(Point position) =>
+        public void DrawPlayer(Player player) =>
+            Surface.SetGlyph(player.Position.X, player.Position.Y, player);
+
+        public void DrawFloor(Point position) =>
             Surface.SetGlyph(position.X, position.Y, FloorGlyph, Surface.DefaultForeground);
 
         public bool IsWalkable(Point position) =>
@@ -458,11 +460,11 @@ internal class GoRogueLineAlgorithms : Page
             {
                 _position = value;
                 var args = new PositionChangedEventArgs(_position);
-                OnPositionChange(args);
+                OnPositionChanged(args);
             }
         }
 
-        protected virtual void OnPositionChange(PositionChangedEventArgs args) =>
+        protected virtual void OnPositionChanged(PositionChangedEventArgs args) =>
             PositionChanged?.Invoke(this, args);
 
         public event EventHandler<PositionChangedEventArgs>? PositionChanged;
@@ -473,7 +475,7 @@ internal class GoRogueLineAlgorithms : Page
             SetDesiredDistance();
         }
 
-        public void InverseTurn() => Direction += 4;
+        public void InverseDirection() => Direction = Direction.Inverse();
 
         public bool WantsToTurn() => CurrentDistance == DesiredDistance;
 

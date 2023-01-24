@@ -49,4 +49,12 @@ public static class Extensions
     /// <returns>Random cardinal direction.</returns>
     public static Direction RandomCardinalDirection(this IEnhancedRandom rand) =>
         Direction.Up + Dice.Roll("1d4*2");
+
+    /// <summary>
+    /// Inverses direction: left will be right, up will be down, etc.
+    /// </summary>
+    /// <param name="direction"><see cref="Direction"/> to inverse.</param>
+    /// <returns>Inversed <see cref="Direction"/>.</returns>
+    public static Direction Inverse(this Direction direction) =>
+        direction + 4;
 }
