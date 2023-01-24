@@ -1,5 +1,6 @@
 ﻿using GoRogue;
 using GoRogue.Random;
+using SadConsole.Ansi;
 using SadConsole.Quick;
 using SadConsole.UI;
 using SadConsole.UI.Controls;
@@ -84,7 +85,7 @@ internal class GoRogueLineAlgorithms : Page
             {
                 if (control is CustomButton cb && keyboard.IsKeyPressed(cb.KeyboardShortcut))
                 {
-                    cb.InvokeClick();
+                    cb.SimulateClick();
                     return true;
                 }
             }
@@ -162,6 +163,21 @@ internal class GoRogueLineAlgorithms : Page
                 _text = value;
                 IsDirty = true;
             }
+        }
+        public void SimulateClick()
+        {
+            bool old = MouseState_IsMouseOver;
+            MouseState_IsMouseOver = true;
+
+            if (Parent is IContainer && Parent.Host is ControlHost ch)
+            {
+                foreach(var control in ch)
+                    control.IsFocused = false;
+            }
+            InvokeClick();
+            DetermineState();
+
+            MouseState_IsMouseOver = old;
         }
 
         public new bool IsFocused { get; set; }
