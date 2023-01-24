@@ -15,7 +15,7 @@ internal class Container : ScreenObject
         new AnimatedGlobe(),
         new Donut3dPage(),
         new A_Demo(),
-        new Primitives(),
+        new GoRogueLineAlgorithms(),
         new SplashScreens(),
         new SmoothScrolling(),
         new RectangleManipulation(),
