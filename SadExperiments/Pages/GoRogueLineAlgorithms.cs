@@ -166,21 +166,14 @@ internal class GoRogueLineAlgorithms : Page
         }
         public void SimulateClick()
         {
-            bool old = MouseState_IsMouseOver;
-            MouseState_IsMouseOver = true;
+            // Fancy check to make sure Parent, Parent.Host, and Parent.Host.ParentConsole are all non-null
+            if (Parent is { Host.ParentConsole: { } })
+                Parent.Host.ParentConsole.IsFocused = true;
 
-            if (Parent is IContainer && Parent.Host is ControlHost ch)
-            {
-                foreach(var control in ch)
-                    control.IsFocused = false;
-            }
+            IsFocused = true;
             InvokeClick();
             DetermineState();
-
-            MouseState_IsMouseOver = old;
         }
-
-        public new bool IsFocused { get; set; }
     }
     
     class PlayerInfo : Console
