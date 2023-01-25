@@ -43,6 +43,13 @@ public static class Extensions
             new ColoredGlyph(fg ?? Color.Pink, Color.Black)));
     }
 
+    public static void DrawOutline(this Rectangle rectangle, ICellSurface surface, Color? fg = null)
+    {
+        var style = ShapeParameters.CreateStyledBox(ICellSurface.ConnectedLineThin,
+            new ColoredGlyph(fg ?? Color.White, Color.Transparent));
+        surface.DrawBox(rectangle, style);
+    }
+
     /// <summary>
     /// Rolls a d4 dice to select a random cardinal <see cref="Direction"/>.
     /// </summary>
