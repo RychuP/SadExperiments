@@ -1,42 +1,48 @@
-﻿using SadConsole.UI;
+﻿using SadConsole.Quick;
+using SadConsole.UI;
 using SadConsole.UI.Controls;
 using SadConsole.UI.Themes;
-using System.Reflection.Emit;
 
 namespace SadExperiments.Pages;
 
 internal class RectangleBisection : Page
 {
     readonly Buttons _buttons;
+    Rectangle[] _rectangles = Array.Empty<Rectangle>();
+    Rectangle _rectangle;
+    string _lastRectangleinfo = string.Empty;
 
     public RectangleBisection()
     {
-        Title = "Primitives";
-        Summary = "Testing primitives.";
+        Title = "Rectangle Bisection";
+        Summary = "Testing rectangle bisection methods.";
 
         // create buttons console
         _buttons = new(Width, Height) { Parent = this };
+        _buttons.WithMouse((so, ms) => ProcessMouse(ms));
 
         // create base rectangle
-        var rectangle = new Rectangle(Surface.Area.Center, Width / 2 - 4, Height / 2 - 5);
+        _rectangle = new Rectangle(Surface.Area.Center, Width / 2 - 4, Height / 2 - 5);
         var style = ShapeParameters.CreateStyledBox(ICellSurface.ConnectedLineThin,
             new ColoredGlyph(Color.White, Color.Transparent));
-        Surface.DrawBox(rectangle, style);
+        Surface.DrawBox(_rectangle, style);
 
         // add bottom row buttons
         int rowNumber = Height - 2;
         var button = _buttons.AddButton("BisectHorizontally", rowNumber);
         button.Click += (o, e) =>
         {
-            var result = rectangle.BisectHorizontally();
-            DrawResult(result.ToEnumerable());
+            var result = _rectangle.BisectHorizontally().ToEnumerable();
+            DrawResult(result);
+            _rectangles = result.ToArray();
         };
         button.InvokeClick();
         button = _buttons.AddButton("BisectVertically", rowNumber);
         button.Click += (o, e) =>
         {
-            var result = rectangle.BisectVertically();
-            DrawResult(result.ToEnumerable());
+            var result = _rectangle.BisectVertically().ToEnumerable();
+            DrawResult(result);
+            _rectangles = result.ToArray();
         };
 
         // add top row buttons
@@ -49,13 +55,27 @@ internal class RectangleBisection : Page
                 {
                     int minDimension = Convert.ToInt32(cb.Text);
                     Surface.Print(1, "BisectRecursive: " + minDimension);
-                    var result = rectangle.BisectRecursive(minDimension);
+                    var result = _rectangle.BisectRecursive(minDimension);
                     DrawResult(result);
+                    _rectangles = result.ToArray();
                 }
             };
         }
 
         Surface.Print(1, "BisectRecursive: X");
+    }
+
+    public override bool ProcessMouse(MouseScreenObjectState state)
+    {
+        if (_rectangle.Contains(state.CellPosition))
+        {
+            var rectangle = Array.Find(_rectangles, r => r.Contains(state.CellPosition));
+            _lastRectangleinfo = $"Rectangle size: {rectangle.Size}";
+            Surface.Print(1, 1, _lastRectangleinfo);
+        }
+        else 
+            Surface.Print(1, 1, new string(' ', _lastRectangleinfo.Length));
+        return base.ProcessMouse(state);
     }
 
     void DrawResult(IEnumerable<Rectangle> result)

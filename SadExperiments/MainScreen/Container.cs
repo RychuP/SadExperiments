@@ -11,12 +11,12 @@ internal class Container : ScreenObject
     Page _currentPage;
     readonly Page[] _pages =
     {
-        new RectangleBisection(),
         new WelcomePage(),
         new AnimatedGlobe(),
         new Donut3dPage(),
         new A_Demo(),
         new GoRogueLineAlgorithms(),
+        new RectangleBisection(),
         new SplashScreens(),
         new SmoothScrolling(),
         new RectangleManipulation(),
