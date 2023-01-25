@@ -222,9 +222,15 @@ internal class GoRogueLineAlgorithms : Page
     {
         public int LineLength { get; set; } = 0;
 
-        public Point Position { get; set; } = Point.Zero;
+        public Point NewPosition { get; set; } = Point.Zero;
 
-        public PositionChangedEventArgs(Point position) => Position = position;
+        public Point OldPosition { get; set; } = Point.Zero;
+
+        public PositionChangedEventArgs(Point newPosition, Point oldPosition)
+        {
+            NewPosition = newPosition;
+            OldPosition = oldPosition;
+        }
     }
 
     class Map : ScreenSurface
@@ -272,6 +278,7 @@ internal class GoRogueLineAlgorithms : Page
                 Position = (1, 1)
             };
             Player.PositionChanged += LineSurface.Player_OnPositionChanged;
+            Player.PositionChanged += Player_OnPositionChanged;
 
             // add event handler
             _deltaTime.TresholdReached += DeltaTime_OnTresholdReached;
@@ -283,68 +290,71 @@ internal class GoRogueLineAlgorithms : Page
             Player.Position = GlobalRandom.DefaultRNG.RandomPosition(_grid.Surface.Area, p => _grid.IsWalkable(p));
         }
 
+        void Player_OnPositionChanged(object? sender, PositionChangedEventArgs args)
+        {
+            _grid.DrawFloor(args.OldPosition);
+            _grid.DrawPlayer(Player);
+        }
+
         void DeltaTime_OnTresholdReached(object? sender, EventArgs args)
         {
-            Direction currentDirection = Player.Direction;
+            Direction originalDirection = Player.Direction;
 
             if (Player.WantsToTurn())
             {
                 // try turning the player left or right
-                if (!TurnPlayer())
+                if (!TurnPlayerLeftOrRight())
                 {
                     // try going straight ahead
-                    Player.Direction = currentDirection;
-                    if (_grid.IsWalkable(Player.NextPosition)) MovePlayer();
-                    else
-                    {
+                    Player.Direction = originalDirection;
+                    if (!TryPlayerWalk())
                         // dead end... turn the player back
-                        Player.Direction = currentDirection.Inverse();
-                    }
+                        TurnPlayerBackOrRedraw(originalDirection);
                 }
             }
 
             // player wants to go straight
-            else
+            else if (!TryPlayerWalk())
             {
-                // try going straight ahead
-                if (_grid.IsWalkable(Player.NextPosition)) MovePlayer();
-
-                // try turning the player left or right
-                else if (!TurnPlayer())
-                {
+                 if(!TurnPlayerLeftOrRight())
                     // dead end... turn the player back
-                    Player.Direction = currentDirection.Inverse();
-                }
+                    TurnPlayerBackOrRedraw(originalDirection);
             }
         }
 
-        bool TurnPlayer()
+        bool TryPlayerWalk()
         {
-            // turn the player left or right
-            Player.Turn();
             if (_grid.IsWalkable(Player.NextPosition))
             {
-                MovePlayer();
+                Player.Walk();
                 return true;
             }
+            else
+                return false;
+        }
+
+        void TurnPlayerBackOrRedraw(Direction originalDirection)
+        {
+            Player.Direction = originalDirection.Inverse();
+            if (!TryPlayerWalk())
+                Redraw();
+        }
+
+        bool TurnPlayerLeftOrRight()
+        {
+            // turn the player left or right
+            Player.TurnRandomLeftOrRight();
+            if (TryPlayerWalk())
+                return true;
             else
             {
                 // turn the player the other way
                 Player.InverseDirection();
-                if (_grid.IsWalkable(Player.NextPosition))
-                {
-                    MovePlayer();
+                if (TryPlayerWalk())
                     return true;
-                }
+
                 return false;
             }
-        }
-
-        void MovePlayer()
-        {
-            _grid.DrawFloor(Player.Position);
-            Player.Walk();
-            _grid.DrawPlayer(Player);
         }
 
         public override void Update(TimeSpan delta)
@@ -375,7 +385,7 @@ internal class GoRogueLineAlgorithms : Page
 
         public void Player_OnPositionChanged(object? sender, PositionChangedEventArgs args)
         {
-            args.LineLength = DrawLine(args.Position, PlayerInfo.ReferencePoint);
+            args.LineLength = DrawLine(args.NewPosition, PlayerInfo.ReferencePoint);
         }
 
         public void ChangeAlgorithm()
@@ -439,8 +449,8 @@ internal class GoRogueLineAlgorithms : Page
     {
         readonly int _maxDistance;
         Point _position;
+        Direction _direction;
         
-        public Direction Direction { get; set; }
         public int DesiredDistance { get; private set; }
         public int CurrentDistance { get; private set; }
         public bool IsMoving { get; set; } = true;
@@ -450,7 +460,17 @@ internal class GoRogueLineAlgorithms : Page
             Position = position;
             _maxDistance = maxDistance;
             Direction = GlobalRandom.DefaultRNG.RandomCardinalDirection();
-            SetDesiredDistance();
+        }
+
+        public Direction Direction
+        {
+            get => _direction;
+            set
+            {
+                _direction = value;
+                if (!_direction.IsCardinal()) throw new Exception();
+                SetDesiredDistance();
+            }
         }
 
         public Point Position
@@ -458,8 +478,8 @@ internal class GoRogueLineAlgorithms : Page
             get => _position;
             set
             {
+                var args = new PositionChangedEventArgs(value, _position);
                 _position = value;
-                var args = new PositionChangedEventArgs(_position);
                 OnPositionChanged(args);
             }
         }
@@ -469,10 +489,9 @@ internal class GoRogueLineAlgorithms : Page
 
         public event EventHandler<PositionChangedEventArgs>? PositionChanged;
 
-        public void Turn()
+        public void TurnRandomLeftOrRight()
         {
             Direction += GlobalRandom.DefaultRNG.NextBool() ? 2 : -2;
-            SetDesiredDistance();
         }
 
         public void InverseDirection() => Direction = Direction.Inverse();
