@@ -1,7 +1,4 @@
 ﻿using SadConsole.Quick;
-using SadConsole.UI;
-using SadConsole.UI.Controls;
-using SadConsole.UI.Themes;
 using SadExperiments.UI;
 
 namespace SadExperiments.Pages;

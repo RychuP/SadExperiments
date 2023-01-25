@@ -1,17 +1,7 @@
-﻿using GoRogue;
-using GoRogue.Random;
-using SadConsole;
-using SadConsole.Ansi;
+﻿using GoRogue.Random;
 using SadConsole.Quick;
-using SadConsole.UI;
-using SadConsole.UI.Controls;
-using SadConsole.UI.Themes;
-using SadExperiments.MainScreen;
 using SadExperiments.UI;
 using ShaiRandom.Generators;
-using System.Diagnostics;
-using System.Diagnostics.Metrics;
-using System.Runtime.Serialization;
 
 namespace SadExperiments.Pages;
 

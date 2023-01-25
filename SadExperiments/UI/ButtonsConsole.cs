@@ -1,5 +1,4 @@
 ﻿using SadConsole.UI;
-using SadConsole.UI.Controls;
 
 namespace SadExperiments.UI
 {
