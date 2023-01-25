@@ -11,6 +11,7 @@ internal class Container : ScreenObject
     Page _currentPage;
     readonly Page[] _pages =
     {
+        new RectangleBisection(),
         new WelcomePage(),
         new AnimatedGlobe(),
         new Donut3dPage(),
