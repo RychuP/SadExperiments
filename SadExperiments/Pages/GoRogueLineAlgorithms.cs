@@ -7,6 +7,7 @@ using SadConsole.UI;
 using SadConsole.UI.Controls;
 using SadConsole.UI.Themes;
 using SadExperiments.MainScreen;
+using SadExperiments.UI;
 using ShaiRandom.Generators;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
@@ -17,7 +18,7 @@ namespace SadExperiments.Pages;
 internal class GoRogueLineAlgorithms : Page
 {
     readonly PlayerInfo _playerInfo;
-    readonly Buttons _buttons;
+    readonly VerticalButtonsConsole _buttons;
     readonly Map _map;
 
     public GoRogueLineAlgorithms()
@@ -44,20 +45,26 @@ internal class GoRogueLineAlgorithms : Page
         };
         _map.Player.PositionChanged += Player_OnPositionChanged;
 
-        // create buttons
+        // create buttons console
         int mapHeight = (_map.HeightPixels + _map.FontSize.Y * 2) / FontSize.Y;
-        _buttons = new Buttons(Width - _playerInfo.Width - 2, Height - mapHeight, _map.LineSurface.CurrentAlgorithm.ToString())
+        _buttons = new VerticalButtonsConsole(Width - _playerInfo.Width - 2, Height - mapHeight)
         {
             Parent = this,
-            Position = (1, mapHeight)
+            Position = (1, mapHeight + 1)
         };
-        _buttons.RedrawMap.Click += (o, e) => _map.Redraw();
-        _buttons.WithKeyboard((so, k) => ProcessKeyboard(k));
+        _buttons.WithKeyboard((o, k) => ProcessKeyboard(k));
 
-        _buttons.ChangeLineAlgorithm.Click += (o, e) =>
+        // 1. Redraw Map button
+        _buttons.AddButton("Redraw Map", Keys.D1).Click += (o, e) => 
+            _map.Redraw();
+
+        // 2. ChangeLineAlgorithm button
+        string algorithmName = _map.LineSurface.CurrentAlgorithm.ToString();
+        _buttons.AddButton(algorithmName, Keys.D2).Click += (o, e) =>
         {
             _map.LineSurface.ChangeAlgorithm();
-            if (o is CustomButton b) b.Text = $"2. {_map.LineSurface.CurrentAlgorithm}";
+            if (o is AutomatedButton b) 
+                b.Text = $"{_map.LineSurface.CurrentAlgorithm}";
             if (!_map.Player.IsMoving)
             {
                 int length = _map.LineSurface.DrawLine(_map.Player.Position, PlayerInfo.ReferencePoint);
@@ -65,16 +72,20 @@ internal class GoRogueLineAlgorithms : Page
             }
         };
 
-        _buttons.ShowHideLine.Click += (o, e) =>
+        // 3. ShowHideLine button
+        _buttons.AddButton("Hide Line", Keys.D3).Click += (o, e) =>
         {
             _map.LineSurface.IsVisible = !_map.LineSurface.IsVisible;
-            if (o is CustomButton b) b.Text = _map.LineSurface.IsVisible ? "3. Hide Line" : "3. Show Line";
+            if (o is AutomatedButton b) 
+                b.Text = _map.LineSurface.IsVisible ? "Hide Line" : "Show Line";
         };
 
-        _buttons.StartStopMovement.Click += (o, e) =>
+        // 4. StartStopMovement button
+        _buttons.AddButton("Stop Movement", Keys.D4).Click += (o, e) =>
         {
             _map.Player.IsMoving = !_map.Player.IsMoving;
-            if (o is CustomButton b) b.Text = _map.Player.IsMoving ? "4. Stop Movement" : "4. Start Movement";
+            if (o is AutomatedButton b) 
+                b.Text = _map.Player.IsMoving ? "Stop Movement" : "Start Movement";
         };
     }
 
@@ -84,9 +95,10 @@ internal class GoRogueLineAlgorithms : Page
         {
             foreach (var control in _buttons.Controls)
             {
-                if (control is CustomButton cb && keyboard.IsKeyPressed(cb.KeyboardShortcut))
+                if (control is AutomatedButton b && b.KeyboardShortcut is not null 
+                    && keyboard.IsKeyPressed(b.KeyboardShortcut.Value))
                 {
-                    cb.InvokeClick();
+                    b.InvokeClick();
                     return true;
                 }
             }
@@ -94,85 +106,8 @@ internal class GoRogueLineAlgorithms : Page
         return base.ProcessKeyboard(keyboard);
     }
 
-    void Player_OnPositionChanged(object? sender, PositionChangedEventArgs args)
-    {
+    void Player_OnPositionChanged(object? sender, PositionChangedEventArgs args) =>
         _playerInfo.PrintInfo(_map.Player, args.LineLength);
-    }
-
-    void Print(params string[] text)
-    {
-        foreach (string line in text)
-            Cursor.NewLine().Print(line);
-    }
-
-    class Buttons : ControlsConsole
-    {
-        public CustomButton RedrawMap { get; init; }
-        public CustomButton ChangeLineAlgorithm { get; init; }
-        public CustomButton ShowHideLine { get; init; }
-        public CustomButton StartStopMovement { get; init; }
-
-        public Buttons(int w, int h, string lineAlgorithmName) : base(w, h)
-        {
-            RedrawMap = CreateButton("1. Redraw Map", 1, Keys.D1);
-            ChangeLineAlgorithm = CreateButton($"2. {lineAlgorithmName}", 3, Keys.D2);
-            ShowHideLine = CreateButton("3. Hide Line", 5, Keys.D3);
-            StartStopMovement = CreateButton("4. Stop Movement", 7, Keys.D4);
-        }
-
-        CustomButton CreateButton(string label, int y, Keys keyboardShortcut)
-        {
-            return new CustomButton(label, keyboardShortcut)
-            {
-                Position = Position.WithY(y),
-                UseMouse = true,
-                Parent = Controls,
-                UseKeyboard = false,
-                Text = label // has to be last
-            };
-        }
-    }
-
-    class CustomButton : Button
-    {
-        const int Padding = 4;
-        public Keys KeyboardShortcut { get; init; }
-
-        static CustomButton() =>
-            Library.Default.SetControlTheme(typeof(CustomButton), new ButtonTheme());
-
-        public CustomButton(string label, Keys keyboardShortcut) : base(label.Length + Padding, 1)
-        {
-            _text = "";
-            KeyboardShortcut = keyboardShortcut;
-        }
-
-        public new string Text
-        {
-            get => _text;
-            set
-            {
-                if (string.IsNullOrEmpty(value)) return;
-                if (value.Length != _text.Length)
-                {
-                    Resize(value.Length + Padding, 1);
-                    if (Parent is ControlHost cs)
-                        Position = Position.WithX(cs.ParentConsole.Surface.Width / 2 - Width / 2);
-                }
-                base.Text = value;
-            }
-        }
-        public new void InvokeClick()
-        {
-            // Fancy check to make sure Parent, Parent.Host, and Parent.Host.ParentConsole are all non-null
-            if (Parent is { Host.ParentConsole: { } })
-                Parent.Host.ParentConsole.IsFocused = true;
-
-            IsFocused = true;
-            base.InvokeClick();
-            DetermineState();
-        }
-    }
     
     class PlayerInfo : Console
     {

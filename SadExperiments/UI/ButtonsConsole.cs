@@ -59,8 +59,9 @@ namespace SadExperiments.UI
         /// <returns>New <see cref="AutomatedButton"/>.</returns>
         public AutomatedButton AddButton(string label, Keys? keyboardShortcut = null)
         {
-            int y = Controls.Count > 0 ? Controls.Last().Position.Y : 0;
+            int y = Controls.Count > 0 ? Controls.Count + VerticalSpacing * (Controls.Count) : 0;
             var button = new AutomatedButton(label, y, keyboardShortcut);
+            Controls.Add(button);
             AlignButton(button);
             return button;
         }
