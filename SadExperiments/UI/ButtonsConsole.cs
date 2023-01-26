@@ -13,7 +13,7 @@ namespace SadExperiments.UI
         /// <param name="y">Y coordinate of the button's Position.</param>
         /// <param name="keyboardShortcut">Optional keyboard shortcut.</param>
         /// <returns>New <see cref="AutomatedButton"/>.</returns>
-        public AutomatedButton AddButton(string label, int y, Keys? keyboardShortcut = null)
+        public AutomatedButton AddButton(string label, int y = 0, Keys? keyboardShortcut = null)
         {
             var button = new AutomatedButton(label, y, keyboardShortcut);
             Controls.Add(button);

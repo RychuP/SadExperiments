@@ -21,7 +21,7 @@ internal class RectangleBisection : Page
 
         // create base rectangle
         _rectangle = new Rectangle(Surface.Area.Center, Width / 2 - 4, Height / 2 - 5);
-        _rectangle.DrawOutline(Surface);
+        Surface.DrawRectangle(_rectangle);
 
         // add bottom row buttons
         int y = Height - 2;

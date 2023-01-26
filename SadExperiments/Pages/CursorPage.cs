@@ -1,11 +1,11 @@
 ﻿namespace SadExperiments.Pages;
 
 // http://sadconsole.com/v9/articles/tutorials/getting-started/part-2-cursor-parents.html
-internal class PlayingWithCursor : Page
+internal class CursorPage : Page
 {
-    public PlayingWithCursor()
+    public CursorPage()
     {
-        Title = "Playing With Cursor";
+        Title = "Cursor";
         Summary = "Following Thraka's tutorials: part 2, cursors.";
 
         Cursor.PrintAppearanceMatchesHost = false;

@@ -101,9 +101,9 @@ internal class GoRogueLineAlgorithms : Page
     
     class PlayerInfo : Console
     {
-        ManhattanDistance _manhattanDistance = Distance.Manhattan;
-        ChebyshevDistance _chebyshevDistance = Distance.Chebyshev;
-        EuclideanDistance _euclideanDistance = Distance.Euclidean;
+        readonly ManhattanDistance _manhattanDistance = Distance.Manhattan;
+        readonly ChebyshevDistance _chebyshevDistance = Distance.Chebyshev;
+        readonly EuclideanDistance _euclideanDistance = Distance.Euclidean;
 
         public static Point ReferencePoint => Point.Zero;
 
@@ -115,7 +115,7 @@ internal class GoRogueLineAlgorithms : Page
         public void PrintInfo(Player player, int lineLength)
         {
             Surface.Clear();
-            Surface.DrawOutline();
+            Surface.DrawOutline(Color.Pink);
             Cursor.Move((0, 2));
 
             // player internal data
@@ -350,7 +350,7 @@ internal class GoRogueLineAlgorithms : Page
             for (int i = 0; i < wallCount; i++)
             {
                 Point start = rand.RandomPosition(Surface.Area);
-                Direction direction = rand.RandomCardinalDirection();
+                Direction direction = rand.NextCardinalDirection();
                 int length = rand.NextInt(2, 6);
                 int deltaX = direction.DeltaX * length;
                 int deltaY = direction.DeltaY * length;
@@ -384,7 +384,7 @@ internal class GoRogueLineAlgorithms : Page
         {
             Position = position;
             _maxDistance = maxDistance;
-            Direction = GlobalRandom.DefaultRNG.RandomCardinalDirection();
+            Direction = GlobalRandom.DefaultRNG.NextCardinalDirection();
         }
 
         public Direction Direction

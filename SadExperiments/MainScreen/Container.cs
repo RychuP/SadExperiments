@@ -17,6 +17,7 @@ internal class Container : ScreenObject
         new A_Demo(),
         new GoRogueLineAlgorithms(),
         new RectangleBisection(),
+        new AreaPage(),
         new SplashScreens(),
         new SmoothScrolling(),
         new RectangleManipulation(),
@@ -24,7 +25,7 @@ internal class Container : ScreenObject
         new FontLoading(),
         new KeyboardAndMouse(),
         new BasicDrawing(),             // tutorial part 1
-        new PlayingWithCursor(),        // tutorial part 2.1
+        new CursorPage(),               // tutorial part 2.1
         new OverlappingConsoles(),      // tutorial part 2.2
         new KeyboardProcessing(),
         new UpdateAndRender(),

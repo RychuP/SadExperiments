@@ -8,11 +8,11 @@ public static class Extensions
     /// <summary>
     /// Prints text centered on the surface.
     /// </summary>
-    /// <param name="t"></param>
-    /// <param name="y"></param>
-    /// <param name="c"></param>
-    public static void Print(this ICellSurface s, int y, string t, Color? c = null) =>
-        s.Print(0, y, t.Align(HorizontalAlignment.Center, s.Width), c ?? s.DefaultForeground);
+    /// <param name="text">Text to print.</param>
+    /// <param name="y">Y coordinate.</param>
+    /// <param name="color">Foreground <see cref="Color"/>.</param>
+    public static void Print(this ICellSurface cellSurface, int y, string text, Color? color = null) =>
+        cellSurface.Print(0, y, text.Align(HorizontalAlignment.Center, cellSurface.Width), color ?? cellSurface.DefaultForeground);
 
     /// <summary>
     /// Allows adding multiple screen objects at the same time.
@@ -37,24 +37,30 @@ public static class Extensions
     /// Draws a box around the perimeter of the <see cref="ICellSurface.Area"/>.
     /// </summary>
     /// <param name="fg">Foreground <see cref="Color"/>.</param>
-    public static void DrawOutline(this ICellSurface cellSurface, Color? fg = null)
-    {
-        cellSurface.DrawBox(cellSurface.Area, ShapeParameters.CreateStyledBox(ICellSurface.ConnectedLineThin,
-            new ColoredGlyph(fg ?? Color.Pink, Color.Black)));
-    }
+    public static void DrawOutline(this ICellSurface cellSurface, Color? fg = null) =>
+        cellSurface.DrawRectangle(cellSurface.Area, fg);
 
-    public static void DrawOutline(this Rectangle rectangle, ICellSurface surface, Color? fg = null)
+    /// <summary>
+    /// Draws a rectangle outline using either <see cref="ICellSurface.ConnectedLineThin"/> or the given glyph.
+    /// </summary>
+    /// <param name="rectangle"><see cref="Rectangle"/> to draw.</param>
+    /// <param name="glyph">Glyph to use as an outline.</param>
+    /// <param name="fg">Foreground <see cref="Color"/>.</param>
+    public static void DrawRectangle(this ICellSurface cellSurface, Rectangle rectangle, Color? fg = null, int? glyph = null)
     {
-        var style = ShapeParameters.CreateStyledBox(ICellSurface.ConnectedLineThin,
-            new ColoredGlyph(fg ?? Color.White, Color.Transparent));
-        surface.DrawBox(rectangle, style);
+        var style = (glyph.HasValue) ?
+            ShapeParameters.CreateStyledBox(ICellSurface.CreateLine(glyph.Value),
+                new ColoredGlyph(fg ?? Color.White, Color.Transparent)) :
+            ShapeParameters.CreateStyledBox(ICellSurface.ConnectedLineThin,
+                new ColoredGlyph(fg ?? Color.White, Color.Transparent));
+        cellSurface.DrawBox(rectangle, style);
     }
 
     /// <summary>
     /// Rolls a d4 dice to select a random cardinal <see cref="Direction"/>.
     /// </summary>
     /// <returns>Random cardinal direction.</returns>
-    public static Direction RandomCardinalDirection(this IEnhancedRandom rand) =>
+    public static Direction NextCardinalDirection(this IEnhancedRandom rand) =>
         Direction.Up + Dice.Roll("1d4*2");
 
     /// <summary>

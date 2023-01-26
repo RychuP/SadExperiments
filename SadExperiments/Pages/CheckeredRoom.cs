@@ -1,5 +1,4 @@
 ﻿using SadConsole.Entities;
-using SadExperiments.Entities;
 using SadConsole.Components;
 
 namespace SadExperiments.Pages;
@@ -115,6 +114,24 @@ class CheckeredRoom : Page
                     Surface.SetGlyph(x, y, new ColoredGlyph(Program.RandomColor, color, 48));
                 }
             }
+        }
+    }
+
+    class Player : Entity
+    {
+        public Player() : base(Color.Yellow, Color.DarkGray, 1, 1)
+        {
+            Position = (4, 4);
+        }
+
+        public void MoveTo(Point p)
+        {
+            Position = p;
+        }
+
+        public Point GetNextMove(Point direction)
+        {
+            return Position.Translate(direction);
         }
     }
 }
