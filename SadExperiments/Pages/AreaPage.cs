@@ -13,7 +13,7 @@ internal class AreaPage : Page
     // backing field for AdjacencyRule
     AdjacencyRule _adjacencyRule = AdjacencyRule.EightWay;
 
-    DisplayItems _currentDisplayItems = DisplayItems.None;
+    DisplayItems _currentDisplayItems = DisplayItems.Area;
     readonly TestArea _area;
     readonly ScreenSurface _boundsLayer;
     readonly NeighborsSurface _neighborsLayer;
@@ -105,25 +105,25 @@ internal class AreaPage : Page
         };
     }
 
+    NeighborsChangedEventArgs NCEventArgs
+    {
+        get
+        {
+            var neighbors = AdjacencyRule.Neighbors(NeighborsProbeCenterPoint);
+            neighbors = neighbors.Intersect(_area);
+            NeighborsChangedEventArgs args = new(neighbors, NeighborsProbeCenterPoint);
+            return args;
+        }
+    }
+
     public AdjacencyRule AdjacencyRule
     {
         get => _adjacencyRule;
         set
         {
             if (_adjacencyRule == value) return;
-
-            // set new value
             _adjacencyRule = value;
-
-            // get new neighbors
-            var neighbors = _adjacencyRule.Neighbors(NeighborsProbeCenterPoint);
-            neighbors = neighbors.Intersect(_area);
-
-            // prepare event args
-            NeighborsChangedEventArgs args = new(neighbors, NeighborsProbeCenterPoint);
-
-            // invoke event
-            OnNeighborsChanged(args);
+            OnNeighborsChanged(NCEventArgs);
         }
     }
 
@@ -133,19 +133,8 @@ internal class AreaPage : Page
         set
         {
             if (_neighborsProbeCenterPoint == value) return;
-
-            // get new neighbors
-            var neighbors = AdjacencyRule.Neighbors(value);
-            neighbors = neighbors.Intersect(_area);
-
-            // prepare event args
-            NeighborsChangedEventArgs args = new(neighbors, value);
-
-            // set new value
             _neighborsProbeCenterPoint = value;
-
-            // invoke event
-            OnNeighborsChanged(args);
+            OnNeighborsChanged(NCEventArgs);
         }
     }
 
@@ -213,7 +202,7 @@ internal class AreaPage : Page
     [Flags]
     enum DisplayItems
     {
-        None = 0,
+        Area = 0,
         PerimeterPositions = 1,
         Bounds = 2
     }
@@ -254,7 +243,6 @@ internal class AreaPage : Page
         {
             Remove(this);
             int rectCount = GlobalRandom.DefaultRNG.NextInt(10, 20);
-            var rectangles = new Rectangle[rectCount];
             for (int i = 0; i < rectCount; i++)
             {
                 int horizontalRadius = GlobalRandom.DefaultRNG.NextInt(2, _bounds.Width / 4 - 2);
@@ -267,10 +255,8 @@ internal class AreaPage : Page
                     else
                         return false;
                 });
-                rectangles[i] = new Rectangle(center, horizontalRadius, verticalRadius);
+                Add(new Rectangle(center, horizontalRadius, verticalRadius));
             }
-            foreach (var rectangle in rectangles)
-                Add(rectangle);
         }
     }
 
