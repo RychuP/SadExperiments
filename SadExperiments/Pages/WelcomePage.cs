@@ -19,6 +19,7 @@ internal class WelcomePage : Page, IRestartable
         Surface.Print(15, "These are my own attempts at learning the library");
         Surface.Print(17, "not necessarily examples of the best practice.");
 
+        // keyboard shortcut decorations
         for (int i = 0; i < Surface.Count; i++)
         {
             if (Surface[i].Glyph == 'F')
