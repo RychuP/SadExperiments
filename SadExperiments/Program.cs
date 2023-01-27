@@ -7,8 +7,6 @@ global using SadRogue.Primitives;
 global using SadExperiments.MainScreen;
 global using Console = SadConsole.Console;
 global using MonoColor = Microsoft.Xna.Framework.Color;
-global using Keyboard = SadConsole.Input.Keyboard;
-using SadConsole.UI;
 
 namespace SadExperiments;
 
@@ -21,7 +19,6 @@ public static class Program
     {
         Settings.WindowTitle = "SadConsole Experiments";
         Settings.ResizeMode = Settings.WindowResizeOptions.Fit;
-        RegistrarExtended.Register();
         Game.Create(Width, Height + Header.Height);
         Game.Instance.OnStart = Init;
         Game.Instance.Run();

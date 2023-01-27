@@ -4,7 +4,7 @@ internal class Template : Page
 {
     public Template()
     {
-        Title = "Template";
-        Summary = "Template";
+        Title = "";
+        Summary = "";
     }
 }

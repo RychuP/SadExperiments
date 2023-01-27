@@ -1,5 +1,6 @@
 ﻿using SadConsole.Components;
 using SadConsole.Quick;
+using Keyboard = SadConsole.Input.Keyboard;
 
 namespace SadExperiments.Pages;
 
