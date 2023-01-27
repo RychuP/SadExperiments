@@ -1,7 +1,30 @@
-﻿namespace SadExperiments.MainScreen;
+﻿using SadConsole.Quick;
+using SadConsole.UI.Windows;
+
+namespace SadExperiments.MainScreen;
 
 class Page : Console
 {
+    static readonly ColorPickerPopup s_colorPicker = new();
+    static readonly CharacterViewer s_characterViewer = new(1);
+
+    static Page()
+    {
+        s_colorPicker.FontSize *= 0.9;
+        s_colorPicker.Center();
+        s_colorPicker.SelectedColor = Color.White;
+        s_colorPicker.WithKeyboard((o, k) =>
+        {
+            if (k.HasKeysPressed && k.IsKeyPressed(Keys.F4))
+            {
+                s_colorPicker.Hide();
+                return true;
+            }
+            return false;
+        });
+        s_characterViewer.Center();
+    }
+
     public string Title { get; init; } = string.Empty;
 
     public string Summary { get; init; } = string.Empty;
@@ -54,6 +77,16 @@ class Page : Console
             else if (keyboard.IsKeyPressed(Keys.F3))
             {
                 container.ShowContentsList();
+                return true;
+            }
+            else if (keyboard.IsKeyPressed(Keys.F4))
+            {
+                s_colorPicker.Show(true);
+                return true;
+            }
+            if (keyboard.IsKeyPressed(Keys.F5))
+            {
+                s_characterViewer.Show(true);
                 return true;
             }
         }
