@@ -20,9 +20,9 @@ public class CharacterViewer : Window
         get => _selectedCharacter;
         set
         {
-            _picker.SelectedCharacterChanged -= SelectedCharacterChangedOnControl;
+            _picker.SelectedCharacterChanged -= SelectedCharacterChangedOnControl!;
             _selectedCharacter = _picker.SelectedCharacter = value;
-            _picker.SelectedCharacterChanged += SelectedCharacterChangedOnControl;
+            _picker.SelectedCharacterChanged += SelectedCharacterChangedOnControl!;
         }
     }
 
