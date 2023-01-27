@@ -21,7 +21,7 @@ class Page : Console
                 return true;
             }
             return false;
-        });
+        }); 
         s_characterViewer.Center();
     }
 

@@ -13,7 +13,7 @@ class DeltaTime
         Current += ts;
         if (Current >= Treshold)
         {
-            Zero();
+            Zero(); 
             OnTresholdReached();
         }
     }

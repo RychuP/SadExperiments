@@ -9,8 +9,6 @@ internal class WelcomePage : Page, IRestartable
         Title = "Welcome Page";
         Summary = "Experiments with various features of SadConsole and related libraries.";
 
-        UsePrintProcessor = true;
-
         Surface.Print(3, "Press F1 or F2 to navigate between screens.");
         Surface.Print(5, "Press F3 to display the list of contents.");
         Surface.Print(7, "Press F4 for Color Picker and F5 for Character Picker windows.");
