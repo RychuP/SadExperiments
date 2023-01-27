@@ -5,6 +5,6 @@ internal class Template : Page
     public Template()
     {
         Title = "Template";
-        Summary = "Template";
+        Summary = "TemplateSummary";
     }
 }

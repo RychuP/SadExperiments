@@ -5,6 +5,6 @@ internal class Workshop : Page
     public Workshop()
     {
         Title = "Workshop";
-        Summary = "Workshop";
+        Summary = "Workshop1";
     }
 }

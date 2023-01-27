@@ -13,7 +13,7 @@ internal class OverlappingConsoles : Page
         Summary = "Following Thraka's tutorials: part 2, parenting.";
 
         // print prompts at the bottom of the page
-        int y = Height - 5;
+        int y = Height - 5; 
         Surface.Print(y, "Click to move consoles to the top and set focus.");
         ColoredString t = ColoredString.Parser.Parse("[c:r f:LightGreen]MouseClickReposition[c:undo] is true on the blue console.");
         int x = Width / 2 - t.Length / 2;
