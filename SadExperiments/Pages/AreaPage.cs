@@ -67,14 +67,14 @@ internal class AreaPage : Page
         {
             if (o is AutomatedButton button)
             {
-                if ((_currentDisplayItems & DisplayItems.PerimeterPositions) == DisplayItems.PerimeterPositions)
+                if (_currentDisplayItems.HasFlag(DisplayItems.PerimeterPositions))
                 {
-                    _currentDisplayItems ^= DisplayItems.PerimeterPositions;
+                    _currentDisplayItems.UnsetFlag(DisplayItems.PerimeterPositions);
                     button.Text = "Area Filled";
                 }
                 else
                 {
-                    _currentDisplayItems |= DisplayItems.PerimeterPositions;
+                    _currentDisplayItems.SetFlag(DisplayItems.PerimeterPositions);
                     button.Text = "Perimeter Positions";
                 }
             }
@@ -83,14 +83,14 @@ internal class AreaPage : Page
 
         bottomButtons.AddButton("Bounds").Click += (o, e) =>
         {
-            if ((_currentDisplayItems & DisplayItems.Bounds) == DisplayItems.Bounds)
+            if (_currentDisplayItems.HasFlag(DisplayItems.Bounds))
             {
-                _currentDisplayItems ^= DisplayItems.Bounds;
+                _currentDisplayItems.UnsetFlag(DisplayItems.Bounds);
                 _boundsLayer.Surface.Clear();
             }
             else
             {
-                _currentDisplayItems |= DisplayItems.Bounds;
+                _currentDisplayItems.SetFlag(DisplayItems.Bounds);
                 DrawAreaBounds(false);
             }
         };
@@ -105,6 +105,9 @@ internal class AreaPage : Page
         };
     }
 
+    /// <summary>
+    /// Generates event args for the <see cref="NeighborsChanged"/> event.
+    /// </summary>
     NeighborsChangedEventArgs NCEventArgs
     {
         get
@@ -127,6 +130,9 @@ internal class AreaPage : Page
         }
     }
 
+    /// <summary>
+    /// Point on the area use for finding neighbors.
+    /// </summary>
     public Point NeighborsProbeCenterPoint
     {
         get => _neighborsProbeCenterPoint;
@@ -138,8 +144,15 @@ internal class AreaPage : Page
         }
     }
 
+    /// <summary>
+    /// Event fired when neighbors of the probe change.
+    /// </summary>
     public event EventHandler<NeighborsChangedEventArgs>? NeighborsChanged;
 
+    /// <summary>
+    /// Invokes the <see cref="NeighborsChanged"/> event.
+    /// </summary>
+    /// <param name="args"></param>
     protected void OnNeighborsChanged(NeighborsChangedEventArgs args) =>
         NeighborsChanged?.Invoke(this, args);
 
@@ -172,12 +185,12 @@ internal class AreaPage : Page
 
     void ExecuteCurrentDisplayFunctions()
     {
-        if ((_currentDisplayItems & DisplayItems.PerimeterPositions) == DisplayItems.PerimeterPositions)
+        if (_currentDisplayItems.HasFlag(DisplayItems.PerimeterPositions))
             DisplayPerimeterPositions();
         else
             DisplayArea();
 
-        if ((_currentDisplayItems & DisplayItems.Bounds) == DisplayItems.Bounds)
+        if (_currentDisplayItems.HasFlag(DisplayItems.Bounds))
             DrawAreaBounds();
     }
 
@@ -199,14 +212,20 @@ internal class AreaPage : Page
         }
     }
 
+    /// <summary>
+    /// List of possible items that can be displayed on the screen.
+    /// </summary>
     [Flags]
-    enum DisplayItems
+    public enum DisplayItems
     {
         Area = 0,
         PerimeterPositions = 1,
         Bounds = 2
     }
 
+    /// <summary>
+    /// Surface used for displaying neighbors and the probe.
+    /// </summary>
     class NeighborsSurface : ScreenSurface
     {
         readonly ColoredGlyph _neighborGlyph;
@@ -228,6 +247,9 @@ internal class AreaPage : Page
         }
     }
 
+    /// <summary>
+    /// Area displayed in the center of the screen.
+    /// </summary>
     class TestArea : Area
     {
         readonly Rectangle _bounds;
@@ -239,6 +261,9 @@ internal class AreaPage : Page
             Regenerate();
         }
 
+        /// <summary>
+        /// Generates a new set of points for the area.
+        /// </summary>
         public void Regenerate()
         {
             Remove(this);
@@ -260,6 +285,9 @@ internal class AreaPage : Page
         }
     }
 
+    /// <summary>
+    /// Arguments passed around when the neighbors change.
+    /// </summary>
     public class NeighborsChangedEventArgs : EventArgs
     {
         public IEnumerable<Point> Neighbors { get; init; }
@@ -270,4 +298,16 @@ internal class AreaPage : Page
             Center = center;
         }
     }
+}
+
+static class DisplayItemsExtensions
+{
+    public static bool HasFlag(this AreaPage.DisplayItems displayItems, AreaPage.DisplayItems item) =>
+        (displayItems & item) == item;
+
+    public static void UnsetFlag(ref this AreaPage.DisplayItems displayItems, AreaPage.DisplayItems item) =>
+        displayItems ^= item;
+    
+    public static void SetFlag(ref this AreaPage.DisplayItems displayItems, AreaPage.DisplayItems item) =>
+        displayItems |= item;
 }

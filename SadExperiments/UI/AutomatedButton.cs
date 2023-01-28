@@ -62,6 +62,15 @@ namespace SadExperiments.UI
             }
         }
 
+        // TODO test
+        public event EventHandler? TextChanged;
+
+        protected override void OnStateChanged(ControlStates oldState, ControlStates newState)
+        {
+            base.OnStateChanged(oldState, newState);
+        }
+        // TODO end of test
+
         public new void InvokeClick()
         {
             // Fancy check to make sure Parent, Parent.Host, and Parent.Host.ParentConsole are all non-null
