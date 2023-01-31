@@ -51,8 +51,7 @@ class Donut3D : ScreenSurface
         };
 
         SadComponents.Add(Cursor);
-        Game.Instance.LoadFont("Resources/Fonts/square10.font");
-        Font = Game.Instance.Fonts["Square10"];
+        Font = Fonts.Square10;
     }
 
     public override void Update(TimeSpan delta)
