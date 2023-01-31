@@ -1,5 +1,4 @@
 ﻿using GoRogue.Random;
-using SadConsole.Quick;
 using SadExperiments.UI;
 using ShaiRandom.Generators;
 
@@ -42,7 +41,6 @@ internal class GoRogueLineAlgorithms : Page
             Parent = this,
             Position = (1, mapHeight + 1)
         };
-        _buttons.WithKeyboard((o, k) => ProcessKeyboard(k));
 
         // 1. Redraw Map button
         _buttons.AddButton("Redraw Map", Keys.D1).Click += (o, e) => 
@@ -53,7 +51,7 @@ internal class GoRogueLineAlgorithms : Page
         _buttons.AddButton(algorithmName, Keys.D2).Click += (o, e) =>
         {
             _map.LineSurface.ChangeAlgorithm();
-            if (o is AutomatedButton b) 
+            if (o is VariableWidthButton b) 
                 b.Text = $"{_map.LineSurface.CurrentAlgorithm}";
             if (!_map.Player.IsMoving)
             {
@@ -66,7 +64,7 @@ internal class GoRogueLineAlgorithms : Page
         _buttons.AddButton("Hide Line", Keys.D3).Click += (o, e) =>
         {
             _map.LineSurface.IsVisible = !_map.LineSurface.IsVisible;
-            if (o is AutomatedButton b) 
+            if (o is VariableWidthButton b) 
                 b.Text = _map.LineSurface.IsVisible ? "Hide Line" : "Show Line";
         };
 
@@ -74,18 +72,18 @@ internal class GoRogueLineAlgorithms : Page
         _buttons.AddButton("Stop Movement", Keys.D4).Click += (o, e) =>
         {
             _map.Player.IsMoving = !_map.Player.IsMoving;
-            if (o is AutomatedButton b) 
+            if (o is VariableWidthButton b) 
                 b.Text = _map.Player.IsMoving ? "Stop Movement" : "Start Movement";
         };
     }
 
-    public override bool ProcessKeyboard(SadConsole.Input.Keyboard keyboard)
+    public override bool ProcessKeyboard(Keyboard keyboard)
     {
         if (keyboard.HasKeysPressed)
         {
             foreach (var control in _buttons.Controls)
             {
-                if (control is AutomatedButton b && b.KeyboardShortcut is not null 
+                if (control is VariableWidthButton b && b.KeyboardShortcut is not null 
                     && keyboard.IsKeyPressed(b.KeyboardShortcut.Value))
                 {
                     b.InvokeClick();
@@ -316,8 +314,7 @@ internal class GoRogueLineAlgorithms : Page
         public void ChangeAlgorithm()
         {
             int i = (int) CurrentAlgorithm + 1;
-            CurrentAlgorithm = Enum.IsDefined(typeof(GoRogue.Lines.Algorithm), i) ? 
-                (GoRogue.Lines.Algorithm) i : (GoRogue.Lines.Algorithm) 0;
+            CurrentAlgorithm = Enum.IsDefined(typeof(GoRogue.Lines.Algorithm), i) ? (GoRogue.Lines.Algorithm) i : 0;
         }
     }
 

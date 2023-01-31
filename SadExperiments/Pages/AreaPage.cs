@@ -65,7 +65,7 @@ internal class AreaPage : Page
 
         bottomButtons.AddButton("Area Filled").Click += (o, e) =>
         {
-            if (o is AutomatedButton button)
+            if (o is VariableWidthButton button)
             {
                 if (_currentDisplayItems.HasFlag(DisplayItems.PerimeterPositions))
                 {
@@ -99,7 +99,7 @@ internal class AreaPage : Page
         bottomButtons.AddButton(adjacencyRuleLabel + AdjacencyRule).Click += (o, e) =>
         {
             SetNextAdjacencyRule();
-            if (o is AutomatedButton b)
+            if (o is VariableWidthButton b)
                 b.Text = adjacencyRuleLabel + AdjacencyRule;
             ExecuteCurrentDisplayFunctions();
         };
@@ -302,9 +302,6 @@ internal class AreaPage : Page
 
 static class DisplayItemsExtensions
 {
-    public static bool HasFlag(this AreaPage.DisplayItems displayItems, AreaPage.DisplayItems item) =>
-        (displayItems & item) == item;
-
     public static void UnsetFlag(ref this AreaPage.DisplayItems displayItems, AreaPage.DisplayItems item) =>
         displayItems ^= item;
     

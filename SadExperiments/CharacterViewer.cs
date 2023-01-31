@@ -35,7 +35,7 @@ public class CharacterViewer : Window
         _picker.Position = new Point(2, 1);
         _picker.SelectedCharacter = character;
         _picker.UseFullClick = false;
-        _picker.SelectedCharacterChanged += SelectedCharacterChangedOnControl;
+        _picker.SelectedCharacterChanged += SelectedCharacterChangedOnControl!;
         Controls.Add(_picker);
 
         _label = new Label(Width - 6);

@@ -1,11 +1,9 @@
-﻿using SadConsole.Quick;
-using SadExperiments.UI;
+﻿using SadExperiments.UI;
 
 namespace SadExperiments.Pages;
 
 internal class RectangleBisection : Page
 {
-    readonly HorizontalButtonsConsole _buttons;
     Rectangle[] _rectangles = Array.Empty<Rectangle>();
     readonly Rectangle _rectangle;
     string _lastRectangleinfo = string.Empty;
@@ -15,17 +13,19 @@ internal class RectangleBisection : Page
         Title = "Rectangle Bisection";
         Summary = "Testing rectangle bisection methods.";
 
-        // create buttons console
-        _buttons = new(Width, Height) { Parent = this };
-        _buttons.WithMouse((o, m) => ProcessMouse(m));
-
         // create base rectangle
         _rectangle = new Rectangle(Surface.Area.Center, Width / 2 - 4, Height / 2 - 5);
         Surface.DrawRectangle(_rectangle);
 
+        // create bottom buttons console
+        var bottomButtons = new HorizontalButtonsConsole(Width, 1)
+        {
+            Parent = this,
+            Position = new Point(0, Height - 2),
+        };
+
         // add bottom row buttons
-        int y = Height - 2;
-        var button = _buttons.AddButton("BisectHorizontally", y);
+        var button = bottomButtons.AddButton("BisectHorizontally");
         button.Click += (o, e) =>
         {
             var result = _rectangle.BisectHorizontally().ToEnumerable();
@@ -33,20 +33,28 @@ internal class RectangleBisection : Page
             _rectangles = result.ToArray();
         };
         button.InvokeClick();
-        _buttons.AddButton("BisectVertically", y).Click += (o, e) =>
+
+        // add bottom row buttons
+        bottomButtons.AddButton("BisectVertically").Click += (o, e) =>
         {
             var result = _rectangle.BisectVertically().ToEnumerable();
             DrawResult(result);
             _rectangles = result.ToArray();
         };
 
+        // create top buttons console
+        var topButtons = new HorizontalButtonsConsole(Width, 1)
+        {
+            Parent = this,
+            Position = new Point(0, 3)
+        };
+
         // add top row buttons
-        y = 3;
         for (int i = 2; i < 12; i++)
         {
-            _buttons.AddButton(i.ToString(), y).Click += (o, e) =>
+            topButtons.AddButton(i.ToString()).Click += (o, e) =>
             {
-                if (o is AutomatedButton cb)
+                if (o is VariableWidthButton cb)
                 {
                     int minDimension = Convert.ToInt32(cb.Text);
                     Surface.Print(1, "BisectRecursive: " + minDimension);
