@@ -163,9 +163,9 @@ internal class AreaPage : Page
     public override bool ProcessKeyboard(Keyboard keyboard)
     {
         // check for keyboard shortcuts invoking button clicks when the buttons consoles are not focused
-        if (!_topButtons.IsFocused && _topButtons.ButtonWithKeyboardShortcutWasPressed(keyboard))
+        if (!_topButtons.IsFocused && _topButtons.KeyboardShortcutPressed(keyboard))
                 return true;
-        if (!_bottomButtons.IsFocused && _bottomButtons.ButtonWithKeyboardShortcutWasPressed(keyboard))
+        if (!_bottomButtons.IsFocused && _bottomButtons.KeyboardShortcutPressed(keyboard))
                 return true;
         return base.ProcessKeyboard(keyboard);
     }

@@ -80,7 +80,7 @@ internal class GoRogueLineAlgorithms : Page
     public override bool ProcessKeyboard(Keyboard keyboard)
     {
         // check for keyboard shortcuts presses from the controls console if it is out of focus  
-        if (!_buttons.IsFocused && _buttons.ButtonWithKeyboardShortcutWasPressed(keyboard))
+        if (!_buttons.IsFocused && _buttons.KeyboardShortcutPressed(keyboard))
             return true;
         return base.ProcessKeyboard(keyboard);
     }

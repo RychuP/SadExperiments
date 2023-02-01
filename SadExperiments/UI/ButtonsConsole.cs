@@ -95,7 +95,7 @@ abstract class ButtonsConsole : ControlsConsole
 
     public override bool ProcessKeyboard(Keyboard keyboard)
     {
-        if (ButtonWithKeyboardShortcutWasPressed(keyboard))
+        if (KeyboardShortcutPressed(keyboard))
             return true;
         return base.ProcessKeyboard(keyboard);
     }
@@ -109,7 +109,7 @@ abstract class ButtonsConsole : ControlsConsole
     //
     // infinite loops mentioned above may result from the keyboard component added in
     // OnParentChanged() that calls page.ProcessKeyboard()
-    public bool ButtonWithKeyboardShortcutWasPressed(Keyboard keyboard)
+    public bool KeyboardShortcutPressed(Keyboard keyboard)
     {
         if (keyboard.HasKeysPressed)
         {
