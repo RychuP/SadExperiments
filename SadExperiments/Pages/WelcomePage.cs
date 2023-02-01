@@ -9,27 +9,27 @@ internal class WelcomePage : Page, IRestartable
         Title = "Welcome Page";
         Summary = "Experiments with various features of SadConsole and related libraries.";
 
-        Surface.Print(3, "Press F1 or F2 to navigate between screens.");
-        Surface.Print(5, "Press F3 to display the list of contents.");
-        Surface.Print(7, "Press F4 for Color Picker and F5 for Character Picker windows.");
-        Surface.Print(9, "Use arrow keys, space button, etc to interact with individual pages.");
-        Surface.Print(13, "Take everything with a pinch of salt.");
-        Surface.Print(15, "These are my own attempts at learning the library");
-        Surface.Print(17, "not necessarily examples of the best practice.");
+        int currentRow = PrintPrompts(2, new string[] {
+            "Press F1 or F2 to navigate between screens.",
+            "Press F3 to display the list of contents.",
+            "Press F4 for Color Picker and F5 for Character Picker windows.",
+            "Use arrow keys, space button, etc to interact with individual pages."
+        }, Color.White);
+
+        PrintPrompts(currentRow + 4, new string[]
+        {
+            "Take everything with a pinch of salt.",
+            "These are my own attempts at learning the library",
+            "not necessarily examples of the best practice."
+        }, Color.BurlyWood);
 
         // keyboard shortcut decorations
         for (int i = 0; i < Surface.Count; i++)
         {
             if (Surface[i].Glyph == 'F')
             {
-                Surface[i].Foreground = Color.LightGreen;
-                Surface[i + 1].Foreground = Color.LightGreen;
-                Surface[i + Surface.Width].Glyph = '_';
-                Surface[i + Surface.Width].Mirror = Mirror.Vertical;
-                Surface[i + Surface.Width].Foreground = Color.LightBlue;
-                Surface[i + 1 + Surface.Width].Glyph = '_';
-                Surface[i + 1 + Surface.Width].Mirror = Mirror.Vertical;
-                Surface[i + 1 + Surface.Width].Foreground = Color.LightBlue;
+                DecorateLetter(i);
+                DecorateLetter(i + 1);
             }
         }
 
@@ -40,9 +40,28 @@ internal class WelcomePage : Page, IRestartable
         _worm.UsePixelPositioning = true;
         _worm.Repeat = true;
 
+        // start the animation
         Children.Add(_worm);
         _worm.Start();
         Restart();
+    }
+
+    // prints centered prompts starting at the given row
+    int PrintPrompts(int row, string[] prompts, Color color)
+    {
+        int spacer = 2;
+        row -= spacer;
+        Array.ForEach(prompts, t => Surface.Print(row += spacer, t, color));
+        return row;
+    }
+
+    // changes the color of the letter at Surface[index] and adds underline
+    void DecorateLetter(int index)
+    {
+        Surface[index].Foreground = Color.LightGreen;
+        var underline = new ColoredGlyph(Color.LightBlue, Color.Transparent, '_', Mirror.Vertical);
+        var position = Point.FromIndex(index + Width, Width);
+        Surface.SetGlyph(position, underline);
     }
 
     public void Restart()

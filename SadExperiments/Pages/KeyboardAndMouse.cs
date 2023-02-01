@@ -1,11 +1,9 @@
-﻿using SadExperiments.Components;
+﻿using SadConsole.Components;
 
 namespace SadExperiments.Pages;
 
 internal class KeyboardAndMouse : Page
 {
-    readonly Console _console;
-
     public KeyboardAndMouse()
     {
         Title = "Keyboard And Mouse";
@@ -19,69 +17,84 @@ internal class KeyboardAndMouse : Page
             (9, "Typing is turned off.")
         };
         Array.ForEach(prompts, p => Surface.Print(45, p.Y, p.Text));
-        //Surface.Print(45, 2, "Press 'Space' to change color.");
-        //Surface.Print(45, 4, "Hover mouse over consoles");
-        //Surface.Print(45, 5, "to display position.");
-        //Surface.Print(45, 7, "Click to reposition cursor.");
-        //Surface.Print(45, 9, "Typing is turned off.");
 
-        _console = new(30, 15);
-        _console.Position = new Point(10, 1);
-        _console.DefaultBackground = Color.AnsiGreen;
-        _console.Clear();
-        _console.IsFocused = true;
-        _console.Cursor.Position = new Point(15, 7);
-        _console.Cursor.IsVisible = true;
-        _console.Cursor.MouseClickReposition = true;
+        // create top left console
+        var c1 = new Console(30, 15)
+        {
+            Position = new Point(10, 1),
+            DefaultBackground = Color.AnsiGreen
+        };
+        c1.Clear();
+        c1.IsFocused = true;
+        c1.Cursor.Position = new Point(15, 7);
+        c1.Cursor.IsVisible = true;
+        c1.Cursor.MouseClickReposition = true;
 
-        _console.SadComponents.Add(new RandomBackgroundKeyboardComponent());
-        _console.MouseMove += OnMouseMove!;
-        _console.MouseExit += OnMouseExit!;
-        _console.MouseEnter += OnMouseEnter!;
+        // add keyboard and mouse handling
+        SadComponents.Add(new RandomBackgroundKeyboardComponent(c1));
+        c1.MouseMove += OnMouseMove!;
+        c1.MouseExit += OnMouseExit!;
+        c1.MouseEnter += OnMouseEnter!;
 
-        var c2 = new Console(30, 15);
-        c2.Position = new Point(28, 13);
-        c2.DefaultBackground = Color.AnsiCyan;
+        // create bottom right console
+        var c2 = new Console(30, 15)
+        {
+            Position = new Point(28, 13),
+            DefaultBackground = Color.AnsiCyan
+        };
         c2.Clear();
 
-        Children.Add(c2);
-        Children.Add(_console);
+        // add both consoles to Children
+        Children.Add(c2, c1);
+    }
 
-        void OnMouseEnter(object sender, MouseScreenObjectState mouseState)
+    void OnMouseEnter(object sender, MouseScreenObjectState mouseState)
+    {
+        if (sender is Console c)
         {
-            if (sender is Console c)
-            {
-                c.Cursor.IsVisible = true;
-                c.Cursor.Position = new Point(15, 7);
-            }
-        }
-
-        void OnMouseExit(object sender, MouseScreenObjectState mouseState)
-        {
-            if (sender is Console c)
-            {
-                c.Cursor.IsVisible = false;
-                c.Clear();
-            }
-        }
-
-        void OnMouseMove(object sender, MouseScreenObjectState mouseState)
-        {
-            if (sender is Console c)
-            {
-                c.Print(1, 1, $"Mouse position: {mouseState.CellPosition}  ");
-                if (mouseState.Mouse.LeftButtonDown)
-                    c.Print(1, 2, $"Left button is down");
-                else
-                    c.Print(1, 2, $"                   ");
-            }
+            c.Cursor.IsVisible = true;
+            c.Cursor.Position = c.Area.Center;
         }
     }
 
-    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
+    void OnMouseExit(object sender, MouseScreenObjectState mouseState)
     {
-        if (newParent is Container)
-            _console.IsFocused = true;
-        base.OnParentChanged(oldParent, newParent);
+        if (sender is Console c)
+        {
+            c.Cursor.IsVisible = false;
+            c.Clear();
+        }
+    }
+
+    void OnMouseMove(object sender, MouseScreenObjectState mouseState)
+    {
+        if (sender is Console c)
+        {
+            c.Print(1, 1, $"Mouse position: {mouseState.CellPosition}  ");
+            if (mouseState.Mouse.LeftButtonDown)
+                c.Print(1, 2, $"Left button is down");
+            else
+                c.Print(1, 2, $"                   ");
+        }
+    }
+
+    class RandomBackgroundKeyboardComponent : KeyboardConsoleComponent
+    {
+        readonly Console _console;
+
+        public RandomBackgroundKeyboardComponent(Console console) =>
+            _console = console;
+
+        public override void ProcessKeyboard(IScreenObject host, Keyboard keyboard, out bool handled)
+        {
+            handled = false;
+
+            if (keyboard.HasKeysPressed && keyboard.IsKeyPressed(Keys.Space))
+            {
+                _console.DefaultBackground = Program.RandomColor;
+                _console.Clear();
+                handled = true;
+            }
+        }
     }
 }

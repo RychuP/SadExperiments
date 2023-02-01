@@ -76,7 +76,7 @@ class Page : Console
             }
             else if (keyboard.IsKeyPressed(Keys.F3))
             {
-                container.ShowContentsList();
+                container.ToggleContentsList();
                 return true;
             }
             else if (keyboard.IsKeyPressed(Keys.F4))
@@ -84,7 +84,7 @@ class Page : Console
                 s_colorPicker.Show(true);
                 return true;
             }
-            if (keyboard.IsKeyPressed(Keys.F5))
+            else if (keyboard.IsKeyPressed(Keys.F5))
             {
                 s_characterViewer.Show(true);
                 return true;

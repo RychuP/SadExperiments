@@ -27,17 +27,14 @@ namespace SadExperiments.Pages;
 
 class KeyboardProcessing : Page
 {
-    const int _xKeysDown = 1,
-        _xKeysPressed = 21,
-        _xKeysReleased = 41;
     const int ColumnWidth = 10,
         HeaderRowY = 5,
         Gap = (Program.Width - ColumnWidth * 3) / 4,
         Col1X = Gap,
         Col2X = Col1X + ColumnWidth + Gap,
         Col3X = Col2X + ColumnWidth + Gap;
-    Rectangle _drawArea;
-    Color _headerColor = Color.LightGreen;
+    readonly Rectangle _drawArea;
+    readonly Color _headerColor = Color.LightGreen;
 
     public KeyboardProcessing()
     {
@@ -51,14 +48,6 @@ class KeyboardProcessing : Page
         Surface.Print(Col1X, HeaderRowY, "Keys Down:", _headerColor);
         Surface.Print(Col2X, HeaderRowY, "Keys Pressed:", _headerColor);
         Surface.Print(Col3X, HeaderRowY, "Keys Released:", _headerColor);
-    }
-
-    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
-    {
-        if (newParent is Container)
-            IsFocused = true;
-
-        base.OnParentChanged(oldParent, newParent);
     }
 
     public override bool ProcessKeyboard(Keyboard keyboard)

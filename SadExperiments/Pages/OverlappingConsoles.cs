@@ -5,8 +5,6 @@ namespace SadExperiments.Pages;
 
 internal class OverlappingConsoles : Page
 {
-    readonly Console _console1, _console2;
-
     public OverlappingConsoles()
     {
         Title = "Overlapping Consoles";
@@ -19,57 +17,30 @@ internal class OverlappingConsoles : Page
         int x = Width / 2 - t.Length / 2;
         Surface.Print(x, y + 2, t);
 
-        // First console
-        _console1 = new(60, 14)
-        {
-            Position = new Point(3, 2),
-            DefaultBackground = Color.AnsiCyan
-        };
-        ConfigureConsole(_console1);
-        ConfigureCursor(_console1.Cursor);
-        _console1.Cursor.MouseClickReposition = true;
+        // create top left console
+        var c1 = new CursorExample(Color.AnsiCyan, (3, 2), 60, 14);
+        c1.Cursor.MouseClickReposition = true;
 
-        // Add a child surface
-        ScreenSurface surfaceObject = new ScreenSurface(5, 3);
-        surfaceObject.Surface.FillWithRandomGarbage(surfaceObject.Font);
-        surfaceObject.Position = _console1.Area.Center - (surfaceObject.Surface.Area.Size / 2);
-        surfaceObject.UseMouse = false;
+        // add handling of the page controls
+        c1.WithKeyboard((o, k) => ProcessKeyboard(k));
 
-        _console1.Children.Add(surfaceObject);
+        // add random garbage square to the center of the first console
+        ScreenSurface squareWithGarbage = new(5, 3) { UseMouse = false };
+        squareWithGarbage.Position = c1.Area.Center - (squareWithGarbage.Surface.Area.Size / 2);
+        squareWithGarbage.Surface.FillWithRandomGarbage(squareWithGarbage.Font);
+        c1.Children.Add(squareWithGarbage);
 
-        // Second console
-        _console2 = new(58, 12)
-        {
-            Position = new Point(19, 11),
-            DefaultBackground = Color.AnsiRed
-        };
-        ConfigureConsole(_console2);
-        ConfigureCursor(_console2.Cursor);
+        // create bottom right console
+        var c2 = new CursorExample(Color.AnsiRed, (19, 11), 58, 12);
 
-        // order matters
-        Children.Add(_console2);
-        Children.Add(_console1);
+        // add handling of the page controls
+        c2.WithKeyboard((o, k) => ProcessKeyboard(k));
+
+        // add both consoles to Children (order matters)
+        Children.Add(c2, c1);
     }
 
-    // keyboard handler for page changing
-    bool KeyboardHandler(IScreenObject so, Keyboard keyboard) => this.ProcessKeyboard(keyboard);
-
-    void ConfigureConsole(Console console)
-    {
-        console.Clear();
-        console.Print(1, 1, "Type on me!");
-        console.WithKeyboard(KeyboardHandler);
-        console.FocusOnMouseClick = true;
-        console.MoveToFrontOnMouseClick = true;
-    }
-
-    static void ConfigureCursor(Cursor cursor)
-    {
-        cursor.Position = new Point(1, 2);
-        cursor.IsEnabled = true;
-        cursor.IsVisible = true;
-    }
-
+    // set focus to one of the child consoles when this page becomes active
     protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
     {
         if (newParent is Container)
@@ -79,5 +50,29 @@ internal class OverlappingConsoles : Page
                 c.IsFocused = true;
         }
         base.OnParentChanged(oldParent, newParent);
+    }
+
+    class CursorExample : Console
+    {
+        public CursorExample(Color bg, Point position, int w, int h) : base(w, h) 
+        {
+            Position = position;
+
+            // change background color
+            DefaultBackground = bg;
+            Surface.Clear();
+
+            // print prompt
+            Surface.Print(1, 1, "Type on me!");
+
+            // mouse handling
+            FocusOnMouseClick = true;
+            MoveToFrontOnMouseClick = true;
+
+            // cursor config
+            Cursor.Position = new Point(1, 2);
+            Cursor.IsEnabled = true;
+            Cursor.IsVisible = true;
+        }
     }
 }

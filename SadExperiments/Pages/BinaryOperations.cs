@@ -5,11 +5,14 @@ class BinaryOperationsPage : Page
     public BinaryOperationsPage()
     {
         Title = "Binary Operations";
-        Summary = "Examples of binary operations on bytes.";
+        Summary = "Handy reminder of bit operations in C#.";
         AddCentered(new BinaryOperations());
 
-        Surface.Print(3, "Nothing to do with SadConsole functionality.");
-        Surface.Print(5, "Just me playing with bits in C#.");
+        Surface.Print(3, ColoredString.Parser.Parse("Check out also SadConsole's [c:r f:lightgreen]Helpers[c:undo] " +
+            "class when working with bits."));
+        string color = "orange";
+        Surface.Print(5, ColoredString.Parser.Parse($"It features useful [c:r f:{color}]SetFlag[c:undo], " +
+            $"[c:r f:{color}]UnsetFlag[c:undo] and [c:r f:{color}]HasFlag[c:undo] methods."));
     }
 }
 
@@ -41,7 +44,8 @@ class BinaryOperations : SubPage
         Print("Right Shift", GetStringInBinary(x >> y) + " x >> y");
     }
 
-    void Print(string l, string r) => Surface.Print(1, _y++, $"{l.Align(HorizontalAlignment.Right, 13)}: {r}");
+    void Print(string l, string r) => 
+        Surface.Print(1, _y++, $"{l.Align(HorizontalAlignment.Right, 13)}: {r}");
 
     static string GetStringInBinary(int n)
     {

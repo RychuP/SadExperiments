@@ -95,24 +95,33 @@ internal class Container : ScreenObject
             p.Restart();
     }
 
-    public void ShowContentsList()
+    public void ToggleContentsList()
     {
         if (!_contentsList.IsBeingShown)
         {
+            // show contents list
             Children.MoveToTop(_contentsList);
             _contentsList.IsVisible = true;
             _contentsList.IsFocused = true;
+
+            // change header
+            _contentsList.Index = _currentPage.Index;
+            _header.SetHeader(_contentsList);
         }
         else HideContentsList();
     }
 
     void HideContentsList()
     {
+        // show current page
         Children.MoveToTop(_currentPage);
         _contentsList.IsVisible = false;
         _currentPage.IsFocused = true;
         if (_currentPage is IRestartable p)
             p.Restart();
+
+        // change header
+        _header.SetHeader(_currentPage);
     }
 
     ControlsConsole ButtonsWithLinksToPages

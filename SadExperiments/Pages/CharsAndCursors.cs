@@ -7,7 +7,7 @@ class CharsAndCursors : Page
         Title = "Chars And Cursors";
         Summary = "Font breakdown in separate consoles and playing with pixels.";
         AddCentered(new FontBreakdown());
-        Surface.Print(2, "Maximise window to see a little red dot circling the space character.");
+        Surface.Print(2, "If you look closely, there is a red dot circling the space character.");
     }
 
     protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
@@ -65,13 +65,13 @@ internal class FontBreakdown : SubPage
         _points = GetPoint();
     }
 
-    Direction RandomDirection() => Game.Instance.Random.Next(0, 2) switch
+    static Direction RandomDirection() => Game.Instance.Random.Next(0, 2) switch
     {
         0 => Direction.Up,
         _ => Direction.Down
     };
 
-    int RandomCharRow() => Game.Instance.Random.Next(0, 16);
+    static int RandomCharRow() => Game.Instance.Random.Next(0, 16);
 
     // manipulating individual pixels of a "space" character -> red dot moving around the perimeter
     public override void Update(TimeSpan delta)

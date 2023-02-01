@@ -3,7 +3,7 @@ using ShaiRandom.Generators;
 
 namespace SadExperiments;
 
-public static class Extensions
+public static class ICellSurfaceExtensions
 {
     /// <summary>
     /// Prints text centered on the surface.
@@ -14,11 +14,11 @@ public static class Extensions
     public static void Print(this ICellSurface cellSurface, int y, string text, Color? color = null) =>
         cellSurface.Print(0, y, text.Align(HorizontalAlignment.Center, cellSurface.Width), color ?? cellSurface.DefaultForeground);
 
-    /// <summary>
-    /// Allows adding multiple screen objects at the same time.
-    /// </summary>
-    public static void Add(this ScreenObjectCollection collection, params IScreenObject[] childrenList) =>
-        Array.ForEach(childrenList, child => collection.Add(child));
+    public static void Print(this ICellSurface cellSurface, int y, ColoredString text)
+    {
+        int x = (cellSurface.Width - text.Length) / 2;
+        cellSurface.Print(x, y, text);
+    }
 
     /// <summary>
     /// Sets the default <see cref="ICellSurface"/> colors and clears it.
@@ -34,11 +34,12 @@ public static class Extensions
     }
 
     /// <summary>
-    /// Draws a box around the perimeter of the <see cref="ICellSurface.Area"/>.
+    /// Draws a rectangle around the perimeter of the <see cref="ICellSurface.Area"/>.
     /// </summary>
     /// <param name="fg">Foreground <see cref="Color"/>.</param>
-    public static void DrawOutline(this ICellSurface cellSurface, Color? fg = null) =>
-        cellSurface.DrawRectangle(cellSurface.Area, fg);
+    /// <param name="glyph">Glyph to use as an outline.</param>
+    public static void DrawOutline(this ICellSurface cellSurface, Color? fg = null, int? glyph = null) =>
+        cellSurface.DrawRectangle(cellSurface.Area, fg, glyph);
 
     /// <summary>
     /// Draws a rectangle outline using either <see cref="ICellSurface.ConnectedLineThin"/> or the given glyph.
@@ -57,6 +58,17 @@ public static class Extensions
     }
 
     /// <summary>
+    /// Draws a <see cref="ColoredGlyph"/> at the specified location.
+    /// </summary>
+    /// <param name="position">Position on the surface.</param>
+    /// <param name="glyph"><see cref="ColoredGlyph"/> to draw.</param>
+    public static void SetGlyph(this ICellSurface cellSurface, Point position, ColoredGlyph glyph) =>
+        cellSurface.SetGlyph(position.X, position.Y, glyph);
+}
+
+public static class DirectionExtensions
+{
+    /// <summary>
     /// Rolls a d4 dice to select a random cardinal <see cref="Direction"/>.
     /// </summary>
     /// <returns>Random cardinal direction.</returns>
@@ -70,4 +82,13 @@ public static class Extensions
     /// <returns>Inversed <see cref="Direction"/>.</returns>
     public static Direction Inverse(this Direction direction) =>
         direction + 4;
+}
+
+public static class Extensions
+{
+    /// <summary>
+    /// Allows adding multiple screen objects at the same time.
+    /// </summary>
+    public static void Add(this ScreenObjectCollection collection, params IScreenObject[] childrenList) =>
+        Array.ForEach(childrenList, child => collection.Add(child));
 }

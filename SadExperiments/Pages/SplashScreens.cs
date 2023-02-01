@@ -1,46 +1,69 @@
-﻿using SadConsole.Quick;
+﻿using SadConsole.SplashScreens;
 
 namespace SadExperiments.Pages;
 
-internal class SplashScreens : Page
+internal class SplashScreens : Page, IRestartable
 {
+    readonly SplashScreensList _splashScreens = new();
+
     public SplashScreens()
     {
         Title = "Splash Screens";
-        Summary = "Press either space or shift to see both splash screens.";
-
-        this.WithKeyboard((host, keyboard) =>
-        {
-            if (host is Console c && keyboard.HasKeysPressed)
-            {
-                c.DefaultBackground = Program.RandomColor;
-                c.Clear();
-                c.Children.Clear();
-                if (keyboard.IsKeyPressed(Keys.Space))
-                {
-                    c.Children.Add(new SadConsole.SplashScreens.Simple());
-
-                }
-                else if (keyboard.IsKeyPressed(Keys.LeftShift))
-                {
-                    c.Children.Add(new SadConsole.SplashScreens.PCBoot());
-                }
-                return false;
-            }
-            else
-            {
-                return false;
-            }
-        });
+        Summary = "Press space to toggle between available splash screens.";
+        Restart();
     }
 
-    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
+    public void Restart()
     {
-        if (newParent is Container)
+        ClearPage();
+        Children.Add(_splashScreens.First());
+    }
+
+    public override bool ProcessKeyboard(Keyboard keyboard)
+    {
+        if (keyboard.HasKeysPressed && keyboard.IsKeyPressed(Keys.Space))
         {
-            Children.Clear();
-            Children.Add(new SadConsole.SplashScreens.PCBoot());
+            ClearPage();
+            Children.Add(_splashScreens.Next());
+            return true;
         }
-        base.OnParentChanged(oldParent, newParent);
+
+        return base.ProcessKeyboard(keyboard);
+    }
+
+    void ClearPage()
+    {
+        DefaultBackground = Program.RandomColor;
+        Surface.Clear();
+        Children.Clear();
+    }
+
+    class SplashScreensList
+    {
+        int _currentIndex = 0;
+
+        public ScreenSurface Next()
+        {
+            _currentIndex++;
+            if (_currentIndex >= Count)
+                _currentIndex = 0;
+            return Current();
+        }
+
+        public const int Count = 2;
+        public ScreenSurface Current()
+        {
+            return _currentIndex switch
+            {
+                0 => new Simple(),
+                _ => new PCBoot()
+            };
+        }
+
+        public ScreenSurface First()
+        {
+            _currentIndex = 0;
+            return Current();
+        }
     }
 }
