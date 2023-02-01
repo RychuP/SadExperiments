@@ -1,6 +1,5 @@
 ﻿using SadConsole.Quick;
 using SadConsole.UI;
-using SadConsole.UI.Controls;
 
 namespace SadExperiments.UI;
 
@@ -55,6 +54,7 @@ class VerticalButtonsConsole : ButtonsConsole
     }
 }
 
+// base class for button hosts (automatically adds handling of global page keyboard handling)
 abstract class ButtonsConsole : ControlsConsole
 {
     /// <summary>
@@ -91,6 +91,40 @@ abstract class ButtonsConsole : ControlsConsole
         if (newParent is Page page)
             this.WithKeyboard((o, k) => page.ProcessKeyboard(k));
         base.OnParentChanged(oldParent, newParent);
+    }
+
+    public override bool ProcessKeyboard(Keyboard keyboard)
+    {
+        if (ButtonWithKeyboardShortcutWasPressed(keyboard))
+            return true;
+        return base.ProcessKeyboard(keyboard);
+    }
+
+    // searches for buttons with keyboard shortcuts and invokes click on them
+    // if the corresponding button was pressed
+    //
+    // this method is extracted from the ProcessKeyboard() to prevent infinite loops when a page holding 
+    // the buttons console has more than one of these and checks them all in their ProcessKeyboard()
+    // when they are not focused
+    //
+    // infinite loops mentioned above may result from the keyboard component added in
+    // OnParentChanged() that calls page.ProcessKeyboard()
+    public bool ButtonWithKeyboardShortcutWasPressed(Keyboard keyboard)
+    {
+        if (keyboard.HasKeysPressed)
+        {
+            foreach (var control in Controls)
+            {
+                if (control is VariableWidthButton button
+                    && button.KeyboardShortcut.HasValue
+                    && keyboard.IsKeyPressed(button.KeyboardShortcut.Value))
+                {
+                    button.InvokeClick();
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /// <summary>

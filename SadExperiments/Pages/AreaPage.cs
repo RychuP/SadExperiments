@@ -1,5 +1,6 @@
 ﻿using GoRogue.Random;
 using SadConsole.Quick;
+using SadConsole.UI;
 using SadExperiments.UI;
 using ShaiRandom.Generators;
 
@@ -12,6 +13,9 @@ internal class AreaPage : Page
 
     // backing field for AdjacencyRule
     AdjacencyRule _adjacencyRule = AdjacencyRule.EightWay;
+
+    HorizontalButtonsConsole _topButtons;
+    HorizontalButtonsConsole _bottomButtons;
 
     DisplayItems _currentDisplayItems = DisplayItems.Area;
     readonly TestArea _area;
@@ -38,32 +42,32 @@ internal class AreaPage : Page
         ExecuteCurrentDisplayFunctions();
 
         // create top buttons surface
-        var topButtons = new HorizontalButtonsConsole(Width, 1)
+        _topButtons = new HorizontalButtonsConsole(Width, 1)
         {
             Parent = this,
             Position = (0, 1)
         };
 
-        topButtons.AddButton("Change Color").Click += (o, e) =>
+        _topButtons.AddButton("Change Color", Keys.D1).Click += (o, e) =>
         {
             _area.Color = Program.RandomColor;
             ExecuteCurrentDisplayFunctions();
         };
 
-        topButtons.AddButton("New Area").Click += (o, e) =>
+        _topButtons.AddButton("New Area", Keys.D2).Click += (o, e) =>
         {
             _area.Regenerate();
             ExecuteCurrentDisplayFunctions();
         };
 
         // create bottom buttons surface
-        var bottomButtons = new HorizontalButtonsConsole(Width, 1)
+        _bottomButtons = new HorizontalButtonsConsole(Width, 1)
         {
             Parent = this,
             Position = (0, Height - 2)
         };
 
-        bottomButtons.AddButton("Area Filled").Click += (o, e) =>
+        _bottomButtons.AddButton("Area Filled", Keys.D3).Click += (o, e) =>
         {
             if (o is VariableWidthButton button)
             {
@@ -81,7 +85,7 @@ internal class AreaPage : Page
             ExecuteCurrentDisplayFunctions();
         };
 
-        bottomButtons.AddButton("Bounds").Click += (o, e) =>
+        _bottomButtons.AddButton("Bounds", Keys.D4).Click += (o, e) =>
         {
             if (_currentDisplayItems.HasFlag(DisplayItems.Bounds))
             {
@@ -95,8 +99,8 @@ internal class AreaPage : Page
             }
         };
 
-        string adjacencyRuleLabel = "Adjacency Rule: ";
-        bottomButtons.AddButton(adjacencyRuleLabel + AdjacencyRule).Click += (o, e) =>
+        string adjacencyRuleLabel = "Adjacency Rule ";
+        _bottomButtons.AddButton(adjacencyRuleLabel + AdjacencyRule, Keys.D5).Click += (o, e) =>
         {
             SetNextAdjacencyRule();
             if (o is VariableWidthButton b)
@@ -155,6 +159,28 @@ internal class AreaPage : Page
     /// <param name="args"></param>
     protected void OnNeighborsChanged(NeighborsChangedEventArgs args) =>
         NeighborsChanged?.Invoke(this, args);
+
+    public override bool ProcessKeyboard(Keyboard keyboard)
+    {
+        // check for keyboard shortcuts invoking button clicks when the buttons consoles are not focused
+        if (!_topButtons.IsFocused && _topButtons.ButtonWithKeyboardShortcutWasPressed(keyboard))
+                return true;
+        if (!_bottomButtons.IsFocused && _bottomButtons.ButtonWithKeyboardShortcutWasPressed(keyboard))
+                return true;
+        return base.ProcessKeyboard(keyboard);
+    }
+
+    static VariableWidthButton? FindButtonWithKeyboardShortcut(Keys key, ControlHost host)
+    {
+        foreach (var control in host)
+        {
+            if (control is VariableWidthButton button 
+                && button.KeyboardShortcut.HasValue
+                && button.KeyboardShortcut.Value == key)
+                    return button;
+        }
+        return null;
+    }
 
     public override bool ProcessMouse(MouseScreenObjectState state)
     {

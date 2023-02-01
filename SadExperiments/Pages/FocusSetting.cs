@@ -24,7 +24,7 @@ internal class FocusSetting : Page
 
         AddCentered(container);
 
-        Surface.Print(4, "Only one ScreenObject at a time can hold keyboard focus.");
+        Surface.Print(4, ColoredString.Parser.Parse("Only one [c:r f:lightgreen]ScreenObject[c:undo] at a time can hold keyboard focus."));
         Surface.Print(6, "Click the below consoles and notice how their focus changes.");
     }
 

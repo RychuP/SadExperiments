@@ -79,18 +79,9 @@ internal class GoRogueLineAlgorithms : Page
 
     public override bool ProcessKeyboard(Keyboard keyboard)
     {
-        if (keyboard.HasKeysPressed)
-        {
-            foreach (var control in _buttons.Controls)
-            {
-                if (control is VariableWidthButton b && b.KeyboardShortcut is not null 
-                    && keyboard.IsKeyPressed(b.KeyboardShortcut.Value))
-                {
-                    b.InvokeClick();
-                    return true;
-                }
-            }
-        }
+        // check for keyboard shortcuts presses from the controls console if it is out of focus  
+        if (!_buttons.IsFocused && _buttons.ButtonWithKeyboardShortcutWasPressed(keyboard))
+            return true;
         return base.ProcessKeyboard(keyboard);
     }
 

@@ -5,7 +5,7 @@ class SurfaceShifting : Page
     public SurfaceShifting()
     {
         Title = "Surface Shifting";
-        Summary = "Testing ShiftDown, ShiftUp, ShiftLeft and ShiftRight methods.";
+        Summary = "Arrow keys ShiftDown, ShiftUp, ShiftLeft and ShiftRight surface.";
         DefaultBackground = Color.DarkBlue;
         AddCentered(new SurfaceShiftingExample());
     }

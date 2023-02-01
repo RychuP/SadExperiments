@@ -1,14 +1,20 @@
 ﻿using SadConsole.UI.Controls;
+using SadConsole.UI.Windows;
 using SadConsole.UI;
+using SadConsole.Quick;
 using SadExperiments.Pages;
 
 namespace SadExperiments.MainScreen;
 
 internal class Container : ScreenObject
 {
-    readonly Header _header;
+    public static ColorPickerPopup ColorPicker { get; } = new();
+    public static CharacterViewer CharacterViewer { get; } = new(1);
+
     readonly ContentsList _contentsList;
+    readonly Header _header;
     Page _currentPage;
+
     readonly Page[] _pages =
     {
         new WelcomePage(),
@@ -44,6 +50,23 @@ internal class Container : ScreenObject
         new Instructions(),
         new EffectsAndDecorators(),
     };
+
+    static Container()
+    {
+        ColorPicker.FontSize *= 0.9;
+        ColorPicker.Center();
+        ColorPicker.SelectedColor = Color.White;
+        ColorPicker.WithKeyboard((o, k) =>
+        {
+            if (k.HasKeysPressed && k.IsKeyPressed(Keys.F4))
+            {
+                ColorPicker.Hide();
+                return true;
+            }
+            return false;
+        });
+        CharacterViewer.Center();
+    }
 
     public Container()
     {

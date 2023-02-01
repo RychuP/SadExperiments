@@ -1,30 +1,13 @@
-﻿using SadConsole.Quick;
-using SadConsole.UI.Windows;
+﻿namespace SadExperiments.MainScreen;
 
-namespace SadExperiments.MainScreen;
-
+// page with some bite size SadConsole related content
+//
+// make sure to add handling of this page ProcessKeyboard() to any screen object you add to it that may possibly steal focus
+// 
+// if you use HorizontalButtonsConsole or VerticalButtonsConsole for adding buttons this process is automated in a way
+// (check out AreaPage or RectangleBisection for an example)
 class Page : Console
 {
-    static readonly ColorPickerPopup s_colorPicker = new();
-    static readonly CharacterViewer s_characterViewer = new(1);
-
-    static Page()
-    {
-        s_colorPicker.FontSize *= 0.9;
-        s_colorPicker.Center();
-        s_colorPicker.SelectedColor = Color.White;
-        s_colorPicker.WithKeyboard((o, k) =>
-        {
-            if (k.HasKeysPressed && k.IsKeyPressed(Keys.F4))
-            {
-                s_colorPicker.Hide();
-                return true;
-            }
-            return false;
-        }); 
-        s_characterViewer.Center();
-    }
-
     public string Title { get; init; } = string.Empty;
 
     public string Summary { get; init; } = string.Empty;
@@ -81,12 +64,12 @@ class Page : Console
             }
             else if (keyboard.IsKeyPressed(Keys.F4))
             {
-                s_colorPicker.Show(true);
+                Container.ColorPicker.Show(true);
                 return true;
             }
             else if (keyboard.IsKeyPressed(Keys.F5))
             {
-                s_characterViewer.Show(true);
+                Container.CharacterViewer.Show(true);
                 return true;
             }
         }
