@@ -151,4 +151,18 @@ class PageCounter : ScreenSurface
         if (pageNumber < 1 || pageNumber > _pageCount) throw new IndexOutOfRangeException($"Page number: {pageNumber} is not valid)");
         Surface.Print(0, 1, $"{pageNumber: 00}/{_pageCount:00}", Color.White);
     }
+
+    protected override void OnMouseExit(MouseScreenObjectState state)
+    {
+        if (Parent is Header header && !state.Mouse.IsOnScreen)
+            header.Minimize();
+        base.OnMouseExit(state);
+    }
+
+    protected override void OnMouseEnter(MouseScreenObjectState state)
+    {
+        if (Parent is Header header && header.IsMinimized)
+            header.Maximize();
+        base.OnMouseEnter(state);
+    }
 }

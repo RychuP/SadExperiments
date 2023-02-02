@@ -3,6 +3,10 @@ using SadConsole.UI.Windows;
 using SadConsole.UI;
 using SadConsole.Quick;
 using SadExperiments.Pages;
+using SadExperiments.Pages.Sad_Console;
+using SadExperiments.Pages.Primitives;
+using SadExperiments.Pages.Sad_Canvas;
+using SadExperiments.Pages.Go_Rogue;
 
 namespace SadExperiments.MainScreen;
 
@@ -31,7 +35,7 @@ class Container : ScreenObject
         new AnimatedGlobe(),
         new Donut3dPage(),
         new A_Demo(),
-        new GoRogueLineAlgorithms(),
+        new LineAlgorithms(),
         new RectangleBisection(),
         new AreaPage(),
         new SplashScreens(),

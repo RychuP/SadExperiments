@@ -20,11 +20,4 @@
     <None Include="Resources\**" LinkBase="Fonts\" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Pages\GoRogue\" />
-    <Folder Include="Pages\SadCanvas\" />
-    <Folder Include="Pages\Primitives\" />
-    <Folder Include="Pages\SadConsole\" />
-  </ItemGroup>
-
 </Project>
