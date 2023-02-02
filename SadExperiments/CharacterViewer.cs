@@ -74,14 +74,4 @@ public class CharacterViewer : Window
         Surface.DrawLine(new Point(0, _picker.Bounds.MaxExtentY + 1), new Point(Width, _picker.Bounds.MaxExtentY + 1), BorderLineStyle[0], borderStyle.Foreground);
         Surface.ConnectLines(BorderLineStyle);
     }
-
-    public override bool ProcessKeyboard(Keyboard info)
-    {
-        if (info.HasKeysPressed && info.IsKeyPressed(Keys.F5))
-        {
-            Hide();
-            return true;
-        }
-        return base.ProcessKeyboard(info);
-    }
 }

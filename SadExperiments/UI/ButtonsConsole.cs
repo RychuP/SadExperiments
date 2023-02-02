@@ -6,8 +6,6 @@ namespace SadExperiments.UI;
 
 class HorizontalButtonsConsole : ButtonsConsole
 {
-    
-
     public HorizontalButtonsConsole(int w, int h) : base(w, h) { }
 
     public override VariableWidthButton AddButton(string text, Keys? keyboardShortcut = null, bool addKeyboardShortcutToText = true) =>
@@ -116,14 +114,6 @@ abstract class ButtonsConsole : ControlsConsole
     {
         if (o is VariableWidthButton button)
             AlignRow(button);
-    }
-
-    // adds processing of page.ProcessKeyboard() when the buttons are pressed and IsFocused changes to this console
-    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
-    {
-        if (newParent is Page page)
-            this.WithKeyboard((o, k) => page.ProcessKeyboard(k));
-        base.OnParentChanged(oldParent, newParent);
     }
 
     public override bool ProcessKeyboard(Keyboard keyboard)

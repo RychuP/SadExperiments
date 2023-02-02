@@ -65,40 +65,6 @@ class Page : Console
 
         child.Position = (x, y);
     }
-
-    public override bool ProcessKeyboard(Keyboard keyboard)
-    {
-        if (keyboard.HasKeysPressed && Parent is Container container)
-        {
-            if (keyboard.IsKeyPressed(Keys.F1))
-            {
-                container.PrevPage();
-                return true;
-            }
-            else if (keyboard.IsKeyPressed(Keys.F2))
-            {
-                container.NextPage();
-                return true;
-            }
-            else if (keyboard.IsKeyPressed(Keys.F3))
-            {
-                container.ToggleContentsList();
-                return true;
-            }
-            else if (keyboard.IsKeyPressed(Keys.F4))
-            {
-                Container.ColorPicker.Show(true);
-                return true;
-            }
-            else if (keyboard.IsKeyPressed(Keys.F5))
-            {
-                Container.CharacterViewer.Show(true);
-                return true;
-            }
-        }
-
-        return base.ProcessKeyboard(keyboard);
-    }
 }
 
 /// <summary>

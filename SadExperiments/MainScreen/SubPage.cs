@@ -1,7 +1,7 @@
 ﻿namespace SadExperiments.MainScreen;
 
 /// <summary>
-/// Smaller, named screen surface that can be added to a page. It can be accessed with the property page.SubPage.
+/// Smaller, named <see cref="ScreenSurface"/> that can be added to a page (accessible with the property page.SubPage).
 /// </summary>
 internal class SubPage : ScreenSurface
 {

@@ -11,13 +11,19 @@ class Header : ScreenSurface
     /// </summary>
     public const int MinimizedViewHeight = 2;
 
-    // view height that includes all current content
+    // view height that includes all current content shown on mouse over
     int _contentViewHeight = MinimizedViewHeight;
 
     readonly PageCounter _pageCounter;
     readonly Cursor _cursor;
     readonly Buttons _tagButtons;
+    Page _currentPage;
 
+    /// <summary>
+    /// Window shown at the top of the screen with information about currently loaded page.
+    /// </summary>
+    /// <param name="page">Initial page shown when the program starts.</param>
+    /// <param name="pageCount">Total number of pages used by <see cref="PageCounter"/>.</param>
     public Header(Page page, int pageCount) : base(Program.Width, MinimizedViewHeight, Program.Width, Program.Height)
     {
         // set colors
@@ -40,6 +46,8 @@ class Header : ScreenSurface
 
         // load initial page data
         SetHeader(page);
+
+        _currentPage = page;
     }
 
     public void SetHeader(Page page)
@@ -63,17 +71,13 @@ class Header : ScreenSurface
             // tags title
             .Print($"[c:r f:yellow]Tags[c:undo]: ");
 
-        // place the buttons console at the end of the Tags: text
+        // place the buttons console at the end of the 'Tags: ' text
         _tagButtons.Position = _cursor.Position;
 
         // prepare buttons console for the new tags
         _tagButtons.Resize(Surface.Width - _cursor.Position.X, 1, true);
         _tagButtons.Controls.Clear();
         _tagButtons.CurrentRow = 0;
-
-        // remove previous keyboard hooks attached to the buttons console and add a new one
-        _tagButtons.RemoveKeyboardHooks();
-        _tagButtons.WithKeyboard((o, k) => page.ProcessKeyboard(k));
 
         // add all tags as buttons
         foreach (var tag in page.Tags)
@@ -84,12 +88,17 @@ class Header : ScreenSurface
 
         // set current view height to minimized height (default state)
         Minimize();
+
+        _currentPage = page;
     }
 
     public void Maximize()
     {
-        Surface.ViewHeight = _contentViewHeight;
-        _tagButtons.IsVisible = true;
+        if (_currentPage is not ContentsList)
+        {
+            Surface.ViewHeight = _contentViewHeight;
+            _tagButtons.IsVisible = true;
+        }
     }
 
     public bool IsMinimized =>
@@ -121,14 +130,20 @@ class Header : ScreenSurface
         return base.ProcessMouse(state);
     }
 
+    // made for the sole purpose of handling mouse exit to the right of this console where header can't catch it
     class Buttons : HorizontalButtonsConsole
     {
         public Buttons(int w, int h) : base(w, h) { }
 
         protected override void OnMouseExit(MouseScreenObjectState state)
         {
-            if (Parent is Header header && !state.Mouse.IsOnScreen)
-                header.Minimize();
+            if (Parent is Header header)
+            {
+                // create the mouse state for the parent and check if the mouse is still on it
+                var parentState = new MouseScreenObjectState(header, state.Mouse);
+                if (!parentState.IsOnScreenObject)
+                    header.Minimize();
+            }
             base.OnMouseExit(state);
         }
     }
@@ -154,8 +169,13 @@ class PageCounter : ScreenSurface
 
     protected override void OnMouseExit(MouseScreenObjectState state)
     {
-        if (Parent is Header header && !state.Mouse.IsOnScreen)
-            header.Minimize();
+        if (Parent is Header header)
+        {
+            // create the mouse state for the parent and check if the mouse is still on it
+            var parentState = new MouseScreenObjectState(header, state.Mouse);
+            if (!parentState.IsOnScreenObject)
+                header.Minimize();
+        }
         base.OnMouseExit(state);
     }
 

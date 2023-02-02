@@ -1,5 +1,4 @@
 ﻿using SadConsole.Components;
-using SadConsole.Quick;
 using SadExperiments;
 
 namespace SadExperiments.Pages.Sad_Console;
@@ -24,9 +23,6 @@ internal class OverlappingConsoles : Page
         var c1 = new CursorExample(Color.AnsiCyan, (3, 2), 60, 14);
         c1.Cursor.MouseClickReposition = true;
 
-        // add handling of the page controls
-        c1.WithKeyboard((o, k) => ProcessKeyboard(k));
-
         // add random garbage square to the center of the first console
         ScreenSurface squareWithGarbage = new(5, 3) { UseMouse = false };
         squareWithGarbage.Position = c1.Area.Center - squareWithGarbage.Surface.Area.Size / 2;
@@ -35,9 +31,6 @@ internal class OverlappingConsoles : Page
 
         // create bottom right console
         var c2 = new CursorExample(Color.AnsiRed, (19, 11), 58, 12);
-
-        // add handling of the page controls
-        c2.WithKeyboard((o, k) => ProcessKeyboard(k));
 
         // add both consoles to Children (order matters)
         Children.Add(c2, c1);

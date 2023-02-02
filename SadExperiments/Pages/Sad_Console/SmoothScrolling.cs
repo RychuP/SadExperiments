@@ -19,23 +19,26 @@ internal class SmoothScrolling : Page
                 if (k.IsKeyDown(Keys.Left))
                 {
                     console.ViewPosition += Direction.Left;
+                    return true;
                 }
 
                 else if (k.IsKeyDown(Keys.Right))
                 {
                     console.ViewPosition += Direction.Right;
+                    return true;
                 }
 
                 if (k.IsKeyDown(Keys.Up))
                 {
                     console.ViewPosition += Direction.Up;
+                    return true;
                 }
 
                 else if (k.IsKeyDown(Keys.Down))
                 {
                     console.ViewPosition += Direction.Down;
+                    return true;
                 }
-                return true;
             }
             return false;
         });

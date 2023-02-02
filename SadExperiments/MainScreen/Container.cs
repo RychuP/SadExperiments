@@ -1,7 +1,6 @@
 ﻿using SadConsole.UI.Controls;
 using SadConsole.UI.Windows;
 using SadConsole.UI;
-using SadConsole.Quick;
 using SadExperiments.Pages;
 using SadExperiments.Pages.Sad_Console;
 using SadExperiments.Pages.Primitives;
@@ -70,15 +69,6 @@ class Container : ScreenObject
         ColorPicker.FontSize *= 0.9;
         ColorPicker.Center();
         ColorPicker.SelectedColor = Color.White;
-        ColorPicker.WithKeyboard((o, k) =>
-        {
-            if (k.HasKeysPressed && k.IsKeyPressed(Keys.F4))
-            {
-                ColorPicker.Hide();
-                return true;
-            }
-            return false;
-        });
         CharacterViewer.Center();
     }
 
@@ -107,13 +97,49 @@ class Container : ScreenObject
         Array.ForEach(_pages, p => p.Index = i++);
     }
 
+    public override void Update(TimeSpan delta)
+    {
+        var keyboard = Game.Instance.Keyboard;
+        if (keyboard.HasKeysPressed)
+        {
+            if (ColorPicker.IsVisible)
+            {
+                // keep it seperate
+                if (keyboard.IsKeyPressed(Keys.F4))
+                    ColorPicker.Hide();
+            }
+            else if (CharacterViewer.IsVisible)
+            {
+                // keep it seperate
+                if (keyboard.IsKeyPressed(Keys.F5))
+                    CharacterViewer.Hide();
+            }
+            else
+            {
+                if (keyboard.IsKeyPressed(Keys.F1))
+                    PrevPage();
+                else if (keyboard.IsKeyPressed(Keys.F2))
+                    NextPage();
+                else if (keyboard.IsKeyPressed(Keys.F3))
+                    ToggleContentsList();
+                else if (keyboard.IsKeyPressed(Keys.F4))
+                    ColorPicker.Show(true);
+                else if (keyboard.IsKeyPressed(Keys.F5))
+                    CharacterViewer.Show(true);
+            }
+        }
+        base.Update(delta);
+    }
+
     public void NextPage() => ChangePage(Direction.Right);
 
     public void PrevPage() => ChangePage(Direction.Left);
 
     void ChangePage(Direction direction)
     {
-        if (_contentsList.IsBeingShown) HideContentsList();
+        if (_contentsList.IsVisible) 
+            HideContentsList();
+
         int nextIndex = _currentPage.Index + (direction == Direction.Right ? 1 : -1);
         var page = nextIndex < 0              ? _pages.Last() :
                    nextIndex >= _pages.Length ? _pages.First() :
@@ -135,14 +161,15 @@ class Container : ScreenObject
 
     public void ToggleContentsList()
     {
-        if (!_contentsList.IsBeingShown)
+        if (!_contentsList.IsVisible)
         {
-            // show contents list
+            // hide current page
             Children.MoveToBottom(_currentPage);
-            _contentsList.IsVisible = true;
-            _contentsList.IsFocused = true;
 
-            // change header
+            // show contents list
+            _contentsList.Show();
+
+            // update header
             _contentsList.Index = _currentPage.Index;
             _header.SetHeader(_contentsList);
         }
@@ -151,14 +178,17 @@ class Container : ScreenObject
 
     void HideContentsList()
     {
-        // show current page
+        _contentsList.Hide();
+
+        // focus and show current page
         Children.MoveToBottom(_contentsList);
-        _contentsList.IsVisible = false;
         _currentPage.IsFocused = true;
+
+        // restart page if possible
         if (_currentPage is IRestartable p)
             p.Restart();
 
-        // change header
+        // update header
         _header.SetHeader(_currentPage);
     }
 

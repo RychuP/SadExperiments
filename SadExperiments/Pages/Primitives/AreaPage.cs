@@ -1,6 +1,5 @@
 ﻿using GoRogue.Random;
 using SadConsole.Quick;
-using SadConsole.UI;
 using SadExperiments;
 using SadExperiments.UI;
 using ShaiRandom.Generators;
@@ -171,18 +170,6 @@ internal class AreaPage : Page
         if (!_bottomButtons.IsFocused && _bottomButtons.KeyboardShortcutPressed(keyboard))
             return true;
         return base.ProcessKeyboard(keyboard);
-    }
-
-    static VariableWidthButton? FindButtonWithKeyboardShortcut(Keys key, ControlHost host)
-    {
-        foreach (var control in host)
-        {
-            if (control is VariableWidthButton button
-                && button.KeyboardShortcut.HasValue
-                && button.KeyboardShortcut.Value == key)
-                return button;
-        }
-        return null;
     }
 
     public override bool ProcessMouse(MouseScreenObjectState state)
