@@ -6,5 +6,10 @@ internal class Template : Page
     {
         Title = "Template";
         Summary = "TemplateSummary";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[]
+        {
+
+        };
     }
 }

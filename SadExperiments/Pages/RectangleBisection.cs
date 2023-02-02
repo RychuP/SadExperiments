@@ -12,6 +12,8 @@ internal class RectangleBisection : Page
     {
         Title = "Rectangle Bisection";
         Summary = "Testing rectangle bisection methods.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.Primitives, Tag.Rectangle, Tag.Input, Tag.Keyboard, Tag.Mouse, Tag.UI };
 
         // create base rectangle
         _rectangle = new Rectangle(Surface.Area.Center, Width / 2 - 4, Height / 2 - 5);

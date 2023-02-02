@@ -16,6 +16,8 @@ class AnimatedGlobe : Page, IRestartable
     {
         Title = "Animated Globe";
         Summary = "Uses instructions, image conversion and AnimatedScreenSurface class.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.Animations, Tag.Instructions, Tag.DrawFont, Tag.Demo, Tag.ImageConversion };
 
         // animation screen
         _animationScreen = new ScreenSurface(Width, Height);

@@ -22,7 +22,7 @@ public static class Program
         Settings.WindowTitle = "SadConsole Experiments";
         Settings.ResizeMode = Settings.WindowResizeOptions.Fit;
         RegistrarExtended.Register();
-        Game.Create(Width, Height + Header.Height); 
+        Game.Create(Width, Height + Header.MinimizedViewHeight); 
         Game.Instance.OnStart = Init;
         Game.Instance.Run();
         Game.Instance.Dispose();

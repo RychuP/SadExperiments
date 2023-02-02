@@ -5,14 +5,16 @@ namespace SadExperiments.Pages;
 internal class Instructions : Page, IRestartable
 {
     int _gradientPositionX, _gradientChange = 1, _angle = 45;
-    ColoredString _logoText = new Gradient(new[] { Color.Magenta, Color.Yellow }, new[] { 0.0f, 1f })
+    readonly ColoredString _logoText = new Gradient(new[] { Color.Magenta, Color.Yellow }, new[] { 0.0f, 1f })
                        .ToColoredString("[| Powered by SadConsole |]");
-    ColoredString _logoText2 = new Gradient(Color.Magenta, Color.Yellow)
+    readonly ColoredString _logoText2 = new Gradient(Color.Magenta, Color.Yellow)
                         .ToColoredString("[| Powered by SadConsole |]");
     public Instructions()
     {
         Title = "Instructions";
         Summary = "Shows the use of some SadConsole instructions.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.Animations, Tag.Instructions, Tag.IComponent, Tag.GradientFill };
     }
 
     public void Restart()

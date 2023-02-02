@@ -7,6 +7,8 @@ internal class BasicDrawing : Page
     {
         Title = "Basic Drawing";
         Summary = "Following Thraka's tutorials: part 1, drawing.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.Primitives, Tag.SadConsole, Tag.ColoredGlyph, Tag.Drawing, Tag.Rectangle };
 
         var glyph = new ColoredGlyph(Color.Violet, Color.Black, 177);
         var standardGlyph = new ColoredGlyph(Color.White, Color.Black);

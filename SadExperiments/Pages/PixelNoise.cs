@@ -9,6 +9,9 @@ class PixelNoise : Page
     {
         Title = "Pixel Noise";
         Summary = "Font texture pixels set to random colors.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.Pixels, Tag.Drawing, Tag.ScreenSurface };
+
         AddCentered(new FontTextureCanvas());
     }
 }

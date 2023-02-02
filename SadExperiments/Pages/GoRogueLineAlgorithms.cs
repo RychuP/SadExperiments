@@ -14,6 +14,9 @@ internal class GoRogueLineAlgorithms : Page
     {
         Title = "GoRogue Line Algorithms";
         Summary = "Experimenting with lines, Point, Distance and similar primitives.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] {Tag.SadConsole, Tag.GoRogue, Tag.Primitives, Tag.Lines, Tag.Algorithm, Tag.Drawing,
+            Tag.Keyboard, Tag.Direction, Tag.Distance};
 
         Cursor.UseStringParser = true;
 

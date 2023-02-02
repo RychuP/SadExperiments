@@ -8,6 +8,8 @@ internal class EffectsAndDecorators : Page
     {
         Title = "Effects And Decorators";
         Summary = "Testing different methods of applying effects and decorators.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.CellDecorator, Tag.Color, Tag.Effects, Tag.Decorators };
 
         var bgColor = Color.AnsiBlackBright.GetDarker();
         DefaultBackground = bgColor;

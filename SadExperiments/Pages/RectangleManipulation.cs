@@ -6,15 +6,17 @@ internal class RectangleManipulation : Page
     {
         Title = "Rectangle Manipulation";
         Summary = "Messing around with primitives.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.Primitives, Tag.Rectangle, Tag.Drawing };
 
         ColoredGlyph style = new(Color.Violet, Color.Black, 177);
         Rectangle r = new(2, 2, 10, 5);
 
         // draw the first box and display some info about it
         var box = ICellSurface.ConnectedLineThick;
-        box[0] = (int)'/';
-        box[1] = (int)'=';
-        box[2] = (int)'\\';
+        box[0] = '/';
+        box[1] = '=';
+        box[2] = '\\';
         box[6] = box[2];
         box[7] = box[1];
         box[8] = box[0];

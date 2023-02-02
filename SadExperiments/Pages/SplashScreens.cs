@@ -10,6 +10,9 @@ internal class SplashScreens : Page, IRestartable
     {
         Title = "Splash Screens";
         Summary = "Press space to toggle between available splash screens.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.Animations, Tag.Instructions, Tag.SplashScreen };
+
         Restart();
     }
 

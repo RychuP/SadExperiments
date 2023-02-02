@@ -6,6 +6,9 @@ class SurfaceShifting : Page
     {
         Title = "Surface Shifting";
         Summary = "Arrow keys ShiftDown, ShiftUp, ShiftLeft and ShiftRight surface.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.Input, Tag.Keyboard, Tag.Shifting };
+
         DefaultBackground = Color.DarkBlue;
         AddCentered(new SurfaceShiftingExample());
     }

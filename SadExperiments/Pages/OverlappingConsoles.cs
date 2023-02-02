@@ -9,6 +9,8 @@ internal class OverlappingConsoles : Page
     {
         Title = "Overlapping Consoles";
         Summary = "Following Thraka's tutorials: part 2, parenting.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.Cursor, Tag.ScreenSurface, Tag.Input, Tag.Keyboard, Tag.Mouse, Tag.Focus };
 
         // print prompts at the bottom of the page
         int y = Height - 5; 

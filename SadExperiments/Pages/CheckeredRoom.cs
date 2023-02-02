@@ -12,12 +12,14 @@ class CheckeredRoom : Page
     {
         Title = "Checkered Room";
         Summary = "Basic map testing kb input and a component centering surface on player.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.Primitives, Tag.ColoredGlyph, Tag.Entity, 
+            Tag.Renderer, Tag.IComponent, Tag.Keyboard, Tag.Direction };
 
         // setup surface
         DefaultBackground = Color.DarkGray;
-        this.Clear();
+        Surface.Clear();
         FillWithCheckers();
-        IsFocused = true;
 
         // border
         ColoredGlyph glyph = new(Color.Brown, Color.Black, 177);

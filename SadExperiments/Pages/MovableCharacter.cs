@@ -10,6 +10,8 @@ class MovableCharacter : Page
     {
         Title = "Movable Character";
         Summary = "My early attempts at creating a player entity with keyboard input.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.Primitives, Tag.Input, Tag.Keyboard, Tag.Drawing, Tag.Color };
 
         // draw central diagonal lines
         Point topLeft = (1, 1);

@@ -6,9 +6,19 @@ using SadExperiments.Pages;
 
 namespace SadExperiments.MainScreen;
 
-internal class Container : ScreenObject
+/// <summary>
+/// Main program class that coordinates display of pages and headers.
+/// </summary>
+class Container : ScreenObject
 {
+    /// <summary>
+    /// Lists all available, predefined colors and allows to pick a custom one.
+    /// </summary>
     public static ColorPickerPopup ColorPicker { get; } = new();
+
+    /// <summary>
+    /// Lists characters available in the default font.
+    /// </summary>
     public static CharacterViewer CharacterViewer { get; } = new(1);
 
     readonly ContentsList _contentsList;
@@ -28,7 +38,7 @@ internal class Container : ScreenObject
         new SmoothScrolling(),
         new RectangleManipulation(),
         new StringParser(),
-        new FontLoading(),
+        new FontChanging(),
         new KeyboardAndMouse(),
         new BasicDrawing(),             // tutorial part 1
         new CursorPage(),               // tutorial part 2.1
@@ -86,7 +96,7 @@ internal class Container : ScreenObject
         Game.Instance.DestroyDefaultStartingConsole();
 
         // add children
-        Children.Add(_header, _contentsList, _currentPage);
+        Children.Add(_contentsList, _currentPage, _header);
 
         // set page indices
         int i = 0;
@@ -114,6 +124,7 @@ internal class Container : ScreenObject
         _currentPage = page;
         _currentPage.IsFocused = true;
         _header.SetHeader(page);
+        Children.MoveToTop(_header);
         if (page is IRestartable p)
             p.Restart();
     }
@@ -123,7 +134,7 @@ internal class Container : ScreenObject
         if (!_contentsList.IsBeingShown)
         {
             // show contents list
-            Children.MoveToTop(_contentsList);
+            Children.MoveToBottom(_currentPage);
             _contentsList.IsVisible = true;
             _contentsList.IsFocused = true;
 
@@ -137,7 +148,7 @@ internal class Container : ScreenObject
     void HideContentsList()
     {
         // show current page
-        Children.MoveToTop(_currentPage);
+        Children.MoveToBottom(_contentsList);
         _contentsList.IsVisible = false;
         _currentPage.IsFocused = true;
         if (_currentPage is IRestartable p)

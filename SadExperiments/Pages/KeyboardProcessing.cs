@@ -40,6 +40,8 @@ class KeyboardProcessing : Page
     {
         Title = "Keyboard Processing";
         Summary = "Visualisation of how the SadConsole processes keyboard.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.Input, Tag.Keyboard };
 
         Surface.Print(2, "Try pressing and holding single and a few keys at the same time.");
 

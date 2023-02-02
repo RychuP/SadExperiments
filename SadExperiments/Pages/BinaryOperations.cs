@@ -6,6 +6,9 @@ class BinaryOperationsPage : Page
     {
         Title = "Binary Operations";
         Summary = "Handy reminder of bit operations in C#.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.StringParser, Tag.Bits };
+
         AddCentered(new BinaryOperations());
 
         Surface.Print(3, ColoredString.Parser.Parse("Check out also SadConsole's [c:r f:lightgreen]Helpers[c:undo] " +

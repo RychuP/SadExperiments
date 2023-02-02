@@ -6,6 +6,7 @@ internal class CellDataAsTwoBitPairs : Page
     {
         Title = "Cell Data As Two Bit Pairs";
         Summary = "Storing cell data as two-bit pairs and accessing it with Point coordinates.";
+        Submitter = Submitter.Rychu;
 
         // cells are two bit pairs (01 - wall, 10 - color, 00 - empty)
         byte[] data = new byte[]

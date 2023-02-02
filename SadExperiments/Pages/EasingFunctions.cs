@@ -16,6 +16,8 @@ class EasingFunctions : Page
     {
         Title = "Easing Functions";
         Summary = "Testing how the values change in the easing functions.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.Easing };
 
         Cursor.NewLine();
     }

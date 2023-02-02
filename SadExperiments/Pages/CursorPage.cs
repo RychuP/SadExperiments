@@ -7,6 +7,8 @@ internal class CursorPage : Page
     {
         Title = "Cursor";
         Summary = "Following Thraka's tutorials: part 2, cursors.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.Primitives, Tag.Cursor, Tag.Color };
 
         Cursor.PrintAppearanceMatchesHost = false;
         Cursor.Move(3, 3)

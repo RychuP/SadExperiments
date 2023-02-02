@@ -7,6 +7,8 @@ internal class StringParser : Page
     {
         Title = "String Parser";
         Summary = "Thraka's tutorial on string parser from version 8.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.StringParser, Tag.Color };
 
         int row = 3;
 
@@ -14,7 +16,7 @@ internal class StringParser : Page
         Print();
 
         row += 4;
-        this.UsePrintProcessor = true;
+        UsePrintProcessor = true;
         this.Print(1, row++, "[c:r f:Aqua]Strings when run through the processor");
         Print();
 

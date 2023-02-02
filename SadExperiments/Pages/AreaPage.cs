@@ -26,6 +26,8 @@ internal class AreaPage : Page
     {
         Title = "Area";
         Summary = "Generating random areas and testing perimeter functions.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.Primitives, Tag.Area, Tag.UI };
 
         // create area
         _area = new TestArea(Surface.Area);

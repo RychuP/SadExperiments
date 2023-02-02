@@ -1,5 +1,6 @@
 ﻿using GoRogue.DiceNotation;
 using ShaiRandom.Generators;
+using System.Globalization;
 
 namespace SadExperiments;
 
@@ -91,4 +92,27 @@ public static class Extensions
     /// </summary>
     public static void Add(this ScreenObjectCollection collection, params IScreenObject[] childrenList) =>
         Array.ForEach(childrenList, child => collection.Add(child));
+
+    public static Color ToColor(this string hexColorCode)
+    {
+        Color color = Color.Transparent;
+        if (hexColorCode.StartsWith("#"))
+        {
+            hexColorCode = hexColorCode.TrimStart('#');
+
+            if (hexColorCode.Length == 6)
+                color = new Color(
+                            int.Parse(hexColorCode.Substring(0, 2), NumberStyles.HexNumber),
+                            int.Parse(hexColorCode.Substring(2, 2), NumberStyles.HexNumber),
+                            int.Parse(hexColorCode.Substring(4, 2), NumberStyles.HexNumber),
+                            255);
+            else // assuming length of 8
+                color = new Color(
+                            int.Parse(hexColorCode.Substring(2, 2), NumberStyles.HexNumber),
+                            int.Parse(hexColorCode.Substring(4, 2), NumberStyles.HexNumber),
+                            int.Parse(hexColorCode.Substring(6, 2), NumberStyles.HexNumber),
+                            int.Parse(hexColorCode.Substring(0, 2), NumberStyles.HexNumber));
+        }
+        return color;
+    }
 }

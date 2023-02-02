@@ -8,6 +8,9 @@ class Donut3dPage : Page
     {
         Title = "Donut 3D";
         Summary = "The famous spinning donut code ported to the SadConsole.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.Demo, Tag.Cursor, Tag.ScreenSurface };
+
         AddCentered(new Donut3D());
     }
 }

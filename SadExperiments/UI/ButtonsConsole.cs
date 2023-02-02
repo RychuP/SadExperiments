@@ -1,14 +1,17 @@
 ﻿using SadConsole.Quick;
 using SadConsole.UI;
+using SadConsole.UI.Controls;
 
 namespace SadExperiments.UI;
 
 class HorizontalButtonsConsole : ButtonsConsole
 {
+    
+
     public HorizontalButtonsConsole(int w, int h) : base(w, h) { }
 
     public override VariableWidthButton AddButton(string text, Keys? keyboardShortcut = null, bool addKeyboardShortcutToText = true) =>
-        AddButton(text, (0, 0), keyboardShortcut, addKeyboardShortcutToText);
+        AddButton(text, (0, CurrentRow), keyboardShortcut, addKeyboardShortcutToText);
 
     public override void AlignRow(VariableWidthButton button) =>
         AlignRow(button.Position.Y);
@@ -20,7 +23,22 @@ class HorizontalButtonsConsole : ButtonsConsole
         int allButtonsInRowWidth = buttons.Sum(control => control.Width);
         int buttonCount = buttons.Length;
         double spacer = (double)(Width - allButtonsInRowWidth) / (buttonCount + 1);
-        if (spacer < 0) spacer = 0;
+
+        // overflow case
+        if (spacer <  1)
+        {
+            // move the last added button to a new row and advance _currentRow pointer
+            CurrentRow += VerticalSpacing + 1;
+            var lastButton = Controls[Controls.Count - 1];
+            int column = Width / 2 - lastButton.Width / 2;
+            lastButton.Position = (column, CurrentRow);
+
+            // resize surface if needed
+            if (Height < CurrentRow + 1)
+                Resize(Width, CurrentRow + 1, Width, CurrentRow + 1, false);
+
+            return;
+        }
 
         // apply new positions
         double x = spacer;
@@ -62,6 +80,11 @@ abstract class ButtonsConsole : ControlsConsole
     /// </summary>
     public int VerticalSpacing { get; set; } = 1;
 
+    /// <summary>
+    /// Current row to which the buttons are added automatically.
+    /// </summary>
+    public int CurrentRow { get; set; } = 0;
+
     public ButtonsConsole(int w, int h) : base(w, h)
     {
         DefaultBackground = Color.Transparent;
@@ -77,6 +100,16 @@ abstract class ButtonsConsole : ControlsConsole
         Controls.Add(button);
         AlignRow(button);
         return button;
+    }
+
+    /// <summary>
+    /// Removes all buttons, clears the console and resizes its height to 1.
+    /// </summary>
+    public void RemoveAll()
+    {
+        Controls.Clear();
+        CurrentRow = 0;
+        Resize(Width, 1, Width, 1, true);
     }
 
     protected virtual void OnButtonWidthChanged(object? o, ValueChangedEventArgs<int> e)

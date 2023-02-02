@@ -20,10 +20,12 @@ class MoveAndResize : Page
     {
         Title = "Move And Resize";
         Summary = "Exercise in moving and resizing a console and its view with arrow keys.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.Primitives, Tag.Input, Tag.Keyboard, Tag.Resizing, Tag.Rectangle, Tag.Color };
 
         DefaultBackground = Color.AnsiBlackBright;
         UsePixelPositioning = false;
-        Position = (1, Header.Height + 1);
+        Position = (1, Header.MinimizedViewHeight + 1);
 
         // change view
         View = new Rectangle(0, 0, 35, 11);

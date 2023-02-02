@@ -8,6 +8,8 @@ internal class SmoothScrolling : Page
     {
         Title = "Smooth As Elvis";
         Summary = "Smoothest panning of random garbage on this planet.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.Input, Tag.Keyboard };
 
         this.FillWithRandomGarbage(Font);
         this.WithKeyboard((host, k) =>

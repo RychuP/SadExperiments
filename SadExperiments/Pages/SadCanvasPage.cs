@@ -9,6 +9,8 @@ internal class SadCanvasPage : Page
     {
         Title = "SadCanvas";
         Summary = "Testing the Canvas class from the SadCanvas nuget.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.SadCanvas, Tag.Pixels, Tag.Drawing };
 
         var canvas = new Canvas(200, 100, Color.Yellow)
         {

@@ -1,11 +1,13 @@
 ﻿namespace SadExperiments.Pages;
 
-internal class FontLoading : Page
+internal class FontChanging : Page
 {
-    public FontLoading()
+    public FontChanging()
     {
-        Title = "Font Loading";
-        Summary = "Importing a font from a file and using it in a console.";
+        Title = "Font Changing";
+        Summary = "Importing font from a file and using it in a console.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.SadFont, Tag.Cursor, Tag.ScreenSurface };
 
         // load and change font
         Font = Fonts.Square10;

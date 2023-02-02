@@ -39,6 +39,9 @@ class UpdateAndRender : Page
     {
         Title = "Update And Render";
         Summary = "Checking the difference between the Update and Render steps.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.IComponent };
+
         SadComponents.Add(new TestUpdateRenderComponent());
     }
 

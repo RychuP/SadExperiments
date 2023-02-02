@@ -6,6 +6,9 @@ class CharsAndCursors : Page
     {
         Title = "Chars And Cursors";
         Summary = "Font breakdown in separate consoles and playing with pixels.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.SadFont, Tag.Cursor, Tag.Pixels };
+
         AddCentered(new FontBreakdown());
         Surface.Print(2, "If you look closely, there is a red dot circling the space character.");
     }
@@ -19,7 +22,7 @@ class CharsAndCursors : Page
 
 /// <summary>
 /// Shows how to display font characters in seperate consoles with a help of cursors
-/// and how NOT to manipulate individual pixels of a font character using SetPixel/GetPixel methods (super slow).
+/// and how not to manipulate individual pixels of a font character using SetPixel/GetPixel methods (super slow).
 /// </summary>
 internal class FontBreakdown : SubPage
 {

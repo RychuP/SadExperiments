@@ -8,6 +8,8 @@ internal class WelcomePage : Page, IRestartable
     {
         Title = "Welcome Page";
         Summary = "Experiments with various features of SadConsole and related libraries.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.Animations, Tag.Color, Tag.ImageConversion };
 
         int currentRow = PrintPrompts(2, new string[] {
             "Press F1 or F2 to navigate between screens.",

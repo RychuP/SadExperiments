@@ -6,6 +6,7 @@ internal class ColorCasting : Page
     {
         Title = "Color Casting";
         Summary = "Casting colors to byte spans.";
+        Submitter = Submitter.Rychu;
 
         Color[] colors = new Color[]
             {

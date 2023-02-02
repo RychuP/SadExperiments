@@ -8,6 +8,8 @@ internal class KeyboardAndMouse : Page
     {
         Title = "Keyboard And Mouse";
         Summary = "Input handling via components or events.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.Input, Tag.Keyboard, Tag.Mouse, Tag.IComponent };
 
         (int Y, string Text)[] prompts = {
             (2, "Press 'Space' to change color."),
@@ -25,7 +27,6 @@ internal class KeyboardAndMouse : Page
             DefaultBackground = Color.AnsiGreen
         };
         c1.Clear();
-        c1.IsFocused = true;
         c1.Cursor.Position = new Point(15, 7);
         c1.Cursor.IsVisible = true;
         c1.Cursor.MouseClickReposition = true;

@@ -8,6 +8,9 @@ class A_Demo : Page
     {
         Title = "A Demo";
         Summary = "Pixel manipulations hacking SadConsole's font image.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.SadFont, Tag.Pixels, Tag.Drawing, Tag.Demo };
+
         AddCentered(new TextureManipulation());
     }
 }

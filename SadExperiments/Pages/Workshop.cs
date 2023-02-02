@@ -6,5 +6,10 @@ internal class Workshop : Page
     {
         Title = "Workshop";
         Summary = "Workshop1";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[]
+        {
+
+        };
     }
 }

@@ -6,6 +6,8 @@ internal class ImageConversion : Page
     {
         Title = "Image Conversion";
         Summary = "Converting image files and checking brightness and conversion glyphs.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.ImageConversion, Tag.ITexture, Tag.Color };
 
         // convert 4 pixel vertical image file
         var image = GameHost.Instance.GetTexture("Resources/Images/test_opacity.png");

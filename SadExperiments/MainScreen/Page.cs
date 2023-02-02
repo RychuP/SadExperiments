@@ -1,33 +1,56 @@
 ﻿namespace SadExperiments.MainScreen;
 
-// page with some bite size SadConsole related content
-//
-// make sure to add handling of this page ProcessKeyboard() to any screen object you add to it that may possibly steal focus
+// make sure to add handling of this page's ProcessKeyboard() to any screen object you add to it that may possibly steal focus
 // 
 // if you use HorizontalButtonsConsole or VerticalButtonsConsole for adding buttons this process is automated in a way
 // (check out AreaPage or RectangleBisection for an example)
+
+/// <summary>
+/// Page with some bite size SadConsole related content.
+/// </summary>
 class Page : Console
 {
     public string Title { get; init; } = string.Empty;
 
     public string Summary { get; init; } = string.Empty;
+    
+    public Tag[] Tags { get; init; } = Array.Empty<Tag>();
+
+    /// <summary>
+    /// Submitter of the page to the repository.
+    /// </summary>
+    public Submitter Submitter { get; init; }
+
+    /// <summary>
+    /// Date page was added.
+    /// </summary>
+    public DateOnly Date { get; init; }
 
     public int Index { get; set; }
 
+    // default constructor
+    public Page() : this(Program.Width, Program.Height) { }
+
+    // constructor that takes width and height
+    public Page(int w, int h) : base(Program.Width, Program.Height, w, h)
+    {
+        UsePixelPositioning = true;
+        Position = (0, Header.MinimizedViewHeight * GameHost.Instance.DefaultFont.GlyphHeight);
+    }
+
+    /// <summary>
+    /// Named <see cref="ScreenSurface"/> at 0 index that can be used for some quick content highlighting.
+    /// </summary>
     public SubPage SubPage
     {
         get => Children[0] as SubPage ?? throw new Exception("There is no SubPage added to the Children of this Page.");
         set => Children[0] = value;
     }
 
-    public Page() : this(Program.Width, Program.Height) { }
-
-    public Page(int w, int h) : base(Program.Width, Program.Height, w, h)
-    {
-        UsePixelPositioning = true;
-        Position = (0, Header.Height * GameHost.Instance.DefaultFont.GlyphHeight);
-    }
-
+    /// <summary>
+    /// Adds a <see cref="ScreenSurface"/> centered (pixel positioning) to the page.
+    /// </summary>
+    /// <param name="child"><see cref="ScreenSurface"/> to add.</param>
     public void AddCentered(ScreenSurface child)
     {
         Children.Add(child);
@@ -78,6 +101,9 @@ class Page : Console
     }
 }
 
+/// <summary>
+/// Indicates that the page implementing this interface can restart its content.
+/// </summary>
 internal interface IRestartable
 {
     void Restart();

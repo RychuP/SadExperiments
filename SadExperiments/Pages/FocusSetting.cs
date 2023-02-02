@@ -8,6 +8,8 @@ internal class FocusSetting : Page
     {
         Title = "Focus Setting";
         Summary = "Test of the IsFocused property of consoles.";
+        Submitter = Submitter.Rychu;
+        Tags = new Tag[] { Tag.SadConsole, Tag.Keyboard, Tag.Mouse, Tag.Focus, Tag.IComponent };
 
         var a = new ClickableConsole();
         var b = new ClickableConsole();
