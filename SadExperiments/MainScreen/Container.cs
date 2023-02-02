@@ -196,7 +196,8 @@ class Container : ScreenObject
     {
         get
         {
-            var contentsList = new ControlsConsole(Program.Width, Program.Height);
+            var contentsList = new ControlsConsole(Program.Width, Program.Height - TagFilters.MinimizedHeight);
+            contentsList.Position = (0, TagFilters.MinimizedHeight);
             Point position = (1, 1);
             int buttonWidth = 35;
 
