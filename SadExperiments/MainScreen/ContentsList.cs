@@ -9,7 +9,7 @@ internal class ContentsList : Page
     public ContentsList(ControlsConsole contentsList)
     {
         Title = "List of Contents";
-        Summary = "Select a page to show.";
+        Summary = "Select a page to display.";
         Children.Add(contentsList);
         IsVisible = false;
 

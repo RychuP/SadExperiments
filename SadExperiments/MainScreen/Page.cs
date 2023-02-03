@@ -1,10 +1,5 @@
 ﻿namespace SadExperiments.MainScreen;
 
-// make sure to add handling of this page's ProcessKeyboard() to any screen object you add to it that may possibly steal focus
-// 
-// if you use HorizontalButtonsConsole or VerticalButtonsConsole for adding buttons this process is automated in a way
-// (check out AreaPage or RectangleBisection for an example)
-
 /// <summary>
 /// Page with some bite size SadConsole related content.
 /// </summary>

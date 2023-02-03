@@ -6,12 +6,15 @@ namespace SadExperiments.MainScreen;
 class TagFilters : ControlsConsole
 {
     public const int MinimizedHeight = 4;
+
     readonly TextBox _tag1TextBox;
     readonly TextBox _tag2TextBox;
     readonly TextBox _sortOrderTextBox;
     readonly ControlsConsole _tag1Buttons;
     readonly ControlsConsole _tag2Buttons;
     readonly ControlsConsole _sortOrderButtons;
+
+    // appearance
     readonly Color BG = Color.AnsiBlackBright;
     readonly Color FG = Color.White;
 
@@ -28,6 +31,8 @@ class TagFilters : ControlsConsole
         // create filter text boxes
         _tag1TextBox = CreateTextBox("Filter by 1st tag:", controlWidth, x);
         _tag2TextBox = CreateTextBox("Filter by 2nd tag:", controlWidth, x += controlWidth + spacer);
+        _tag2TextBox.IsEnabled = false;
+        _tag2TextBox.Text = "Disabled";
         _sortOrderTextBox = CreateTextBox("Sort method:", controlWidth, x += controlWidth + spacer);
 
         // calculate controls dimensions

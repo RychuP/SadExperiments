@@ -15,11 +15,25 @@ public static class ICellSurfaceExtensions
     public static void Print(this ICellSurface cellSurface, int y, string text, Color? color = null) =>
         cellSurface.Print(0, y, text.Align(HorizontalAlignment.Center, cellSurface.Width), color ?? cellSurface.DefaultForeground);
 
+    /// <summary>
+    /// Prints <see cref="ColoredString"/> centered on the surface.
+    /// </summary>
+    /// <param name="y">Y coordinate.</param>
+    /// <param name="text"><see cref="ColoredString"/> to print.</param>
     public static void Print(this ICellSurface cellSurface, int y, ColoredString text)
     {
         int x = (cellSurface.Width - text.Length) / 2;
         cellSurface.Print(x, y, text);
     }
+
+    /// <summary>
+    /// Prints the string at the given coordinate.
+    /// </summary>
+    /// <param name="position">Coordinate to print the string at.</param>
+    /// <param name="text">Text to print.</param>
+    /// <param name="color">Foreground <see cref="Color"/>.</param>
+    public static void Print(this ICellSurface cellSurface, Point position, string text, Color? color = null)
+        => cellSurface.Print(position.X, position.Y, text, color ?? cellSurface.DefaultForeground);
 
     /// <summary>
     /// Sets the default <see cref="ICellSurface"/> colors and clears it.

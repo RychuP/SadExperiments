@@ -70,7 +70,7 @@ class VerticalButtonsConsole : ButtonsConsole
     }
 }
 
-// base class for button hosts (automatically adds handling of global page keyboard handling)
+// base class for button hosts 
 abstract class ButtonsConsole : ControlsConsole
 {
     /// <summary>
@@ -129,9 +129,6 @@ abstract class ButtonsConsole : ControlsConsole
     // this method is extracted from the ProcessKeyboard() to prevent infinite loops when a page holding 
     // the buttons console has more than one of these and checks them all in their ProcessKeyboard()
     // when they are not focused
-    //
-    // infinite loops mentioned above may result from the keyboard component added in
-    // OnParentChanged() that calls page.ProcessKeyboard()
     public bool KeyboardShortcutPressed(Keyboard keyboard)
     {
         if (keyboard.HasKeysPressed)

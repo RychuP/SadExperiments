@@ -3,8 +3,8 @@ using SadConsole.UI.Windows;
 using SadConsole.UI;
 using SadExperiments.Pages;
 using SadExperiments.Pages.Sad_Console;
-using SadExperiments.Pages.Primitives;
 using SadExperiments.Pages.Sad_Canvas;
+using SadExperiments.Pages.Primitives;
 using SadExperiments.Pages.Go_Rogue;
 
 namespace SadExperiments.MainScreen;
@@ -12,7 +12,7 @@ namespace SadExperiments.MainScreen;
 /// <summary>
 /// Main program class that coordinates display of pages and headers.
 /// </summary>
-class Container : ScreenObject
+sealed class Container : ScreenObject
 {
     /// <summary>
     /// Lists all available, predefined colors and allows to pick a custom one.
@@ -27,6 +27,12 @@ class Container : ScreenObject
     readonly ContentsList _contentsList;
     readonly Header _header;
     Page _currentPage;
+
+    // array of tags added to all pages
+    readonly HashSet<Tag> _tags = new();
+
+    // holds pages filtered by tags
+    Page[] _filteredPages;
 
     readonly Page[] _pages =
     {
@@ -64,6 +70,15 @@ class Container : ScreenObject
         new EffectsAndDecorators(),
     };
 
+    // singleton pattern as explained at https://csharpindepth.com/articles/singleton
+    private static readonly Lazy<Container> lazy = new (() => new Container());
+
+    /// <summary>
+    /// Singleton instance of the <see cref="Container"/> class.
+    /// </summary>
+    public static Container Instance { get => lazy.Value; }
+
+    // static constructor that deals with the static properties
     static Container()
     {
         ColorPicker.FontSize *= 0.9;
@@ -72,31 +87,40 @@ class Container : ScreenObject
         CharacterViewer.Center();
     }
 
-    public Container()
+    // private constructor for the singleton use
+    private Container()
     {
+        // start off with no filters applied
+        _filteredPages = _pages;
+        ExtractUniqueTags();
+        IndexPages();
+
         // set first page as focused
-        var firstPage = _pages[0];
-        firstPage.IsFocused = true;
+        _currentPage = _filteredPages[0];
+        _currentPage.IsFocused = true;
 
         // create a header
-        _header = new(firstPage, _pages.Length);
+        _header = new(_currentPage, _filteredPages.Length);
 
         // instantiate data fields
         _contentsList = new ContentsList(ButtonsWithLinksToPages);
-        _currentPage = firstPage;
-
+        
         // remove starting console
         Game.Instance.Screen = this;
         Game.Instance.DestroyDefaultStartingConsole();
 
-        // add children
+        // add children 
         Children.Add(_contentsList, _currentPage, _header);
-
-        // set page indices
-        int i = 0;
-        Array.ForEach(_pages, p => p.Index = i++);
     }
 
+    // sets sequantial index of each page in the filtered array of pages
+    void IndexPages()
+    {
+        int i = 0;
+        Array.ForEach(_filteredPages, p => p.Index = i++);
+    }
+
+    // keyboard handling of global F1 - F5 keys
     public override void Update(TimeSpan delta)
     {
         var keyboard = Game.Instance.Keyboard;
@@ -131,23 +155,30 @@ class Container : ScreenObject
         base.Update(delta);
     }
 
-    public void NextPage() => ChangePage(Direction.Right);
+    public void NextPage() => 
+        ChangePage(Direction.Right);
 
-    public void PrevPage() => ChangePage(Direction.Left);
+    public void PrevPage() => 
+        ChangePage(Direction.Left);
 
+    // changes the current page to its neighbour in the direction provided
     void ChangePage(Direction direction)
     {
         if (_contentsList.IsVisible) 
             HideContentsList();
 
-        int nextIndex = _currentPage.Index + (direction == Direction.Right ? 1 : -1);
-        var page = nextIndex < 0              ? _pages.Last() :
-                   nextIndex >= _pages.Length ? _pages.First() :
-                                                _pages[nextIndex];
-        ChangePage(page);
+        if (_filteredPages.Length > 0)
+        {
+            int nextIndex = _currentPage.Index + (direction == Direction.Right ? 1 : -1);
+            var page = nextIndex < 0 ? _filteredPages.Last() :
+                       nextIndex >= _filteredPages.Length ? _filteredPages.First() :
+                                                            _filteredPages[nextIndex];
+            ChangeCurrentPage(page);
+        }
     }
 
-    void ChangePage(Page page)
+    // changes the current page to the one provided
+    void ChangeCurrentPage(Page page)
     {
         Children.Remove(_currentPage);
         Children.Add(page);
@@ -159,6 +190,9 @@ class Container : ScreenObject
             p.Restart();
     }
 
+    /// <summary>
+    /// Shows/hides contents list.
+    /// </summary>
     public void ToggleContentsList()
     {
         if (!_contentsList.IsVisible)
@@ -176,6 +210,7 @@ class Container : ScreenObject
         else HideContentsList();
     }
 
+    // hides contents list and shows current page
     void HideContentsList()
     {
         _contentsList.Hide();
@@ -192,6 +227,72 @@ class Container : ScreenObject
         _header.SetHeader(_currentPage);
     }
 
+    // extracts all unique tags from the list of filtered pages
+    void ExtractUniqueTags()
+    {
+        _tags.Clear();
+        Array.ForEach(_filteredPages, p => _tags.UnionWith(p.Tags));
+    }
+
+    /// <summary>
+    /// Filters pages by tags provided.
+    /// </summary>
+    /// <param name="tag1">First <see cref="Tag"/> to filter by.</param>
+    /// <param name="tag2">Second <see cref="Tag"/> to filter by.</param>
+    public void FilterPagesByTags(Tag? tag1 = null, Tag? tag2 = null)
+    {
+        // filter pages when both tags are provided
+        if (tag1.HasValue && tag2.HasValue)
+        {
+            _filteredPages = _pages
+                .Where(p => p.Tags.Contains(tag1.Value))
+                .Where(p => p.Tags.Contains(tag2.Value))
+                .ToArray();
+        }
+
+        // filter pages when only one tag is provided
+        else if (tag1.HasValue || tag2.HasValue)
+        {
+            Tag? filter = tag1 ?? tag2;
+            _filteredPages = _pages
+                .Where(p => p.Tags.Contains(filter!.Value))
+                .ToArray();
+        }
+
+        // no tags -> no filter
+        else
+            _filteredPages = _pages;
+
+        // save the list of currently available tags based on the filters above
+        ExtractUniqueTags();
+
+        // reindex pages
+        IndexPages();
+
+        // change the page counter to the number of available filtered pages
+        _header.PageCounter.Total = _filteredPages.Length;
+
+        // check if the current page is in the filter results
+        if (_filteredPages.Contains(_currentPage))
+        {
+            _header.PageCounter.ShowIndex(_currentPage.Index);
+        }
+
+        // if the filter has any results change current page to the first available
+        else if (_filteredPages.Length > 0)
+        {
+            ChangeCurrentPage(_filteredPages[0]);
+        }
+
+        // filter has no results
+        else
+        {
+            // show dummy page index
+            _header.PageCounter.ShowIndex(-1);
+        }
+    }
+
+    // TODO this needs to be transfered to contents list
     ControlsConsole ButtonsWithLinksToPages
     {
         get
@@ -214,7 +315,7 @@ class Container : ScreenObject
                 button.Click += (o, e) =>
                 {
                     HideContentsList();
-                    ChangePage(page);
+                    ChangeCurrentPage(page);
                 };
                 contentsList.Controls.Add(button);
 

@@ -28,10 +28,9 @@ public static class Program
         Game.Instance.Dispose();
     }
 
-    static void Init()
-    {
-        _ = new Container();
-    }
+    static void Init() =>
+        _ = Container.Instance;
 
-    public static Color RandomColor => Color.White.GetRandomColor(Game.Instance.Random);
+    public static Color RandomColor => 
+        Color.White.GetRandomColor(Game.Instance.Random);
 }

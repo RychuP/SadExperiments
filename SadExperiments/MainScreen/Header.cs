@@ -1,5 +1,4 @@
 ﻿using SadConsole.Components;
-using SadConsole.Quick;
 using SadExperiments.UI;
 
 namespace SadExperiments.MainScreen;
@@ -14,7 +13,11 @@ class Header : ScreenSurface
     // view height that includes all current content shown on mouse over
     int _contentViewHeight = MinimizedViewHeight;
 
-    readonly PageCounter _pageCounter;
+    /// <summary>
+    /// Page counter displayed in the top right corner of the header.
+    /// </summary>
+    public PageCounter PageCounter { get; init; }
+
     readonly Cursor _cursor;
     readonly Buttons _tagButtons;
     Page _currentPage;
@@ -23,15 +26,15 @@ class Header : ScreenSurface
     /// Window shown at the top of the screen with information about currently loaded page.
     /// </summary>
     /// <param name="page">Initial page shown when the program starts.</param>
-    /// <param name="pageCount">Total number of pages used by <see cref="PageCounter"/>.</param>
+    /// <param name="pageCount">Total number of pages used by <see cref="MainScreen.PageCounter"/>.</param>
     public Header(Page page, int pageCount) : base(Program.Width, MinimizedViewHeight, Program.Width, Program.Height)
     {
         // set colors
         Surface.SetDefaultColors(Color.White, Color.DarkGray.GetDarker(), false);
 
         // add page counter
-        _pageCounter = new PageCounter(pageCount) { Parent = this };
-        _pageCounter.Position = (Surface.Width - _pageCounter.Surface.Width, 0);
+        PageCounter = new PageCounter(pageCount) { Parent = this };
+        PageCounter.Position = (Surface.Width - PageCounter.Surface.Width, 0);
 
         // add cursor
         _cursor = new Cursor()
@@ -44,10 +47,9 @@ class Header : ScreenSurface
         // add tag buttons
         _tagButtons = new Buttons(1, 1) { Parent = this };
 
-        // load initial page data
-        SetHeader(page);
-
+        // set initial data based on the first page provided
         _currentPage = page;
+        SetHeader(page);
     }
 
     public void SetHeader(Page page)
@@ -55,7 +57,7 @@ class Header : ScreenSurface
         Surface.Clear();
 
         // set page counter index
-        _pageCounter.DisplayPageNumber(page.Index + 1);
+        PageCounter.ShowIndex(page.Index);
 
         // display main info about the page
         _cursor
@@ -146,43 +148,5 @@ class Header : ScreenSurface
             }
             base.OnMouseExit(state);
         }
-    }
-}
-
-class PageCounter : ScreenSurface
-{
-    const string Title = "Page:";
-    readonly int _pageCount;
-
-    public PageCounter(int pageCount) : base(Title.Length + 2, 2)
-    {
-        _pageCount = pageCount;
-        Surface.SetDefaultColors(Color.Yellow, Color.DarkGray.GetDarker());
-        Surface.Print(0, 0, Title.Align(HorizontalAlignment.Center, Surface.Width));
-    }
-
-    public void DisplayPageNumber(int pageNumber)
-    {
-        if (pageNumber < 1 || pageNumber > _pageCount) throw new IndexOutOfRangeException($"Page number: {pageNumber} is not valid)");
-        Surface.Print(0, 1, $"{pageNumber: 00}/{_pageCount:00}", Color.White);
-    }
-
-    protected override void OnMouseExit(MouseScreenObjectState state)
-    {
-        if (Parent is Header header)
-        {
-            // create the mouse state for the parent and check if the mouse is still on it
-            var parentState = new MouseScreenObjectState(header, state.Mouse);
-            if (!parentState.IsOnScreenObject)
-                header.Minimize();
-        }
-        base.OnMouseExit(state);
-    }
-
-    protected override void OnMouseEnter(MouseScreenObjectState state)
-    {
-        if (Parent is Header header && header.IsMinimized)
-            header.Maximize();
-        base.OnMouseEnter(state);
     }
 }
