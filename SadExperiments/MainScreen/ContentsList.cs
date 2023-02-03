@@ -4,7 +4,7 @@ namespace SadExperiments.MainScreen;
 
 internal class ContentsList : Page
 {
-    readonly TagFilters _filtersConsole;
+    readonly Filter _filter;
 
     public ContentsList(ControlsConsole contentsList)
     {
@@ -23,7 +23,7 @@ internal class ContentsList : Page
         //Surface.SetDefaultColors(Color.White, Color.Black);
 
         // create filters console
-        _filtersConsole = new TagFilters()
+        _filter = new Filter()
         {
             Parent = this,
         };
@@ -38,6 +38,6 @@ internal class ContentsList : Page
     public void Hide()
     {
         IsVisible = false;
-        _filtersConsole.Hide();
+        _filter.Minimize();
     }
 }

@@ -20,7 +20,7 @@ sealed class Container : ScreenObject
     public static ColorPickerPopup ColorPicker { get; } = new();
 
     /// <summary>
-    /// Lists characters available in the default font.
+    /// Lists characters available in the default IBM font.
     /// </summary>
     public static CharacterViewer CharacterViewer { get; } = new(1);
 
@@ -36,6 +36,7 @@ sealed class Container : ScreenObject
 
     readonly Page[] _pages =
     {
+        //new Test(),
         new WelcomePage(),
         new AnimatedGlobe(),
         new Donut3dPage(),
@@ -297,8 +298,8 @@ sealed class Container : ScreenObject
     {
         get
         {
-            var contentsList = new ControlsConsole(Program.Width, Program.Height - TagFilters.MinimizedHeight);
-            contentsList.Position = (0, TagFilters.MinimizedHeight);
+            var contentsList = new ControlsConsole(Program.Width, Program.Height - Filter.MinimizedHeight);
+            contentsList.Position = (0, Filter.MinimizedHeight);
             Point position = (1, 1);
             int buttonWidth = 35;
 

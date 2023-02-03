@@ -5,6 +5,9 @@ namespace SadExperiments.MainScreen;
 
 class Header : ScreenSurface
 {
+    public static readonly Color FGColor = Color.White;
+    public static readonly Color BGColor = Color.AnsiBlackBright;
+
     /// <summary>
     /// Default, minimized view height of the header (no mouse over).
     /// </summary>
@@ -30,7 +33,7 @@ class Header : ScreenSurface
     public Header(Page page, int pageCount) : base(Program.Width, MinimizedViewHeight, Program.Width, Program.Height)
     {
         // set colors
-        Surface.SetDefaultColors(Color.White, Color.DarkGray.GetDarker(), false);
+        Surface.SetDefaultColors(FGColor, BGColor, false);
 
         // add page counter
         PageCounter = new PageCounter(pageCount) { Parent = this };

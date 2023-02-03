@@ -18,7 +18,7 @@ class PageCounter : ScreenSurface
     public PageCounter(int pageCount) : base(Title.Length + 2, 2)
     {
         // set default colors
-        Surface.SetDefaultColors(Color.White, Color.DarkGray.GetDarker());
+        Surface.SetDefaultColors(Header.FGColor, Header.BGColor);
 
         // print title
         Surface.Print(_titlePosition, Title.Align(HorizontalAlignment.Center, Surface.Width), Color.Yellow);
