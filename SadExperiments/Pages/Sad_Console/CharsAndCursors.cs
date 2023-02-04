@@ -8,9 +8,10 @@ class CharsAndCursors : Page
         Summary = "Font breakdown in separate consoles and playing with pixels.";
         Submitter = Submitter.Rychu;
         Tags = new Tag[] { Tag.SadConsole, Tag.SadFont, Tag.Cursor, Tag.Pixels };
-
+        
         AddCentered(new FontBreakdown());
-        Surface.Print(2, "If you look closely, there is a red dot circling the space character.");
+        Surface.Print(2, ColoredString.Parser.Parse("If you look closely, there is a " +
+            "[c:r f:ansiredbright]red dot[c:undo] circling the space character."));
     }
 
     protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)

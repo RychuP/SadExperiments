@@ -126,9 +126,8 @@ abstract class ButtonsConsole : ControlsConsole
     // searches for buttons with keyboard shortcuts and invokes click on them
     // if the corresponding button was pressed
     //
-    // this method is extracted from the ProcessKeyboard() to prevent infinite loops when a page holding 
-    // the buttons console has more than one of these and checks them all in their ProcessKeyboard()
-    // when they are not focused
+    // extracted from the ProcessKeyboard() to allow other objects
+    // that hold focus to check this console for keyboard shortcuts
     public bool KeyboardShortcutPressed(Keyboard keyboard)
     {
         if (keyboard.HasKeysPressed)

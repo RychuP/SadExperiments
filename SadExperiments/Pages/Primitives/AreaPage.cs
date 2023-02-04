@@ -49,6 +49,7 @@ internal class AreaPage : Page
             Parent = this,
             Position = (0, 1)
         };
+        _topButtons.WithKeyboard((o, k) => ProcessKeyboard(k));
 
         _topButtons.AddButton("Change Color", Keys.D1).Click += (o, e) =>
         {
@@ -68,6 +69,7 @@ internal class AreaPage : Page
             Parent = this,
             Position = (0, Height - 2)
         };
+        _bottomButtons.WithKeyboard((o, k) => ProcessKeyboard(k));
 
         _bottomButtons.AddButton("Area Filled", Keys.D3).Click += (o, e) =>
         {
