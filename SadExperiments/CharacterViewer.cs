@@ -4,7 +4,7 @@ using SadConsole.UI.Controls;
 namespace SadExperiments;
 
 /// <summary>
-/// Displays the glyphs associated with a font and allows the user to select one.
+/// Displays the glyphs associated with the default font.
 /// Taken from Thraka's Feature Demo repo.
 /// </summary>
 public class CharacterViewer : Window
@@ -26,14 +26,13 @@ public class CharacterViewer : Window
         }
     }
 
-    public CharacterViewer(int character)
-        : base(20, 20)
+    public CharacterViewer() : base(20, 20)
     {
         FontSize *= 1.4;
 
         _picker = new CharacterPicker(SadConsole.UI.Themes.Library.Default.Colors.OrangeDark, SadConsole.UI.Themes.Library.Default.Colors.ControlBackgroundNormal, SadConsole.UI.Themes.Library.Default.Colors.Yellow);
         _picker.Position = new Point(2, 1);
-        _picker.SelectedCharacter = character;
+        _picker.SelectedCharacter = 1;
         _picker.UseFullClick = false;
         _picker.SelectedCharacterChanged += SelectedCharacterChangedOnControl!;
         Controls.Add(_picker);
@@ -49,8 +48,10 @@ public class CharacterViewer : Window
         closeButton.Click += (s, e) => this.Hide();
         Controls.Add(closeButton);
 
-        this.CloseOnEscKey = true;
-        this.Title = "Pick a character";
+        CloseOnEscKey = true;
+        Title = "Pick a character";
+
+        Center();
     }
 
     private void SelectedCharacterChangedOnControl(object sender, ValueChangedEventArgs<int> e)

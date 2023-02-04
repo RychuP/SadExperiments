@@ -10,30 +10,31 @@ using SadExperiments.Pages.Go_Rogue;
 namespace SadExperiments.MainScreen;
 
 /// <summary>
-/// Main program class that coordinates display of pages and headers.
+/// Root screen object that coordinates display of pages and headers.
 /// </summary>
 sealed class Container : ScreenObject
 {
-    /// <summary>
-    /// Lists all available, predefined colors and allows to pick a custom one.
-    /// </summary>
-    public static ColorPickerPopup ColorPicker { get; } = new();
-
-    /// <summary>
-    /// Lists characters available in the default IBM font.
-    /// </summary>
-    public static CharacterViewer CharacterViewer { get; } = new(1);
-
+    #region Fields
     readonly ContentsList _contentsList;
     readonly Header _header;
     Page _currentPage;
 
-    // array of tags added to all pages
+    // singleton pattern as explained at https://csharpindepth.com/articles/singleton
+    static readonly Lazy<Container> s_lazy = new(() => new Container());
+
+    // window with a list of available colors and a color composer
+    readonly ColorPickerPopup _colorPicker = new();
+
+    // window with characters available in the default IBM font
+    readonly CharacterViewer _characterViewer = new();
+
+    // unique tags from the list of filtered pages
     readonly HashSet<Tag> _tags = new();
 
-    // holds pages filtered by tags
+    // pages filtered by tags
     Page[] _filteredPages;
 
+    // all available pages
     readonly Page[] _pages =
     {
         //new Test(),
@@ -70,24 +71,9 @@ sealed class Container : ScreenObject
         new Instructions(),
         new EffectsAndDecorators(),
     };
+    #endregion Fields
 
-    // singleton pattern as explained at https://csharpindepth.com/articles/singleton
-    private static readonly Lazy<Container> lazy = new (() => new Container());
-
-    /// <summary>
-    /// Singleton instance of the <see cref="Container"/> class.
-    /// </summary>
-    public static Container Instance { get => lazy.Value; }
-
-    // static constructor that deals with the static properties
-    static Container()
-    {
-        ColorPicker.FontSize *= 0.9;
-        ColorPicker.Center();
-        ColorPicker.SelectedColor = Color.White;
-        CharacterViewer.Center();
-    }
-
+    #region Constructor
     // private constructor for the singleton use
     private Container()
     {
@@ -112,8 +98,67 @@ sealed class Container : ScreenObject
 
         // add children 
         Children.Add(_contentsList, _currentPage, _header);
+
+        // setup color picker
+        _colorPicker.SelectedColor = Color.White;
+        _colorPicker.FontSize *= 0.9;
+        _colorPicker.Center();
+    }
+    #endregion Constructor
+
+    #region Properties
+    /// <summary>
+    /// Singleton instance of the <see cref="Container"/> class.
+    /// </summary>
+    public static Container Instance
+    {
+        get => s_lazy.Value;
     }
 
+    /// <summary>
+    /// Page currently selected for the display.
+    /// </summary>
+    public Page CurrentPage
+    {
+        get => _currentPage;
+        private set
+        {
+            Children.Remove(_currentPage);
+            _currentPage = value;
+            _currentPage.IsFocused = true;
+            Children.Add(_currentPage);
+            _header.SetHeader(_currentPage);
+            Children.MoveToTop(_header);
+            if (_currentPage is IRestartable p)
+                p.Restart();
+
+            // trigger events
+            OnPageChanged();
+        }
+    }
+
+    public Page[] PageList
+    {
+        get => _filteredPages;
+        private set
+        {
+            _filteredPages = value;
+            ExtractUniqueTags();
+            IndexPages();
+
+            // trigger events
+            OnPageListChanged();
+            OnTagsChanged();
+        }
+    }
+
+    public HashSet<Tag> Tags
+    {
+        get => _tags;
+    }
+    #endregion Properties
+
+    #region Functionality
     // sets sequantial index of each page in the filtered array of pages
     void IndexPages()
     {
@@ -127,17 +172,17 @@ sealed class Container : ScreenObject
         var keyboard = Game.Instance.Keyboard;
         if (keyboard.HasKeysPressed)
         {
-            if (ColorPicker.IsVisible)
+            if (_colorPicker.IsVisible)
             {
                 // keep it seperate
                 if (keyboard.IsKeyPressed(Keys.F4))
-                    ColorPicker.Hide();
+                    _colorPicker.Hide();
             }
-            else if (CharacterViewer.IsVisible)
+            else if (_characterViewer.IsVisible)
             {
                 // keep it seperate
                 if (keyboard.IsKeyPressed(Keys.F5))
-                    CharacterViewer.Hide();
+                    _characterViewer.Hide();
             }
             else
             {
@@ -148,9 +193,9 @@ sealed class Container : ScreenObject
                 else if (keyboard.IsKeyPressed(Keys.F3))
                     ToggleContentsList();
                 else if (keyboard.IsKeyPressed(Keys.F4))
-                    ColorPicker.Show(true);
+                    _colorPicker.Show(true);
                 else if (keyboard.IsKeyPressed(Keys.F5))
-                    CharacterViewer.Show(true);
+                    _characterViewer.Show(true);
             }
         }
         base.Update(delta);
@@ -174,21 +219,8 @@ sealed class Container : ScreenObject
             var page = nextIndex < 0 ? _filteredPages.Last() :
                        nextIndex >= _filteredPages.Length ? _filteredPages.First() :
                                                             _filteredPages[nextIndex];
-            ChangeCurrentPage(page);
+            CurrentPage = page;
         }
-    }
-
-    // changes the current page to the one provided
-    void ChangeCurrentPage(Page page)
-    {
-        Children.Remove(_currentPage);
-        Children.Add(page);
-        _currentPage = page;
-        _currentPage.IsFocused = true;
-        _header.SetHeader(page);
-        Children.MoveToTop(_header);
-        if (page is IRestartable p)
-            p.Restart();
     }
 
     /// <summary>
@@ -282,7 +314,7 @@ sealed class Container : ScreenObject
         // if the filter has any results change current page to the first available
         else if (_filteredPages.Length > 0)
         {
-            ChangeCurrentPage(_filteredPages[0]);
+            CurrentPage = _filteredPages[0];
         }
 
         // filter has no results
@@ -316,7 +348,7 @@ sealed class Container : ScreenObject
                 button.Click += (o, e) =>
                 {
                     HideContentsList();
-                    ChangeCurrentPage(page);
+                    CurrentPage = page;
                 };
                 contentsList.Controls.Add(button);
 
@@ -330,4 +362,28 @@ sealed class Container : ScreenObject
             return contentsList;
         }
     }
+    #endregion Functionality
+
+    #region Events
+    public event EventHandler? PageChanged;
+
+    public event EventHandler? PageListChanged;
+
+    public event EventHandler? TagsChanged;
+
+    void OnPageChanged()
+    {
+        PageChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    void OnPageListChanged()
+    {
+        PageListChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    void OnTagsChanged()
+    {
+        TagsChanged?.Invoke(this, EventArgs.Empty);
+    }
+    #endregion Events
 }
