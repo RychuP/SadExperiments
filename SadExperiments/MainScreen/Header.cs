@@ -5,26 +5,38 @@ namespace SadExperiments.MainScreen;
 
 class Header : ScreenSurface
 {
+    #region Constants
+    /// <summary>
+    /// Header foreground color.
+    /// </summary>
     public static readonly Color FGColor = Color.White;
+
+    /// <summary>
+    /// Header background color.
+    /// </summary>
     public static readonly Color BGColor = Color.AnsiBlackBright;
 
     /// <summary>
     /// Default, minimized view height of the header (no mouse over).
     /// </summary>
     public const int MinimizedViewHeight = 2;
+    #endregion Constants
 
+    #region Fields
     // view height that includes all current content shown on mouse over
     int _contentViewHeight = MinimizedViewHeight;
 
-    /// <summary>
-    /// Page counter displayed in the top right corner of the header.
-    /// </summary>
-    public PageCounter PageCounter { get; init; }
-
+    // cursor for printing
     readonly Cursor _cursor;
-    readonly Buttons _tagButtons;
-    Page _currentPage;
 
+    // console that displays tags associated with the current page
+    readonly Buttons _tagButtons;
+
+    // TODO: change to use container prop
+    Page _currentPage;
+    #endregion Fields
+
+    #region Constructor
     /// <summary>
     /// Window shown at the top of the screen with information about currently loaded page.
     /// </summary>
@@ -54,7 +66,22 @@ class Header : ScreenSurface
         _currentPage = page;
         SetHeader(page);
     }
+    #endregion Constructor
 
+    #region Properties
+    /// <summary>
+    /// Page counter displayed in the top right corner of the header.
+    /// </summary>
+    public PageCounter PageCounter { get; init; }
+
+    public bool IsMinimized
+    {
+        get => Surface.ViewHeight == MinimizedViewHeight;
+    }
+        
+    #endregion Properties
+
+    #region Functionality
     public void SetHeader(Page page)
     {
         Surface.Clear();
@@ -106,9 +133,6 @@ class Header : ScreenSurface
         }
     }
 
-    public bool IsMinimized =>
-        Surface.ViewHeight == MinimizedViewHeight;
-
     public void Minimize()
     {
         Surface.ViewHeight = MinimizedViewHeight;
@@ -134,7 +158,9 @@ class Header : ScreenSurface
             Maximize();
         return base.ProcessMouse(state);
     }
+    #endregion Functionality
 
+    #region Embedded Classes
     // made for the sole purpose of handling mouse exit to the right of this console where header can't catch it
     class Buttons : HorizontalButtonsConsole
     {
@@ -152,4 +178,5 @@ class Header : ScreenSurface
             base.OnMouseExit(state);
         }
     }
+    #endregion Embedded Classes
 }

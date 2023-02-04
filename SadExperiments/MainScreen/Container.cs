@@ -124,16 +124,19 @@ sealed class Container : ScreenObject
         private set
         {
             Children.Remove(_currentPage);
-            _currentPage = value;
-            _currentPage.IsFocused = true;
-            Children.Add(_currentPage);
-            _header.SetHeader(_currentPage);
+            Children.Add(value);
+            _header.SetHeader(value);
             Children.MoveToTop(_header);
-            if (_currentPage is IRestartable p)
+            if (value is IRestartable p)
                 p.Restart();
 
             // trigger events
-            OnPageChanged();
+            var args = new PageChangedEventArgs(_currentPage, value);
+            OnPageChanged(args);
+
+            // change value
+            _currentPage = value;
+            _currentPage.IsFocused = true;
         }
     }
 
@@ -223,10 +226,8 @@ sealed class Container : ScreenObject
         }
     }
 
-    /// <summary>
-    /// Shows/hides contents list.
-    /// </summary>
-    public void ToggleContentsList()
+    // shows or hides contents list
+    void ToggleContentsList()
     {
         if (!_contentsList.IsVisible)
         {
@@ -365,15 +366,15 @@ sealed class Container : ScreenObject
     #endregion Functionality
 
     #region Events
-    public event EventHandler? PageChanged;
+    public event EventHandler<PageChangedEventArgs>? PageChanged;
 
     public event EventHandler? PageListChanged;
 
     public event EventHandler? TagsChanged;
 
-    void OnPageChanged()
+    void OnPageChanged(PageChangedEventArgs args)
     {
-        PageChanged?.Invoke(this, EventArgs.Empty);
+        PageChanged?.Invoke(this, args);
     }
 
     void OnPageListChanged()
@@ -384,6 +385,17 @@ sealed class Container : ScreenObject
     void OnTagsChanged()
     {
         TagsChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    public class PageChangedEventArgs : EventArgs
+    {
+        public Page PrevPage { get; init; }
+        public Page NewPage { get; init; }
+        public PageChangedEventArgs(Page prevPage, Page newPage)
+        {
+            PrevPage = prevPage;
+            NewPage = newPage;
+        }
     }
     #endregion Events
 }
