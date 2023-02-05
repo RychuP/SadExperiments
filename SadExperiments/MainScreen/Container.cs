@@ -15,9 +15,17 @@ namespace SadExperiments.MainScreen;
 sealed class Container : ScreenObject
 {
     #region Fields
+    // lists pages that can be selected for the display
     readonly ContentsList _contentsList;
+
+    // header that shows info about the current page
     readonly Header _header;
-    Page _currentPage;
+
+    // page currently being displayed
+    Page _currentPage = new Template();
+
+    // previous page 
+    Page? _prevPage = null;
 
     // singleton pattern as explained at https://csharpindepth.com/articles/singleton
     static readonly Lazy<Container> s_lazy = new(() => new Container());
@@ -32,7 +40,7 @@ sealed class Container : ScreenObject
     readonly HashSet<Tag> _tags = new();
 
     // pages filtered by tags
-    Page[] _filteredPages;
+    Page[] _filteredPages = Array.Empty<Page>();
 
     // all available pages
     readonly Page[] _pages =
@@ -73,44 +81,39 @@ sealed class Container : ScreenObject
     };
     #endregion Fields
 
-    #region Constructor
+    #region Constructors
     // private constructor for the singleton use
     private Container()
     {
-        // start off with no filters applied
-        _filteredPages = _pages;
-        ExtractUniqueTags();
-        IndexPages();
-
-        // set first page as focused
-        _currentPage = _filteredPages[0];
-        _currentPage.IsFocused = true;
-
-        // create a header
-        _header = new(_currentPage, _filteredPages.Length);
-
-        // instantiate data fields
-        _contentsList = new ContentsList(ButtonsWithLinksToPages);
-        
         // remove starting console
         Game.Instance.Screen = this;
         Game.Instance.DestroyDefaultStartingConsole();
-
-        // add children 
-        Children.Add(_contentsList, _currentPage, _header);
 
         // setup color picker
         _colorPicker.SelectedColor = Color.White;
         _colorPicker.FontSize *= 0.9;
         _colorPicker.Center();
+
+        // create contents list and header
+        _contentsList = new ContentsList();
+        _header = new();
+
+        // register event handlers
+        PageListChanged += _contentsList.Container_OnPageListChanged;
+        PageListChanged += _header.PageCounter.Container_OnPageListChanged;
+        PageChanged += _header.Container_OnPageChanged;
+        PageChanged += _header.PageCounter.Container_OnPageChanged;
+
+        // add children 
+        Children.Add(CurrentPage, _header);
     }
-    #endregion Constructor
+    #endregion Constructors
 
     #region Properties
     /// <summary>
     /// Singleton instance of the <see cref="Container"/> class.
     /// </summary>
-    public static Container Instance
+    public static Container Root
     {
         get => s_lazy.Value;
     }
@@ -121,22 +124,18 @@ sealed class Container : ScreenObject
     public Page CurrentPage
     {
         get => _currentPage;
-        private set
+        set
         {
-            Children.Remove(_currentPage);
-            Children.Add(value);
-            _header.SetHeader(value);
-            Children.MoveToTop(_header);
-            if (value is IRestartable p)
-                p.Restart();
+            if (value != _contentsList && !PageList.Contains(value))
+                throw new ArgumentException("Page has to be either in the PageList or be a contents list.");
 
-            // trigger events
-            var args = new PageChangedEventArgs(_currentPage, value);
-            OnPageChanged(args);
-
-            // change value
+            // handle fields
+            _prevPage = _currentPage;
             _currentPage = value;
             _currentPage.IsFocused = true;
+
+            // trigger events
+            OnPageChanged();
         }
     }
 
@@ -146,8 +145,6 @@ sealed class Container : ScreenObject
         private set
         {
             _filteredPages = value;
-            ExtractUniqueTags();
-            IndexPages();
 
             // trigger events
             OnPageListChanged();
@@ -161,15 +158,10 @@ sealed class Container : ScreenObject
     }
     #endregion Properties
 
-    #region Functionality
-    // sets sequantial index of each page in the filtered array of pages
-    void IndexPages()
-    {
-        int i = 0;
-        Array.ForEach(_filteredPages, p => p.Index = i++);
-    }
-
-    // keyboard handling of global F1 - F5 keys
+    #region Methods
+    /// <summary>
+    /// Keyboard handling of global F1 - F5 keys.
+    /// </summary>
     public override void Update(TimeSpan delta)
     {
         var keyboard = Game.Instance.Keyboard;
@@ -177,13 +169,11 @@ sealed class Container : ScreenObject
         {
             if (_colorPicker.IsVisible)
             {
-                // keep it seperate
                 if (keyboard.IsKeyPressed(Keys.F4))
                     _colorPicker.Hide();
             }
             else if (_characterViewer.IsVisible)
             {
-                // keep it seperate
                 if (keyboard.IsKeyPressed(Keys.F5))
                     _characterViewer.Hide();
             }
@@ -194,7 +184,12 @@ sealed class Container : ScreenObject
                 else if (keyboard.IsKeyPressed(Keys.F2))
                     NextPage();
                 else if (keyboard.IsKeyPressed(Keys.F3))
-                    ToggleContentsList();
+                {
+                    if (CurrentPage == _contentsList && _prevPage != null)
+                        CurrentPage = _prevPage;
+                    else
+                        CurrentPage = _contentsList;
+                }
                 else if (keyboard.IsKeyPressed(Keys.F4))
                     _colorPicker.Show(true);
                 else if (keyboard.IsKeyPressed(Keys.F5))
@@ -202,70 +197,6 @@ sealed class Container : ScreenObject
             }
         }
         base.Update(delta);
-    }
-
-    public void NextPage() => 
-        ChangePage(Direction.Right);
-
-    public void PrevPage() => 
-        ChangePage(Direction.Left);
-
-    // changes the current page to its neighbour in the direction provided
-    void ChangePage(Direction direction)
-    {
-        if (_contentsList.IsVisible) 
-            HideContentsList();
-
-        if (_filteredPages.Length > 0)
-        {
-            int nextIndex = _currentPage.Index + (direction == Direction.Right ? 1 : -1);
-            var page = nextIndex < 0 ? _filteredPages.Last() :
-                       nextIndex >= _filteredPages.Length ? _filteredPages.First() :
-                                                            _filteredPages[nextIndex];
-            CurrentPage = page;
-        }
-    }
-
-    // shows or hides contents list
-    void ToggleContentsList()
-    {
-        if (!_contentsList.IsVisible)
-        {
-            // hide current page
-            Children.MoveToBottom(_currentPage);
-
-            // show contents list
-            _contentsList.Show();
-
-            // update header
-            _contentsList.Index = _currentPage.Index;
-            _header.SetHeader(_contentsList);
-        }
-        else HideContentsList();
-    }
-
-    // hides contents list and shows current page
-    void HideContentsList()
-    {
-        _contentsList.Hide();
-
-        // focus and show current page
-        Children.MoveToBottom(_contentsList);
-        _currentPage.IsFocused = true;
-
-        // restart page if possible
-        if (_currentPage is IRestartable p)
-            p.Restart();
-
-        // update header
-        _header.SetHeader(_currentPage);
-    }
-
-    // extracts all unique tags from the list of filtered pages
-    void ExtractUniqueTags()
-    {
-        _tags.Clear();
-        Array.ForEach(_filteredPages, p => _tags.UnionWith(p.Tags));
     }
 
     /// <summary>
@@ -278,7 +209,7 @@ sealed class Container : ScreenObject
         // filter pages when both tags are provided
         if (tag1.HasValue && tag2.HasValue)
         {
-            _filteredPages = _pages
+            PageList = _pages
                 .Where(p => p.Tags.Contains(tag1.Value))
                 .Where(p => p.Tags.Contains(tag2.Value))
                 .ToArray();
@@ -288,97 +219,87 @@ sealed class Container : ScreenObject
         else if (tag1.HasValue || tag2.HasValue)
         {
             Tag? filter = tag1 ?? tag2;
-            _filteredPages = _pages
+            PageList = _pages
                 .Where(p => p.Tags.Contains(filter!.Value))
                 .ToArray();
         }
 
         // no tags -> no filter
         else
-            _filteredPages = _pages;
-
-        // save the list of currently available tags based on the filters above
-        ExtractUniqueTags();
-
-        // reindex pages
-        IndexPages();
-
-        // change the page counter to the number of available filtered pages
-        _header.PageCounter.Total = _filteredPages.Length;
-
-        // check if the current page is in the filter results
-        if (_filteredPages.Contains(_currentPage))
-        {
-            _header.PageCounter.ShowIndex(_currentPage.Index);
-        }
-
-        // if the filter has any results change current page to the first available
-        else if (_filteredPages.Length > 0)
-        {
-            CurrentPage = _filteredPages[0];
-        }
-
-        // filter has no results
-        else
-        {
-            // show dummy page index
-            _header.PageCounter.ShowIndex(-1);
-        }
+            PageList = _pages;
     }
 
-    // TODO this needs to be transfered to contents list
-    ControlsConsole ButtonsWithLinksToPages
+    public void Init()
     {
-        get
-        {
-            var contentsList = new ControlsConsole(Program.Width, Program.Height - Filter.MinimizedHeight);
-            contentsList.Position = (0, Filter.MinimizedHeight);
-            Point position = (1, 1);
-            int buttonWidth = 35;
+        PageList = _pages;
+        CurrentPage = PageList[0];
+    }
 
-            foreach (Page page in _pages)
+    // changes the current page to the one with a higher index (+1) wrapping if needed
+    void NextPage() => 
+        ChangePage(Direction.Right);
+
+    // changes the current page to the one with a lower index (-1) wrapping if needed
+    void PrevPage() => 
+        ChangePage(Direction.Left);
+
+    // changes the current page to its neighbour in the direction provided
+    void ChangePage(Direction direction)
+    {
+        if (PageList.Length > 0)
+        {
+            Page? page = CurrentPage == _contentsList ? _prevPage : CurrentPage;
+            if (page != null)
             {
-                // create new button with a link to the page
-                var button = new Button(buttonWidth, 1)
-                {
-                    Text = page.Title,
-                    Position = position,
-                    UseMouse = true,
-                    UseKeyboard = false,
-                };
-                button.Click += (o, e) =>
-                {
-                    HideContentsList();
-                    CurrentPage = page;
-                };
-                contentsList.Controls.Add(button);
-
-                // increment position
-                position += Direction.Down;
-
-                // if first column is full, start the second column
-                if (position.Y == contentsList.Height - 2)
-                    position = (Program.Width - buttonWidth - 1, 1);
+                int nextIndex = page.Index + (direction == Direction.Right ? 1 : -1);
+                page = nextIndex < 0                 ? PageList.Last() :
+                       nextIndex >= PageList.Length  ? PageList.First() :
+                                                       PageList[nextIndex];
+                CurrentPage = page;
             }
-            return contentsList;
         }
     }
-    #endregion Functionality
 
-    #region Events
-    public event EventHandler<PageChangedEventArgs>? PageChanged;
-
-    public event EventHandler? PageListChanged;
-
-    public event EventHandler? TagsChanged;
-
-    void OnPageChanged(PageChangedEventArgs args)
+    // sets sequantial index of each page in the filtered array of pages
+    void IndexPages()
     {
-        PageChanged?.Invoke(this, args);
+        int i = 0;
+        Array.ForEach(_filteredPages, p => p.Index = i++);
+    }
+
+    // extracts all unique tags from the list of filtered pages
+    void ExtractUniqueTags()
+    {
+        _tags.Clear();
+        Array.ForEach(_filteredPages, p => _tags.UnionWith(p.Tags));
+    }
+
+    void OnPageChanged()
+    {
+        // remove the prev page and add the new one to children
+        Children.Remove(_prevPage);
+        Children.Add(_currentPage);
+        Children.MoveToTop(_header);
+
+        // restart page if possible
+        if (_currentPage is IRestartable page)
+            page.Restart();
+
+        PageChanged?.Invoke(this, EventArgs.Empty);
     }
 
     void OnPageListChanged()
     {
+        // extract tags and reindex pages
+        ExtractUniqueTags();
+        IndexPages();
+
+        // check whether to leave the prev page field as it was or assign to it a new value 
+        _prevPage = (PageList.Length == 0)          ? null :
+                    (!PageList.Contains(_prevPage)) ? PageList[0] :
+                                                      _prevPage;
+
+        // invoke event
         PageListChanged?.Invoke(this, EventArgs.Empty);
     }
 
@@ -386,16 +307,13 @@ sealed class Container : ScreenObject
     {
         TagsChanged?.Invoke(this, EventArgs.Empty);
     }
+    #endregion Methods
 
-    public class PageChangedEventArgs : EventArgs
-    {
-        public Page PrevPage { get; init; }
-        public Page NewPage { get; init; }
-        public PageChangedEventArgs(Page prevPage, Page newPage)
-        {
-            PrevPage = prevPage;
-            NewPage = newPage;
-        }
-    }
+    #region Events
+    public event EventHandler? PageChanged;
+
+    public event EventHandler? PageListChanged;
+
+    public event EventHandler? TagsChanged;
     #endregion Events
 }

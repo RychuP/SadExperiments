@@ -1,9 +1,13 @@
-﻿using SadConsole.Components;
-using SadExperiments.UI;
+﻿using SadExperiments.UI;
+using SadConsole.Components;
+using static SadExperiments.MainScreen.Container;
 
 namespace SadExperiments.MainScreen;
 
-class Header : ScreenSurface
+/// <summary>
+/// Window shown at the top of the screen with information about currently loaded page.
+/// </summary>
+class Header : Console
 {
     #region Constants
     /// <summary>
@@ -23,50 +27,34 @@ class Header : ScreenSurface
     #endregion Constants
 
     #region Fields
-    // view height that includes all current content shown on mouse over
+    // height of the current page description content that the header expands to on mouse over
     int _contentViewHeight = MinimizedViewHeight;
-
-    // cursor for printing
-    readonly Cursor _cursor;
 
     // console that displays tags associated with the current page
     readonly Buttons _tagButtons;
-
-    // TODO: change to use container prop
-    Page _currentPage;
     #endregion Fields
 
-    #region Constructor
-    /// <summary>
-    /// Window shown at the top of the screen with information about currently loaded page.
-    /// </summary>
-    /// <param name="page">Initial page shown when the program starts.</param>
-    /// <param name="pageCount">Total number of pages used by <see cref="MainScreen.PageCounter"/>.</param>
-    public Header(Page page, int pageCount) : base(Program.Width, MinimizedViewHeight, Program.Width, Program.Height)
+    #region Constructors
+    public Header() : base(Program.Width, MinimizedViewHeight, Program.Width, Program.Height)
     {
         // set colors
-        Surface.SetDefaultColors(FGColor, BGColor, false);
+        Surface.SetDefaultColors(FGColor, BGColor);
 
-        // add page counter
-        PageCounter = new PageCounter(pageCount) { Parent = this };
+        // setup cursor
+        Cursor.IsVisible = false;
+        Cursor.UseStringParser = true;
+
+        // create page counter
+        PageCounter = new PageCounter();
         PageCounter.Position = (Surface.Width - PageCounter.Surface.Width, 0);
 
-        // add cursor
-        _cursor = new Cursor()
-        {
-            IsVisible = false,
-            UseStringParser = true,
-        };
-        SadComponents.Add(_cursor);
+        // create tag buttons
+        _tagButtons = new Buttons(1, 1);
 
-        // add tag buttons
-        _tagButtons = new Buttons(1, 1) { Parent = this };
-
-        // set initial data based on the first page provided
-        _currentPage = page;
-        SetHeader(page);
+        // add children
+        Children.Add(PageCounter, _tagButtons);
     }
-    #endregion Constructor
+    #endregion Constructors
 
     #region Properties
     /// <summary>
@@ -74,65 +62,29 @@ class Header : ScreenSurface
     /// </summary>
     public PageCounter PageCounter { get; init; }
 
-    public bool IsMinimized
-    {
-        get => Surface.ViewHeight == MinimizedViewHeight;
-    }
-        
+    /// <summary>
+    /// True if the view height is equal to <see cref="MinimizedViewHeight"/>.
+    /// </summary>
+    public bool IsMinimized =>
+        Surface.ViewHeight == MinimizedViewHeight;
     #endregion Properties
 
-    #region Functionality
-    public void SetHeader(Page page)
-    {
-        Surface.Clear();
-
-        // set page counter index
-        PageCounter.ShowIndex(page.Index);
-
-        // display main info about the page
-        _cursor
-            // title
-            .Move(new Point(1, 0)).Print($"[c:r f:yellow]{page.Title.ToUpper()}")
-            .NewLine().Right(1)
-            // summary
-            .Print(page.Summary)
-            .NewLine().Down(1).Right(1)
-            // submitter
-            .Print($"[c:r f:yellow]Submitted by[c:undo]: {page.Submitter}")
-            .NewLine().Down(1).Right(1)
-            // tags title
-            .Print($"[c:r f:yellow]Tags[c:undo]: ");
-
-        // place the buttons console at the end of the 'Tags: ' text
-        _tagButtons.Position = _cursor.Position;
-
-        // prepare buttons console for the new tags
-        _tagButtons.Resize(Surface.Width - _cursor.Position.X, 1, true);
-        _tagButtons.Controls.Clear();
-        _tagButtons.CurrentRow = 0;
-
-        // add all tags as buttons
-        foreach (var tag in page.Tags)
-            _tagButtons.AddButton($"{tag}");
-
-        // change content height field according to the content of the page's header data
-        _contentViewHeight = _cursor.Position.Y + _tagButtons.Height + 1;
-
-        // set current view height to minimized height (default state)
-        Minimize();
-
-        _currentPage = page;
-    }
-
+    #region Methods
+    /// <summary>
+    /// Expands the view height of the header to the size of the current page description content.
+    /// </summary>
     public void Maximize()
     {
-        if (_currentPage is not ContentsList)
+        if (Root.CurrentPage is not ContentsList)
         {
             Surface.ViewHeight = _contentViewHeight;
             _tagButtons.IsVisible = true;
         }
     }
 
+    /// <summary>
+    /// Reduces the view height of the header to <see cref="MinimizedViewHeight"/>.
+    /// </summary>
     public void Minimize()
     {
         Surface.ViewHeight = MinimizedViewHeight;
@@ -158,10 +110,49 @@ class Header : ScreenSurface
             Maximize();
         return base.ProcessMouse(state);
     }
-    #endregion Functionality
 
-    #region Embedded Classes
-    // made for the sole purpose of handling mouse exit to the right of this console where header can't catch it
+    public void Container_OnPageChanged(object? sender, EventArgs args)
+    {
+        Surface.Clear();
+        Page page = Root.CurrentPage;
+
+        // display main info about the page
+        Cursor
+            // title
+            .Move(new Point(1, 0)).Print($"[c:r f:yellow]{page.Title.ToUpper()}")
+            .NewLine().Right(1)
+            // summary
+            .Print(page.Summary)
+            .NewLine().Down(1).Right(1)
+            // submitter
+            .Print($"[c:r f:yellow]Submitted by[c:undo]: {page.Submitter}")
+            .NewLine().Down(1).Right(1)
+            // tags title
+            .Print($"[c:r f:yellow]Tags[c:undo]: ");
+
+        // place the buttons console at the end of the 'Tags: ' text
+        _tagButtons.Position = Cursor.Position;
+
+        // prepare buttons console for the new tags
+        _tagButtons.Resize(Surface.Width - Cursor.Position.X, 1, true);
+        _tagButtons.Controls.Clear();
+        _tagButtons.CurrentRow = 0;
+
+        // add all tags as buttons
+        foreach (var tag in page.Tags)
+            _tagButtons.AddButton($"{tag}");
+
+        // change content height field according to the content of the page's header data
+        _contentViewHeight = Cursor.Position.Y + _tagButtons.Height + 1;
+
+        // set current view height to minimized height (default state)
+        Minimize();
+    }
+    #endregion Methods
+
+    #region Types
+    // made for the sole purpose of handling mouse exit to the right of this console
+    // where header can't catch it with its own onMouseExit()
     class Buttons : HorizontalButtonsConsole
     {
         public Buttons(int w, int h) : base(w, h) { }
@@ -178,5 +169,5 @@ class Header : ScreenSurface
             base.OnMouseExit(state);
         }
     }
-    #endregion Embedded Classes
+    #endregion Types
 }

@@ -1,92 +1,69 @@
-﻿namespace SadExperiments.MainScreen;
+﻿using static SadExperiments.MainScreen.Container;
+
+namespace SadExperiments.MainScreen;
 
 /// <summary>
 /// Page counter displayed in the top right corner of the <see cref="Header"/>.
 /// </summary>
 class PageCounter : ScreenSurface
 {
+    #region Constants
     const string Title = "Page:";
+
+    // char displayed between _index and _total
     const string Devider = "/";
+
+    // maximum number of digits in either _index or _total
     const int MaxNumberLength = 2;
+    #endregion Constants
 
-    readonly Point _titlePosition = Point.Zero;
+    #region Fields
+    // text printed when a number is invalid
+    string _hyphens = new('-', MaxNumberLength);
+
+    // position for the 'index' number
     readonly Point _indexPosition = (1, 1);
-    readonly Point _totalPosition;
 
-    int _total;
+    // position for the 'total' number
+    readonly Point _pageCountPosition;
 
-    public PageCounter(int pageCount) : base(Title.Length + 2, 2)
+    // total number of pages
+    int _pageCount;
+    #endregion Fields
+
+    #region Constructors
+    public PageCounter() : base(Title.Length + 2, 2)
     {
         // set default colors
         Surface.SetDefaultColors(Header.FGColor, Header.BGColor);
 
         // print title
-        Surface.Print(_titlePosition, Title.Align(HorizontalAlignment.Center, Surface.Width), Color.Yellow);
+        Surface.Print(Point.Zero, Title.Align(HorizontalAlignment.Center, Surface.Width), Color.Yellow);
 
         // print devider
-        var maxNumberOffset = (MaxNumberLength, 0);
-        Surface.Print(_indexPosition + maxNumberOffset, Devider, Color.Yellow);
+        var deviderPosition = _indexPosition + (MaxNumberLength, 0);
+        Surface.Print(deviderPosition, Devider, Color.Yellow);
 
-        // set total
-        _totalPosition = _indexPosition + maxNumberOffset + (Devider.Length, 0);
-        Total = pageCount;
+        // calculate position for the 'total' number
+        _pageCountPosition = deviderPosition + (Devider.Length, 0);
     }
+    #endregion Constructors
 
-    /// <summary>
-    /// Total number of available pages.
-    /// </summary>
-    /// <exception cref="ArgumentException">In case the number is negative.</exception>
-    public int Total
-    {
-        get => _total;
-        set
-        {
-            if (value < 0) 
-                throw new ArgumentException("Total cannot be negative.", nameof(value));
-            _total = value;
-
-            // print total
-            string total = FormatNumber(value);
-            Surface.Print(_totalPosition, total);
-        }
-    }
-
+    #region Methods
     // prepends number with 0s to make the total string length of MaxNumberLength
-    string FormatNumber(int number)
+    static string FormatNumber(int number)
     {
         string result = number.ToString();
         if (result.Length > MaxNumberLength)
             throw new ArgumentException("Number of digits in the argument exceeds MaxNumberLength.", nameof(number));
-        string padding = new string('0', MaxNumberLength - result.Length);
+        string padding = new('0', MaxNumberLength - result.Length);
         return padding + result;
     }
 
-    /// <summary>
-    /// Displays the given <see cref="Page"/> index.
-    /// </summary>
-    /// <param name="pageNumber"><see cref="Page"/> index to display.</param>
-    /// <exception cref="IndexOutOfRangeException"></exception>
-    public void ShowIndex(int pageNumber)
+    // prints hyphens at the given position
+    void PrintHyphens(Point position)
     {
-        if (pageNumber == -1)
-        {
-            string dummyIndex = new('-', MaxNumberLength);
-            Surface.Print(_indexPosition, dummyIndex);
-        }
-
-        else
-        {
-            // add 1 to offset the zero index
-            pageNumber += 1;
-
-            // check if the page number is between limits
-            if (pageNumber < 1 || pageNumber > Total)
-                throw new IndexOutOfRangeException($"Invalid page number: {pageNumber}.");
-
-            // print the number to the surface
-            string index = FormatNumber(pageNumber);
-            Surface.Print(_indexPosition, index);
-        }
+        Surface.Print(position, _hyphens);
     }
 
     // minimizes header if the mouse falls outside the header zone
@@ -109,4 +86,42 @@ class PageCounter : ScreenSurface
             header.Maximize();
         base.OnMouseEnter(state);
     }
+
+    public void Container_OnPageChanged(object? sender, EventArgs args)
+    {
+        if (Root.CurrentPage is ContentsList)
+        {
+            PrintHyphens(_indexPosition);
+        }
+        else
+        {
+            // add 1 to offset the zero index
+            int pageNumber = Root.CurrentPage.Index + 1;
+
+            // check if the page number is between limits
+            if (pageNumber < 1 || pageNumber > _pageCount)
+                throw new IndexOutOfRangeException($"Invalid page number: {pageNumber}.");
+
+            // print the number to the surface
+            string index = FormatNumber(pageNumber);
+            Surface.Print(_indexPosition, index);
+        }
+    }
+
+    public void Container_OnPageListChanged(object? sender, EventArgs args)
+    {
+        _pageCount = Root.PageList.Length;
+
+        if (_pageCount == 0)
+        {
+            PrintHyphens(_indexPosition);
+            PrintHyphens(_pageCountPosition);
+        }
+        else
+        {
+            string pageCount = FormatNumber(_pageCount);
+            Surface.Print(_pageCountPosition, pageCount);
+        }
+    }
+    #endregion Methods
 }
