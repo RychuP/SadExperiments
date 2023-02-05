@@ -14,10 +14,10 @@ sealed class Container : ScreenObject
 {
     #region Fields
     // lists pages that can be selected for the display
-    readonly ContentsList _contentsList;
+    readonly ContentsList _contentsList = new();
 
     // header that shows info about the current page
-    readonly Header _header;
+    readonly Header _header = new();
 
     // page currently being displayed
     Page _currentPage = new Template();
@@ -91,16 +91,6 @@ sealed class Container : ScreenObject
         _colorPicker.SelectedColor = Color.White;
         _colorPicker.FontSize *= 0.9;
         _colorPicker.Center();
-
-        // create contents list and header
-        _contentsList = new ContentsList();
-        _header = new();
-
-        // register event handlers
-        PageListChanged += _contentsList.Container_OnPageListChanged;
-        PageListChanged += _header.PageCounter.Container_OnPageListChanged;
-        PageChanged += _header.Container_OnPageChanged;
-        PageChanged += _header.PageCounter.Container_OnPageChanged;
 
         // add children 
         Children.Add(CurrentPage, _header);
@@ -229,6 +219,9 @@ sealed class Container : ScreenObject
 
     public void Init()
     {
+        _header.RegisterEventHandlers();
+        _contentsList.RegisterEventHandlers();
+
         PageList = _pages;
         CurrentPage = PageList[0];
     }

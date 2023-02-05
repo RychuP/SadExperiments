@@ -1,4 +1,5 @@
-﻿using static SadExperiments.MainScreen.Container;
+﻿using System.Reflection.PortableExecutable;
+using static SadExperiments.MainScreen.Container;
 
 namespace SadExperiments.MainScreen;
 
@@ -50,6 +51,12 @@ class PageCounter : ScreenSurface
     #endregion Constructors
 
     #region Methods
+    public void RegisterEventHandlers()
+    {
+        Root.PageListChanged += Container_OnPageListChanged;
+        Root.PageChanged += Container_OnPageChanged;
+    }
+
     // prepends number with 0s to make the total string length of MaxNumberLength
     static string FormatNumber(int number)
     {

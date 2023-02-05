@@ -1,5 +1,6 @@
-﻿using SadConsole.UI.Controls;
-using SadConsole.UI;
+﻿using SadConsole.UI;
+using SadConsole.UI.Controls;
+using static SadExperiments.MainScreen.Container;
 
 namespace SadExperiments.MainScreen;
 
@@ -36,11 +37,9 @@ class TagSelector : ControlsConsole
         Controls.Add(_tagList);
     }
 
-    void SetTags(Tag[] tags)
+    public void RegisterEventHandlers()
     {
-        _tagList.Items.Clear();
-        foreach (var tag in tags)
-            _tagList.Items.Add(tag.ToString());
+        Root.TagsChanged += Container_OnTagsChanged;
     }
 
     public void ShowTagList()
@@ -64,5 +63,12 @@ class TagSelector : ControlsConsole
     protected virtual void TextBox_OnEditModeExit(object? o, EventArgs e)
     {
 
+    }
+
+    public void Container_OnTagsChanged(object? sender, EventArgs args)
+    {
+        _tagList.Items.Clear();
+        foreach (var tag in Root.Tags)
+            _tagList.Items.Add(tag.ToString());
     }
 }

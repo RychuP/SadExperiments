@@ -34,7 +34,16 @@ class Filter : ScreenSurface
 
         // add tag selectors to children
         Children.Add(_tag1Selector, _tag2Selector, _sortOrderSelector);
+    }
 
+    /// <summary>
+    /// True if the window is collapsed and doesn't show tag selection buttons any more.
+    /// </summary>
+    public bool IsMinimized =>
+        Surface.ViewHeight == MinimizedHeight;
+
+    public void RegisterEventHandlers()
+    {
         // add edit mode handling to text boxes
         foreach (var child in Children)
         {
@@ -44,13 +53,10 @@ class Filter : ScreenSurface
                 tagSelector.TextBox.EditModeExit += TextBox_OnEditModeExit;
             }
         }
-    }
 
-    /// <summary>
-    /// True if the window is collapsed and doesn't show tag selection buttons any more.
-    /// </summary>
-    public bool IsMinimized =>
-        Surface.ViewHeight == MinimizedHeight;
+        _tag1Selector.RegisterEventHandlers();
+        _tag2Selector.RegisterEventHandlers();
+    }
 
     /// <summary>
     /// Collapses top section of the console and hides tag selection.

@@ -27,11 +27,14 @@ class Header : Console
     #endregion Constants
 
     #region Fields
-    // height of the current page description content that the header expands to on mouse over
-    int _contentViewHeight = MinimizedViewHeight;
+    // page counter displayed in the top right corner of the header
+    readonly PageCounter _pageCounter;
 
     // console that displays tags associated with the current page
     readonly Buttons _tagButtons;
+
+    // height of the current page description content that the header expands to on mouse over
+    int _contentViewHeight = MinimizedViewHeight;
     #endregion Fields
 
     #region Constructors
@@ -45,23 +48,18 @@ class Header : Console
         Cursor.UseStringParser = true;
 
         // create page counter
-        PageCounter = new PageCounter();
-        PageCounter.Position = (Surface.Width - PageCounter.Surface.Width, 0);
+        _pageCounter = new PageCounter();
+        _pageCounter.Position = (Surface.Width - _pageCounter.Surface.Width, 0);
 
         // create tag buttons
         _tagButtons = new Buttons(1, 1);
 
         // add children
-        Children.Add(PageCounter, _tagButtons);
+        Children.Add(_pageCounter, _tagButtons);
     }
     #endregion Constructors
 
     #region Properties
-    /// <summary>
-    /// Page counter displayed in the top right corner of the header.
-    /// </summary>
-    public PageCounter PageCounter { get; init; }
-
     /// <summary>
     /// True if the view height is equal to <see cref="MinimizedViewHeight"/>.
     /// </summary>
@@ -70,6 +68,12 @@ class Header : Console
     #endregion Properties
 
     #region Methods
+    public void RegisterEventHandlers()
+    {
+        Root.PageChanged += Container_OnPageChanged;
+        _pageCounter.RegisterEventHandlers();
+    }
+
     /// <summary>
     /// Expands the view height of the header to the size of the current page description content.
     /// </summary>
