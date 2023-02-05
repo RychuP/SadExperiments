@@ -14,7 +14,7 @@ class Filter : ScreenSurface
     readonly TagSelector _tag2Selector;
     readonly TagSelector _sortOrderSelector;
 
-    public Filter() : base(Program.Width, 4, Program.Width, Program.Height / 2)
+    public Filter() : base(Program.Width, MinimizedHeight, Program.Width, Program.Height / 2)
     {
         Surface.SetDefaultColors(Header.FGColor, Header.BGColor);
 

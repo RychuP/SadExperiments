@@ -17,17 +17,14 @@ internal class ContentsList : Page
         Summary = "Select a page to display.";
 
         // create filters console
-        _filter = new Filter()
-        {
-            Parent = this,
-        };
+        _filter = new Filter();
 
         // create page buttons
-        _buttons = new ControlsConsole(Program.Width, Program.Height - Filter.MinimizedHeight)
-        {
-            Parent = this,
-            Position = (0, Filter.MinimizedHeight),
-        };
+        _buttons = new ControlsConsole(Program.Width, Program.Height - Filter.MinimizedHeight);
+        _buttons.Position = (0, Filter.MinimizedHeight);
+
+        // add consoles to children
+        Children.Add(_buttons, _filter);
     }
 
     public void Container_OnPageListChanged(object? sender, EventArgs args)

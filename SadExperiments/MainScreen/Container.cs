@@ -1,6 +1,4 @@
-﻿using SadConsole.UI.Controls;
-using SadConsole.UI.Windows;
-using SadConsole.UI;
+﻿using SadConsole.UI.Windows;
 using SadExperiments.Pages;
 using SadExperiments.Pages.Sad_Console;
 using SadExperiments.Pages.Sad_Canvas;
