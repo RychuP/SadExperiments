@@ -1,9 +1,9 @@
 ﻿using SadConsole.UI.Windows;
 using SadExperiments.Pages;
-using SadExperiments.Pages.Sad_Console;
-using SadExperiments.Pages.Sad_Canvas;
-using SadExperiments.Pages.Primitives;
-using SadExperiments.Pages.Go_Rogue;
+using SadExperiments.Pages.SadConsolePages;
+using SadExperiments.Pages.SadCanvasPages;
+using SadExperiments.Pages.PrimitivesPages;
+using SadExperiments.Pages.GoRoguePages;
 
 namespace SadExperiments.MainScreen;
 
