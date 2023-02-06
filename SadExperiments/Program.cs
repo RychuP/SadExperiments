@@ -29,7 +29,7 @@ public static class Program
     }
 
     static void Init() =>
-        Container.Root.Init();
+        Container.Instance.Init();
 
     public static Color RandomColor => 
         Color.White.GetRandomColor(Game.Instance.Random);

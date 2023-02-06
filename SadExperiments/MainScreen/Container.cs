@@ -1,9 +1,5 @@
 ﻿using SadConsole.UI.Windows;
 using SadExperiments.Pages;
-using SadExperiments.Pages.SadConsolePages;
-using SadExperiments.Pages.SadCanvasPages;
-using SadExperiments.Pages.PrimitivesPages;
-using SadExperiments.Pages.GoRoguePages;
 
 namespace SadExperiments.MainScreen;
 
@@ -14,10 +10,10 @@ sealed class Container : ScreenObject
 {
     #region Fields
     // lists pages that can be selected for the display
-    readonly ContentsList _contentsList = new();
+    readonly ContentsList _contentsList;
 
     // header that shows info about the current page
-    readonly Header _header = new();
+    readonly Header _header;
 
     // page currently being displayed
     Page _currentPage = new Template();
@@ -92,7 +88,11 @@ sealed class Container : ScreenObject
         _colorPicker.FontSize *= 0.9;
         _colorPicker.Center();
 
-        // add children 
+        // create contents list and header
+        _contentsList = new();
+        _header = new();
+
+        // add consoles to children 
         Children.Add(CurrentPage, _header);
     }
     #endregion Constructors
@@ -101,10 +101,8 @@ sealed class Container : ScreenObject
     /// <summary>
     /// Singleton instance of the <see cref="Container"/> class.
     /// </summary>
-    public static Container Root
-    {
-        get => s_lazy.Value;
-    }
+    public static Container Instance =>
+        s_lazy.Value;
 
     /// <summary>
     /// Page currently selected for the display.
@@ -219,9 +217,6 @@ sealed class Container : ScreenObject
 
     public void Init()
     {
-        _header.RegisterEventHandlers();
-        _contentsList.RegisterEventHandlers();
-
         PageList = _pages;
         CurrentPage = PageList[0];
     }

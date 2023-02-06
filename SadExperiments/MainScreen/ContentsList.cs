@@ -1,6 +1,5 @@
 ﻿using SadConsole.UI;
 using SadConsole.UI.Controls;
-using static SadExperiments.MainScreen.Container;
 
 namespace SadExperiments.MainScreen;
 
@@ -9,6 +8,7 @@ internal class ContentsList : Page
     // buttons with links to pages
     readonly PageLinks _pageLinks = new();
 
+    // filters pages by tags
     readonly Filter _filter = new();
 
     public ContentsList()
@@ -18,21 +18,22 @@ internal class ContentsList : Page
 
         // add consoles to children
         Children.Add(_pageLinks, _filter);
+
+        // register event handlers
+        if (Game.Instance.Screen is Container container)
+            container.PageListChanged += Container_OnPageListChanged;
     }
 
-    public void RegisterEventHandlers()
+    protected virtual void Container_OnPageListChanged(object? sender, EventArgs args)
     {
-        Root.PageListChanged += Container_OnPageListChanged;
-        _filter.RegisterEventHandlers();
-    }
+        var container = sender as Container;
+        if (container is null) return;
 
-    public void Container_OnPageListChanged(object? sender, EventArgs args)
-    {
         _pageLinks.Controls.Clear();
         Point position = (1, 1);
         int buttonWidth = 35;
 
-        foreach (Page page in Root.PageList)
+        foreach (Page page in container.PageList)
         {
             // create new button with a link to the page
             var button = new Button(buttonWidth, 1)
@@ -43,7 +44,7 @@ internal class ContentsList : Page
                 UseKeyboard = false,
             };
             button.Click += (o, e) =>
-                Root.CurrentPage = page;
+                container.CurrentPage = page;
 
             _pageLinks.Controls.Add(button);
 

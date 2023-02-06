@@ -1,6 +1,5 @@
 ﻿using SadExperiments.UI;
 using SadConsole.Components;
-using static SadExperiments.MainScreen.Container;
 
 namespace SadExperiments.MainScreen;
 
@@ -56,6 +55,10 @@ class Header : Console
 
         // add children
         Children.Add(_pageCounter, _tagButtons);
+
+        // register event handlers
+        if (Game.Instance.Screen is Container container)
+            container.PageChanged += Container_OnPageChanged;
     }
     #endregion Constructors
 
@@ -68,18 +71,12 @@ class Header : Console
     #endregion Properties
 
     #region Methods
-    public void RegisterEventHandlers()
-    {
-        Root.PageChanged += Container_OnPageChanged;
-        _pageCounter.RegisterEventHandlers();
-    }
-
     /// <summary>
     /// Expands the view height of the header to the size of the current page description content.
     /// </summary>
     public void Maximize()
     {
-        if (Root.CurrentPage is not ContentsList)
+        if (Container.Instance.CurrentPage is not ContentsList)
         {
             Surface.ViewHeight = _contentViewHeight;
             _tagButtons.IsVisible = true;
@@ -95,6 +92,13 @@ class Header : Console
         _tagButtons.IsVisible = false;
     }
 
+    public override bool ProcessMouse(MouseScreenObjectState state)
+    {
+        if (state.IsOnScreenObject && IsMinimized)
+            Maximize();
+        return base.ProcessMouse(state);
+    }
+
     protected override void OnMouseEnter(MouseScreenObjectState state)
     {
         Maximize();
@@ -108,17 +112,10 @@ class Header : Console
         base.OnMouseExit(state);
     }
 
-    public override bool ProcessMouse(MouseScreenObjectState state)
-    {
-        if (state.IsOnScreenObject && IsMinimized)
-            Maximize();
-        return base.ProcessMouse(state);
-    }
-
-    public void Container_OnPageChanged(object? sender, EventArgs args)
+    protected virtual void Container_OnPageChanged(object? sender, EventArgs args)
     {
         Surface.Clear();
-        Page page = Root.CurrentPage;
+        Page page = Container.Instance.CurrentPage;
 
         // display main info about the page
         Cursor
