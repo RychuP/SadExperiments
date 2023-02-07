@@ -36,69 +36,54 @@ class OptionSelector : ControlsConsole
         ListBox.SingleClickItemExecute = true;
         Controls.Add(ListBox);
 
-        // register event handlers
-        TextBox.EditModeEnter += TextBox_OnEditModeEnter;
-        TextBox.EditModeExit += (o, e) => ShowSelectedOption();
-        //ListBox.SelectedItemChanged += ListBox_SelectedItemChanged;
-        ListBox.SelectedItemExecuted += (o, e) => ShowSelectedOption();
-
         // create a button for clearing text
         ClearButton = new ClearButton();
         ClearButton.Position = (Width - ClearButton.Width, 0);
+        Controls.Add(ClearButton);
+
+        // register event handlers
+        ListBox.SelectedItemExecuted += (o, e) => ShowSelectedOption();
+        TextBox.EditModeExit += (o, e) => ShowSelectedOption();
         ClearButton.Click += (o, e) =>
         {
             TextBox.Text = string.Empty;
             ListBox.SelectedItem = null;
         };
-        Controls.Add(ClearButton);
     }
     #endregion Constructors
 
     #region Properties
-    // checks if the surface height is equal MinimizedHeight
-    bool IsMinimized =>
-        Surface.ViewHeight == MinimizedHeight;
+    /// <summary>
+    /// Text box that displays the selected tag.
+    /// </summary>
+    public TextBox TextBox { get; init; }
 
-    protected TextBox TextBox { get; init; }
+    /// <summary>
+    /// List available page tags.
+    /// </summary>
     public ListBox ListBox { get; init; }
+
+    /// <summary>
+    /// Button for clearing selected item.
+    /// </summary>
     public ClearButton ClearButton { get; init; }
     #endregion Properties
 
     #region Methods
-    // shows list box
-    public void Maximize()
-    {
-        if (IsMinimized)
-            Surface.ViewHeight = Height;
-    }
+    /// <summary>
+    /// Shows list box.
+    /// </summary>
+    public void Maximize() =>
+        Surface.ViewHeight = Height;
 
-    // hides list box
-    public void Minimize()
-    {
-        if (!IsMinimized)
-            Surface.ViewHeight = MinimizedHeight;
-    }
+    /// <summary>
+    /// Hides list box.
+    /// </summary>
+    public void Minimize() =>
+        Surface.ViewHeight = MinimizedHeight;
 
-    void ShowSelectedOption()
-    {
+    // replaces textbox text with listbox selected item
+    void ShowSelectedOption() =>
         TextBox.Text = ListBox.SelectedItem != null ? ListBox.SelectedItem.ToString() : string.Empty;
-    }
-
-    // default behaviour when the text box is clicked and enters edit mode
-    protected virtual void TextBox_OnEditModeEnter(object? sender, EventArgs args)
-    {
-        if (Parent is Filter filter)
-            filter.Maximize();
-    }
-
-    protected virtual void TextBox_OnEditeModeExit(object? sender, EventArgs args)
-    {
-        ShowSelectedOption();
-    }
-
-    protected virtual void ListBox_SelectedItemChanged(object? sender, SelectedItemEventArgs args)
-    {
-        ShowSelectedOption();
-    }
     #endregion Methods
 }

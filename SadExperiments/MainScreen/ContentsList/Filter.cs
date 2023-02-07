@@ -3,12 +3,13 @@
 namespace SadExperiments.MainScreen;
 
 /// <summary>
-/// Page filter based on tags for the use of <see cref="ContentsList"/>.
+/// Page filter based on tags.
 /// </summary>
 class Filter : ScreenSurface
 {
     #region Constants
     public const int MinimizedHeight = 4;
+    public const int MaximizedHeight = Program.Height / 2;
     #endregion Constants
 
     #region Fields
@@ -18,7 +19,7 @@ class Filter : ScreenSurface
     #endregion Fields
 
     #region Constructors
-    public Filter() : base(Program.Width, MinimizedHeight, Program.Width, Program.Height / 2)
+    public Filter() : base(Program.Width, MinimizedHeight, Program.Width, MaximizedHeight)
     {
         Surface.SetDefaultColors(Header.FGColor, Header.BGColor);
 
@@ -40,12 +41,10 @@ class Filter : ScreenSurface
         Children.Add(_tag1Selector, _tag2Selector, _sortOrderSelector);
 
         // register event handlers
-        _tag1Selector.ListBox.SelectedItemExecuted += (o, e) => FilterPages();
-        _tag1Selector.ClearButton.Click += (o, e) => FilterPages();
-        _tag2Selector.ListBox.SelectedItemExecuted += (o, e) => FilterPages();
-        _tag2Selector.ClearButton.Click += (o, e) => FilterPages();
+        RegisterTagSelectorEventHandlers(_tag1Selector);
+        RegisterTagSelectorEventHandlers(_tag2Selector);
         if (Game.Instance.Screen is Container container)
-            container.PageChanged += Container_OnPageChanged;
+            container.PageChanged += (o, e) => Minimize();
     }
     #endregion Constructors
 
@@ -68,6 +67,7 @@ class Filter : ScreenSurface
             Surface.ViewHeight = MinimizedHeight;
             foreach (var selector in Children)
                 (selector as OptionSelector)?.Minimize();
+            Minimized?.Invoke(this, EventArgs.Empty);
         }
     }
 
@@ -78,9 +78,10 @@ class Filter : ScreenSurface
     {
         if (IsMinimized)
         {
-            Surface.ViewHeight = Surface.Height;
+            Surface.ViewHeight = MaximizedHeight;
             foreach (var selector in Children)
                 (selector as OptionSelector)?.Maximize();
+            Maximized?.Invoke(this, EventArgs.Empty);
         }
     }
 
@@ -96,25 +97,26 @@ class Filter : ScreenSurface
         Container.Instance.FilterPagesByTags(tag1, tag2);
     }
 
+    void RegisterTagSelectorEventHandlers(TagSelector ts)
+    {
+        ts.ListBox.SelectedItemExecuted += (o, e) => FilterPages();
+        ts.ClearButton.Click += (o, e) => FilterPages();
+        ts.TextBox.EditModeEnter += (o, e) => Maximize();
+    }
+
     // minimize on pressing esc key while filter is displayed
     public override void Update(TimeSpan delta)
     {
         var keyboard = Game.Instance.Keyboard;
-        if (keyboard.HasKeysPressed)
-        {
-            if (keyboard.IsKeyPressed(Keys.Escape))
-            {
-                Minimize();
-            }
-        }
+        if (keyboard.HasKeysPressed && keyboard.IsKeyPressed(Keys.Escape))
+            Minimize();
 
         base.Update(delta);
     }
-
-    // minimizes filter on page changed
-    protected virtual void Container_OnPageChanged(object? sender, EventArgs args)
-    {
-        Minimize();
-    }
     #endregion Methods
+
+    #region Events
+    public event EventHandler? Minimized;
+    public event EventHandler? Maximized;
+    #endregion Events
 }

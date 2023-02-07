@@ -72,6 +72,7 @@ sealed class Container : ScreenObject
         new SadCanvasPage(),
         new Instructions(),
         new EffectsAndDecorators(),
+        //new Crash(),                  // this page crashes the engine
     };
     #endregion Fields
 
