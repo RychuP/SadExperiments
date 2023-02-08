@@ -24,6 +24,8 @@ class DotButtonTheme : ThemeBase
         ColoredGlyph appearance = ControlThemeState.GetStateAppearance(dotButton.State);
 
         appearance.CopyAppearanceTo(dotButton.Surface[0]);
+
+        // reset the glyph because of the mouseover state which will set its glyph regardles of the selected state
         dotButton.Surface[0].Glyph = dotButton.IsSelected ? 
             ControlThemeState.Selected.Glyph : ControlThemeState.Normal.Glyph;
 
