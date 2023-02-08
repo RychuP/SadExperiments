@@ -36,6 +36,14 @@ public static class ICellSurfaceExtensions
         => cellSurface.Print(position.X, position.Y, text, color ?? cellSurface.DefaultForeground);
 
     /// <summary>
+    /// Prints <see cref="ColoredString"/> at the given coordinate.
+    /// </summary>
+    /// <param name="position">Coordinate to print the string at.</param>
+    /// <param name="text"><see cref="ColoredString"/> to print.</param>
+    public static void Print(this ICellSurface cellSurface, Point position, ColoredString text)
+        => cellSurface.Print(position.X, position.Y, text);
+
+    /// <summary>
     /// Sets the default <see cref="ICellSurface"/> colors and clears it.
     /// </summary>
     /// <param name="fg"><see cref="ICellSurface.DefaultForeground"/> color.</param>

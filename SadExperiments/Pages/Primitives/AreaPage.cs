@@ -2,6 +2,7 @@
 using SadConsole.Quick;
 using SadExperiments;
 using SadExperiments.UI;
+using SadExperiments.UI.Controls;
 using ShaiRandom.Generators;
 
 namespace SadExperiments.Pages;

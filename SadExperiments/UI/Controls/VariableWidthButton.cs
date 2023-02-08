@@ -1,7 +1,7 @@
 ﻿using SadConsole.UI.Controls;
 using SadConsole.UI.Themes;
 
-namespace SadExperiments.UI;
+namespace SadExperiments.UI.Controls;
 
 class VariableWidthButton : Button, IHasKeyboardShortcut
 {
@@ -12,7 +12,7 @@ class VariableWidthButton : Button, IHasKeyboardShortcut
     static VariableWidthButton() =>
         Library.Default.SetControlTheme(typeof(VariableWidthButton), new ButtonTheme());
 
-    public VariableWidthButton(string text, Keys? keyboardShortcut = null, bool addKeyboardShortcutToText = true) : 
+    public VariableWidthButton(string text, Keys? keyboardShortcut = null, bool addKeyboardShortcutToText = true) :
         base(text.Length + Padding, 1)
     {
         AddKeyboardShortcutToText = addKeyboardShortcutToText;
@@ -58,7 +58,7 @@ class VariableWidthButton : Button, IHasKeyboardShortcut
         base.Resize(width, height);
         OnWidthChanged(args);
     }
-    
+
     protected virtual void OnWidthChanged(ValueChangedEventArgs<int> args) =>
         WidthChanged?.Invoke(this, args);
 

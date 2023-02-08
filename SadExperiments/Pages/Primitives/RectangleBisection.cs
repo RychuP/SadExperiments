@@ -1,5 +1,6 @@
 ﻿using SadExperiments;
 using SadExperiments.UI;
+using SadExperiments.UI.Controls;
 
 namespace SadExperiments.Pages;
 

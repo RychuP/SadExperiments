@@ -1,6 +1,7 @@
 ﻿using SadConsole.Quick;
 using SadConsole.UI;
 using SadConsole.UI.Controls;
+using SadExperiments.UI.Controls;
 
 namespace SadExperiments.UI;
 
@@ -23,7 +24,7 @@ class HorizontalButtonsConsole : ButtonsConsole
         double spacer = (double)(Width - allButtonsInRowWidth) / (buttonCount + 1);
 
         // overflow case
-        if (spacer <  1)
+        if (spacer < 1)
         {
             // move the last added button to a new row and advance _currentRow pointer
             CurrentRow += VerticalSpacing + 1;
@@ -55,7 +56,7 @@ class VerticalButtonsConsole : ButtonsConsole
 
     public override VariableWidthButton AddButton(string text, Keys? keyboardShortcut = null, bool addKeyboardShortcutToText = true)
     {
-        Point position = (0, Controls.Count > 0 ? Controls.Count + VerticalSpacing * (Controls.Count) : 0);
+        Point position = (0, Controls.Count > 0 ? Controls.Count + VerticalSpacing * Controls.Count : 0);
         return AddButton(text, position, keyboardShortcut, addKeyboardShortcutToText);
     }
 
@@ -65,8 +66,8 @@ class VerticalButtonsConsole : ButtonsConsole
     public override void AlignRow(int y)
     {
         var screenObject = Children.Where(o => o.Position.Y == y).FirstOrDefault();
-        if (screenObject is VariableWidthButton button) 
-            AlignRow(button); 
+        if (screenObject is VariableWidthButton button)
+            AlignRow(button);
     }
 }
 

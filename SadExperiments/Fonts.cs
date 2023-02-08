@@ -9,13 +9,17 @@ static class Fonts
     static HashSet<TheDrawFont> s_drawFonts = new();
 
     public static IFont Default => GameHost.Instance.DefaultFont;
-    public static IFont ThickSquare8 => GetFont("ThickSquare8", "thick_square_8x8");
-    public static IFont Square10 => GetFont("Square10", "square10");
-    public static IFont Empty => GetFont("empty_font", "empty_font");
+    public static IFont ThickSquare8 => GetFont("ThickSquare8", "thick_square_8x8");     // background not transparent
+    public static IFont Square10 => GetFont("square10");                                 // background not transparent
+    public static IFont C64 => GetFont("C64");
+    public static IFont C64_petscii => GetFont("c64_petscii");
+    public static IFont Cheepicus12 => GetFont("Cheepicus12");
+    public static IFont Jpetscii => GetFont("jpetscii");
+    public static IFont Empty => GetFont("empty_font");
     public static TheDrawFont Destruct => GetDrawFont("Destruct", "DESTRUCX");
 
 
-    static IFont GetFont(string fontName, string fontFileName)
+    static IFont GetFont(string fontName, string fontFileName = "")
     {
         if (GameHost.Instance.Fonts.ContainsKey(fontName))
             return GameHost.Instance.Fonts[fontName];
@@ -23,6 +27,7 @@ static class Fonts
         {
             try
             {
+                fontFileName = fontFileName == string.Empty ? fontName : fontFileName;
                 var font = GameHost.Instance.LoadFont(FontsDirectoryPath + fontFileName + ".font");
                 return font;
             }
