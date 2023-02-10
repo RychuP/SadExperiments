@@ -20,12 +20,10 @@ class TagSelector : OptionSelector
 
         // register event handlers
         TextBox.EditingTextChanged += TextBox_OnEditTextChanged;
+        // TODO: fix incremental search when EditModeExit/EditModeEnter events are fixed
         TextBox.EditModeExit += TextBox_OnEditModeExit;
         TextBox.EditModeEnter += TextBox_OnEditModeEnter;
-        _editListBox.SelectedItemExecuted += (o, e) =>
-        {
-            ListBox.Execute(e.Item);
-        };
+        _editListBox.SelectedItemExecuted += (o, e) => ListBox.Execute(e.Item);
     }
 
     protected virtual void TextBox_OnEditModeEnter(object? o, EventArgs e)
@@ -45,14 +43,14 @@ class TagSelector : OptionSelector
         }
     }
 
+    // ugly hacks to make the list box working with faulty EditModeExit/EditModeEnter events
     protected virtual void TextBox_OnEditTextChanged(object? o, EventArgs e)
     {
         if (Controls.Contains(ListBox))
         {
             if (_editListBox.SelectedItem is null)
             {
-                Controls.Add(_editListBox);
-                Controls.Remove(ListBox);
+                ReplaceListBox();
             }
         }
         else if (Controls.Contains(_editListBox))
@@ -75,7 +73,6 @@ class TagSelector : OptionSelector
     {
         Controls.Remove(ListBox);
         Controls.Add(_editListBox);
-        
     }
 
     void PopulateEditListBoxWithTags()
