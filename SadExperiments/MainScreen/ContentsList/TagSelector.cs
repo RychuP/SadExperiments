@@ -26,12 +26,16 @@ class TagSelector : OptionSelector
         _editListBox.SelectedItemExecuted += (o, e) => ListBox.Execute(e.Item);
     }
 
+    protected override void OnMouseLeftClicked(MouseScreenObjectState state)
+    {
+        base.OnMouseLeftClicked(state);
+        PopulateEditListBoxWithTags();
+    }
+
     protected virtual void TextBox_OnEditModeEnter(object? o, EventArgs e)
     {
         if (Controls.Contains(ListBox))
-        {
             ReplaceListBox();
-        }
     }
 
     protected virtual void TextBox_OnEditModeExit(object? o, EventArgs e)
@@ -49,9 +53,7 @@ class TagSelector : OptionSelector
         if (Controls.Contains(ListBox))
         {
             if (_editListBox.SelectedItem is null)
-            {
                 ReplaceListBox();
-            }
         }
         else if (Controls.Contains(_editListBox))
         {
@@ -87,8 +89,6 @@ class TagSelector : OptionSelector
         var selectedItem = ListBox.SelectedItem;
         DisplayTags();
         SetSelectedItem(selectedItem);
-
-        PopulateEditListBoxWithTags();
     }
 
     void DisplayTags()
