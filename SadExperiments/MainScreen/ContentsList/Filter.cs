@@ -1,10 +1,12 @@
-﻿using static SadConsole.UI.Controls.ListBox;
+﻿using System.Diagnostics;
+using static SadConsole.UI.Controls.ListBox;
 
 namespace SadExperiments.MainScreen;
 
 /// <summary>
 /// Page filter based on tags.
 /// </summary>
+[DebuggerDisplay("Filter")]
 class Filter : ScreenSurface
 {
     #region Constants
@@ -112,6 +114,19 @@ class Filter : ScreenSurface
             Minimize();
 
         base.Update(delta);
+    }
+
+    public void DisableKeyboardInTextBoxes(OptionSelector? exception = null)
+    {
+        foreach (var child in Children)
+        {
+            if (child is OptionSelector os)
+            {
+                if ( (exception is OptionSelector specialCase && os != specialCase) ||
+                     (exception is null) )
+                    os.TextBox.DisableKeyboard = true;
+            }
+        }
     }
     #endregion Methods
 

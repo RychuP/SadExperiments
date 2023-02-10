@@ -16,4 +16,11 @@ internal class ContentsList : Page
         // add consoles to children
         Children.Add(PageLinks, Filter);
     }
+
+    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
+    {
+        if (newParent is Container)
+            Filter.DisableKeyboardInTextBoxes();
+        base.OnParentChanged(oldParent, newParent);
+    }
 }

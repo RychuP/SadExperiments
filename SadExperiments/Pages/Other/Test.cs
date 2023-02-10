@@ -9,24 +9,33 @@ internal class Test : Page
     public Test()
     {
         var console = new ControlsConsole(Width, Height);
+        console.SetDefaultColors(Color.Black, Color.LightBlue);
         Children.Add(console);
 
-        string text = "Sample Button";
-        var button = new Button(text.Length + 4, 1)
-        {
-            Text = text,
-            Position = (1, 1),
-        };
-        console.Controls.Add(button);
+        var textBox = new TextBox(10);
+        console.Controls.Add(textBox);
 
-        var dotNav = new DotNavigation(5);
-        console.Children.Add(dotNav);
-        dotNav.Position = (20, 20);
-
-        button.Click += (o, e) =>
+        textBox.EditModeExit += (o, e) =>
         {
-            button.Position = (10, 10);
-            dotNav.Position = (10, 11);
+            int x = 0;
         };
+
+        textBox.EditModeEnter += (o, e) =>
+        {
+            int y = 0;
+        };
+
+        textBox.EditingTextChanged += (o, e) =>
+        {
+            int z = 0;
+        };
+    }
+
+    void OnEditingTextChanged(object? sender, EventArgs e)
+    {
+        if (sender is TextBox textBox)
+        {
+            var x = textBox.EditingText;
+        }
     }
 }

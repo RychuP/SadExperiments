@@ -1,21 +1,23 @@
 ﻿using SadConsole.UI.Windows;
 using SadExperiments.Pages;
+using System.Diagnostics;
 
 namespace SadExperiments.MainScreen;
 
 /// <summary>
 /// Root screen object that coordinates display of pages and headers.
 /// </summary>
+[DebuggerDisplay("Container")]
 sealed class Container : ScreenObject
 {
     #region Fields
-    // lists pages that can be selected for the display
+    // list of pages
     readonly ContentsList _contentsList;
 
-    // header that shows info about the current page
+    // header with info about the current page
     readonly Header _header;
 
-    // page currently being displayed
+    // currently displayed page
     Page _currentPage = new Template();
 
     // previous page 
@@ -72,6 +74,7 @@ sealed class Container : ScreenObject
         new SadCanvasPage(),
         new Instructions(),
         new EffectsAndDecorators(),
+        //new Fluid(),                  // doesn't quite work yet
         //new Crash(),                  // this page crashes the engine
     };
     #endregion Fields
@@ -102,8 +105,7 @@ sealed class Container : ScreenObject
     /// <summary>
     /// Singleton instance of the <see cref="Container"/> class.
     /// </summary>
-    public static Container Instance =>
-        s_lazy.Value;
+    public static Container Instance => s_lazy.Value;
 
     /// <summary>
     /// Page currently selected for the display.
@@ -139,10 +141,10 @@ sealed class Container : ScreenObject
         }
     }
 
-    public HashSet<Tag> Tags
-    {
-        get => _tags;
-    }
+    /// <summary>
+    /// Filtered page tags.
+    /// </summary>
+    public HashSet<Tag> Tags => _tags;
     #endregion Properties
 
     #region Methods
@@ -187,7 +189,7 @@ sealed class Container : ScreenObject
     }
 
     /// <summary>
-    /// Filters pages by tags provided.
+    /// Filters pages by tags.
     /// </summary>
     /// <param name="tag1">First <see cref="Tag"/> to filter by.</param>
     /// <param name="tag2">Second <see cref="Tag"/> to filter by.</param>

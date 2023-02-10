@@ -2,13 +2,14 @@
 using SadConsole.UI.Controls;
 using SadExperiments.UI;
 using SadExperiments.UI.Controls;
-using System.Text;
+using System.Diagnostics;
 
 namespace SadExperiments.MainScreen;
 
 /// <summary>
 /// Buttons with links to pages.
 /// </summary>
+[DebuggerDisplay("PageLinks")]
 class PageLinks : ControlsConsole
 {
     #region Constants
@@ -40,6 +41,7 @@ class PageLinks : ControlsConsole
 
         // register event handlers
         _dotNav.SelectedDotChanged += DotNav_OnSelectedDotChanged;
+        
         if (Game.Instance.Screen is Container container)
             container.PageListChanged += Container_OnPageListChanged;
     }
@@ -60,6 +62,7 @@ class PageLinks : ControlsConsole
         if (newParent is not ContentsList contentsList) return;
         contentsList.Filter.Minimized += (o, e) => Maximize();
         contentsList.Filter.Maximized += (o, e) => Minimize();
+        _dotNav.MouseButtonClicked += (o, e) => contentsList.Filter.DisableKeyboardInTextBoxes();
         base.OnParentChanged(oldParent, newParent);
     }
 

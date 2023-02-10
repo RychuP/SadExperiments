@@ -1,13 +1,16 @@
 ﻿using SadConsole.UI;
 using SadConsole.UI.Controls;
-using static SadConsole.UI.Controls.ListBox;
+using SadConsole.UI.Themes;
+using SadExperiments.UI.Controls;
+using System.Diagnostics;
 
 namespace SadExperiments.MainScreen;
 
+[DebuggerDisplay("OptionSelector")]
 class OptionSelector : ControlsConsole
 {
     #region Constants
-    const int MinimizedHeight = 2;
+    public const int MinimizedHeight = 2;
     #endregion Constants
 
     #region Constructors
@@ -42,10 +45,30 @@ class OptionSelector : ControlsConsole
         Controls.Add(ClearButton);
 
         // register event handlers
-        ListBox.SelectedItemExecuted += (o, e) => ShowSelectedOption();
-        TextBox.EditModeExit += (o, e) => ShowSelectedOption();
+        ListBox.SelectedItemExecuted += (o, e) =>
+        {
+            // disable keyboard in all textboxes
+            if (Parent is Filter f)
+                f.DisableKeyboardInTextBoxes();
+
+            ShowSelectedOption();
+        };
+        TextBox.EditModeExit += (o, e) =>
+        {
+            ShowSelectedOption();
+        };
+        TextBox.EditModeEnter += (o, e) =>
+        {
+            // disable keyboard in all textboxes except in this option selector
+            if (Parent is Filter f)
+                f.DisableKeyboardInTextBoxes(this);
+        };
         ClearButton.Click += (o, e) =>
         {
+            // disable keyboard in all textboxes
+            if (Parent is Filter f)
+                f.DisableKeyboardInTextBoxes();
+
             TextBox.Text = string.Empty;
             ListBox.SelectedItem = null;
         };
@@ -56,12 +79,12 @@ class OptionSelector : ControlsConsole
     /// <summary>
     /// Text box that displays the selected tag.
     /// </summary>
-    public TextBox TextBox { get; init; }
+    public MyTextBox TextBox { get; init; }
 
     /// <summary>
     /// List available page tags.
     /// </summary>
-    public ListBox ListBox { get; init; }
+    public MyListBox ListBox { get; init; }
 
     /// <summary>
     /// Button for clearing selected item.
