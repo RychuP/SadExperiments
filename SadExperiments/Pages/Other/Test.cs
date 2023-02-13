@@ -15,20 +15,20 @@ internal class Test : Page
         var textBox = new TextBox(10);
         console.Controls.Add(textBox);
 
-        textBox.EditModeExit += (o, e) =>
-        {
-            int x = 0;
-        };
+        //textBox.EditModeExit += (o, e) =>
+        //{
+        //    int x = 0;
+        //};
 
-        textBox.EditModeEnter += (o, e) =>
-        {
-            int y = 0;
-        };
+        //textBox.EditModeEnter += (o, e) =>
+        //{
+        //    int y = 0;
+        //};
 
-        textBox.EditingTextChanged += (o, e) =>
-        {
-            int z = 0;
-        };
+        //textBox.EditingTextChanged += (o, e) =>
+        //{
+        //    int z = 0;
+        //};
     }
 
     void OnEditingTextChanged(object? sender, EventArgs e)

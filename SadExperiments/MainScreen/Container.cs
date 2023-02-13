@@ -1,5 +1,7 @@
 ﻿using SadConsole.UI.Windows;
 using SadExperiments.Pages;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 
 namespace SadExperiments.MainScreen;
@@ -33,7 +35,7 @@ sealed class Container : ScreenObject
     readonly CharacterViewer _characterViewer = new();
 
     // unique tags from the list of filtered pages
-    readonly HashSet<Tag> _tags = new();
+    List<Tag> _tags = new();
 
     // pages filtered by tags
     Page[] _filteredPages = Array.Empty<Page>();
@@ -77,6 +79,8 @@ sealed class Container : ScreenObject
         //new Fluid(),                  // doesn't quite work yet
         //new Crash(),                  // this page crashes the engine
     };
+
+    readonly TagSorter _tagSorter = new();
     #endregion Fields
 
     #region Constructors
@@ -144,7 +148,7 @@ sealed class Container : ScreenObject
     /// <summary>
     /// Filtered page tags.
     /// </summary>
-    public HashSet<Tag> Tags => _tags;
+    public List<Tag> Tags => _tags;
     #endregion Properties
 
     #region Methods
@@ -259,8 +263,10 @@ sealed class Container : ScreenObject
     // extracts all unique tags from the list of filtered pages
     void ExtractUniqueTags()
     {
-        _tags.Clear();
-        Array.ForEach(_filteredPages, p => _tags.UnionWith(p.Tags));
+        HashSet<Tag> tags = new();
+        Array.ForEach(_filteredPages, p => tags.UnionWith(p.Tags));
+        _tags = tags.ToList();
+        _tags.Sort(_tagSorter);
     }
 
     void OnPageChanged()
@@ -305,4 +311,14 @@ sealed class Container : ScreenObject
 
     public event EventHandler? TagsChanged;
     #endregion Events
+}
+
+class TagSorter : IComparer<Tag>
+{
+    public int Compare(Tag t1, Tag t2)
+    {
+        string t1Name = t1.ToString();
+        string t2Name = t2.ToString();
+        return t1Name.CompareTo(t2Name);
+    }
 }
