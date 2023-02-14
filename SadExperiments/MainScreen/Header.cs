@@ -141,7 +141,8 @@ class Header : Console
 
         // add all tags as buttons
         foreach (var tag in page.Tags)
-            _tagButtons.AddButton($"{tag}");
+            _tagButtons.AddButton($"{tag}").Click += (o, e) => 
+                Container.Instance.ShowContentsListWithTag(tag);
 
         // change content height field according to the content of the page's header data
         _contentViewHeight = Cursor.Position.Y + _tagButtons.Height + 1;

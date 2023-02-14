@@ -104,7 +104,14 @@ class Filter : ScreenSurface
         }
     }
 
-    protected virtual void ListBox_OnSelectedItemExecuted(object? sender, SelectedItemEventArgs args)
+    public void SetTag(Tag tag)
+    {
+        _tag1Selector.ClearButton.InvokeClick();
+        _tag2Selector.ClearButton.InvokeClick();
+        _tag1Selector.ListBox.Execute(tag);
+    }
+
+    void ListBox_OnSelectedItemExecuted(object? sender, SelectedItemEventArgs args)
     {
         
     }

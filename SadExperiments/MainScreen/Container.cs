@@ -245,6 +245,12 @@ sealed class Container : ScreenObject
             PageList = _pages;
     }
 
+    public void ShowContentsListWithTag(Tag tag)
+    {
+        CurrentPage = _contentsList;
+        _contentsList.Filter.SetTag(tag);
+    }
+
     public void Init()
     {
         PageList = _pages;
