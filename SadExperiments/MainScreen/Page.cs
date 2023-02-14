@@ -3,7 +3,7 @@
 /// <summary>
 /// Page with some bite size SadConsole related content.
 /// </summary>
-class Page : Console
+class Page : Console, IComparable<Page>
 {
     public string Title { get; init; } = string.Empty;
 
@@ -59,6 +59,12 @@ class Page : Console
         y = y < 0 ? 0 : y;
 
         child.Position = (x, y);
+    }
+
+    public int CompareTo(Page? other)
+    {
+        if (other == null) return 1;
+        else return Title.CompareTo(other.Title);
     }
 }
 

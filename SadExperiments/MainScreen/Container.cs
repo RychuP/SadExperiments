@@ -1,6 +1,5 @@
 ﻿using SadConsole.UI.Windows;
 using SadExperiments.Pages;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
@@ -81,6 +80,8 @@ sealed class Container : ScreenObject
     };
 
     readonly TagSorter _tagSorter = new();
+    readonly DefaultPageSorter _defaultPageSorter;
+    readonly DatePageSorter _datePageSorter = new();
     #endregion Fields
 
     #region Constructors
@@ -102,6 +103,8 @@ sealed class Container : ScreenObject
 
         // add consoles to children 
         Children.Add(CurrentPage, _header);
+
+        _defaultPageSorter = new(_pages);
     }
     #endregion Constructors
 
@@ -190,6 +193,26 @@ sealed class Container : ScreenObject
             }
         }
         base.Update(delta);
+    }
+
+    public void SortPages(SortMethod method = SortMethod.Default)
+    {
+        var pages = PageList.ToList();
+        switch (method)
+        {
+            case SortMethod.Alphabetical:
+                pages.Sort();
+                break;
+
+            case SortMethod.Date:
+                pages.Sort(_datePageSorter); 
+                break;
+
+            case SortMethod.Default:
+                pages.Sort(_defaultPageSorter);
+                break;
+        }
+        PageList = pages.ToArray();
     }
 
     /// <summary>
@@ -320,5 +343,30 @@ class TagSorter : IComparer<Tag>
         string t1Name = t1.ToString();
         string t2Name = t2.ToString();
         return t1Name.CompareTo(t2Name);
+    }
+}
+
+class DefaultPageSorter : IComparer<Page>
+{
+    readonly Page[] _pages;
+
+    public DefaultPageSorter(Page[] pages)
+    {
+        _pages = pages;
+    }
+
+    public int Compare(Page? p1, Page? p2)
+    {
+        int index1 = Array.FindIndex(_pages, p => p == p1);
+        int index2 = Array.FindIndex(_pages, p => p == p2);
+        return index1.CompareTo(index2);
+    }
+}
+
+class DatePageSorter : IComparer<Page>
+{
+    public int Compare(Page? p1, Page? p2)
+    {
+        return p1!.Date.CompareTo(p2!.Date);
     }
 }

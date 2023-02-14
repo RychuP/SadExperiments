@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using SadConsole.UI.Controls;
+using System.Diagnostics;
 using static SadConsole.UI.Controls.ListBox;
 
 namespace SadExperiments.MainScreen;
@@ -43,10 +44,26 @@ class Filter : ScreenSurface
         Children.Add(_tag1Selector, _tag2Selector, _sortOrderSelector);
 
         // register event handlers
-        RegisterTagSelectorEventHandlers(_tag1Selector);
-        RegisterTagSelectorEventHandlers(_tag2Selector);
         if (Game.Instance.Screen is Container container)
             container.PageChanged += (o, e) => Minimize();
+        foreach (var child in Children)
+        {
+            if (child is not OptionSelector os) return;
+            os.TextBox.EditModeEnter += (o, e) => Maximize();
+
+            if (os is TagSelector ts)
+            {
+                ts.ListBox.SelectedItemExecuted += (o, e) => FilterPages();
+                ts.ClearButton.Click += (o, e) => FilterPages();
+            }
+            else if (os is SortMethodSelector sms)
+            {
+                sms.ListBox.SelectedItemExecuted += (o, e) =>
+                    Container.Instance.SortPages((SortMethod)sms.ListBox.SelectedItem);
+                sms.ClearButton.Click += (o, e) => 
+                    Container.Instance.SortPages();
+            }
+        }
     }
     #endregion Constructors
 
@@ -97,13 +114,6 @@ class Filter : ScreenSurface
         var tag1 = (Tag?)_tag1Selector.ListBox.SelectedItem;
         var tag2 = (Tag?)_tag2Selector.ListBox.SelectedItem;
         Container.Instance.FilterPagesByTags(tag1, tag2);
-    }
-
-    void RegisterTagSelectorEventHandlers(TagSelector ts)
-    {
-        ts.ListBox.SelectedItemExecuted += (o, e) => FilterPages();
-        ts.ClearButton.Click += (o, e) => FilterPages();
-        ts.TextBox.EditModeEnter += (o, e) => Maximize();
     }
 
     // minimize on pressing esc key while filter is displayed

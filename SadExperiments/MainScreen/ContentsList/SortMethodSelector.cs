@@ -4,13 +4,19 @@ class SortMethodSelector : OptionSelector
 {
     public SortMethodSelector(Point position, int w, int h) : base("Sort method:", position, w, h)
     {
-        ListBox.Items.Add(SortMethods.Alphabetical);
-        ListBox.Items.Add(SortMethods.Date);
+        ListBox.Items.Add(SortMethod.Alphabetical);
+        ListBox.Items.Add(SortMethod.Date);
+        ListBox.Items.Add(SortMethod.Default);
+
+        ClearButton.Click += (o, e) => ListBox.Execute(SortMethod.Default);
     }
+
+    
 }
 
-enum SortMethods
+enum SortMethod
 {
+    Default,
     Alphabetical,
     Date,
 }
