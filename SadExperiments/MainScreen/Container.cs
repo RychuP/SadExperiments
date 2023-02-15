@@ -44,6 +44,7 @@ sealed class Container : ScreenObject
     {
         //new Test(),
         new WelcomePage(),
+        new Fluid(),
         new AnimatedGlobe(),
         new Donut3dPage(),
         new A_Demo(),
