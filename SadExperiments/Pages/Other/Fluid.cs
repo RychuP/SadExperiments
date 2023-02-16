@@ -12,6 +12,7 @@ class Fluid : Page, IRestartable
     const int CONSOLE_HEIGHT = 30;
     const int charCount = CONSOLE_WIDTH * CONSOLE_HEIGHT;
     const int gravity = 1, pressure = 4, viscosity = 7;
+    const string symbols = " '`-.|//,\\|\\_\\/#";
     int xSandboxAreaScan, ySandboxAreaScan, x, y, screenBufferIndex, totalOfParticles, currentFileIndex = 0;
     double xParticleDistance, yParticleDistance, particlesInteraction, particlesDistance;
     readonly ColoredString wall = new("#", Color.Yellow, Color.Transparent);
@@ -40,13 +41,16 @@ class Fluid : Page, IRestartable
         Submitter = Submitter.Rychu;
         Tags = new Tag[] { Tag.SadConsole, Tag.Demo, Tag.Instructions, Tag.Timer, Tag.ComplexMath };
 
+        // read example files and show the firt 
         var path = Path.Combine("Resources", "Fluid");
         files = Directory.GetFiles(path);
         ShowNextExample();
 
-        _timer.TimerElapsed += Timer_TimerElapsed_UpdateSimulation;
+        // start timer for the updates
+        _timer.TimerElapsed += Timer_OnTimerElapsed;
         SadComponents.Add(_timer);
 
+        // add a prompt at the bottom of the screen
         var prompt = ColoredString.Parser.Parse("Press [c:r f:lightgreen]SPACE[c:undo] to toggle simulation examples");
         var surface = new ScreenSurface(prompt.Length, 1)
         {
@@ -184,7 +188,7 @@ class Fluid : Page, IRestartable
         }
     }
 
-    void Timer_TimerElapsed_UpdateSimulation(object? o, EventArgs e)
+    void Timer_OnTimerElapsed(object? o, EventArgs e)
     {
         int particlesCursor, particlesCursor2;
 
@@ -332,14 +336,11 @@ class Fluid : Page, IRestartable
         // Update the screen buffer
         for (screenBufferIndex = 0; screenBufferIndex < charCount; screenBufferIndex++)
         {
-            //if (screenBufferIndex % CONSOLE_WIDTH == CONSOLE_WIDTH - 1)
-            //    screenBuffer[screenBufferIndex] = '\n';
-            //else
             if (screenBufferIndex % CONSOLE_WIDTH != CONSOLE_WIDTH - 1)
                 // the string below contains 16 characters, which is for all
                 // the possible combinations of values in the screenbuffer since
                 // it can be subject to flipping of the first 4 bits
-                Surface[screenBufferIndex].Glyph = (byte)" '`-.|//,\\|\\_\\/#"[screenBuffer[screenBufferIndex]];
+                Surface[screenBufferIndex].Glyph = symbols[screenBuffer[screenBufferIndex]];
             // ---------------------- the mappings --------------
             // 0  maps into space
             // 1  maps into '    2  maps into `    3  maps into -
