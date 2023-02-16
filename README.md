@@ -1,10 +1,10 @@
 # SadExperiments
-Tests of various features of the SadConsole and related libraries. Feel free to contribute a page with some bite size content.
+Tests of various features of the SadConsole and related libraries. Feel free to contribute a page with some bite size educational content.
 
 ## Screenshots:
 
-![Globe](/screenshot.png)
+![Fluid](/Fluid.gif)
 
-![Torus](/donut.png)
+![Torus](/Donut.gif)
 
-![ADemo](/a_demo.png)
+![ADemo](/ADemo.gif)

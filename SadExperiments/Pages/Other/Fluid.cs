@@ -39,6 +39,7 @@ class Fluid : Page, IRestartable
         Title = "Fluid";
         Summary = "Ascii fluid simulation originally written by Yusuke Endoh.";
         Submitter = Submitter.Rychu;
+        Date = new(2023, 02, 16);
         Tags = new Tag[] { Tag.SadConsole, Tag.Demo, Tag.Instructions, Tag.Timer, Tag.ComplexMath };
 
         // read files and show the first example
@@ -115,7 +116,7 @@ class Fluid : Page, IRestartable
 
         // restart the timer after a delay
         instructions = new InstructionSet() { RemoveOnFinished = true }
-            .Wait(TimeSpan.FromSeconds(1.5d))
+            .Wait(TimeSpan.FromSeconds(1.3d))
             .Code((o, t) =>
             {
                 Surface.Clear();
