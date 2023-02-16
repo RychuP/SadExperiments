@@ -14,7 +14,9 @@ class Fluid : Page, IRestartable
     const int gravity = 1, pressure = 4, viscosity = 7;
     int xSandboxAreaScan, ySandboxAreaScan, x, y, screenBufferIndex, totalOfParticles, currentFileIndex = 0;
     double xParticleDistance, yParticleDistance, particlesInteraction, particlesDistance;
-    readonly Particle[] particles = new Particle[CONSOLE_WIDTH * CONSOLE_HEIGHT * 2];
+    readonly ColoredString wall = new("#", Color.Yellow, Color.Transparent);
+    readonly ColoredString particle = new("*", Color.LightBlue, Color.Transparent);
+    readonly Particle[] particles = new Particle[charCount * 2];
     readonly byte[] screenBuffer = new byte[charCount + 1];
     readonly string[] files;
     readonly SadConsole.Components.Timer _timer = new(TimeSpan.FromMilliseconds(100));
@@ -36,7 +38,7 @@ class Fluid : Page, IRestartable
         Title = "Fluid";
         Summary = "Ascii fluid simulation originally written by Yusuke Endoh.";
         Submitter = Submitter.Rychu;
-        Tags = new Tag[] { Tag.SadConsole, Tag.Demo, Tag.Instructions, Tag.Timer };
+        Tags = new Tag[] { Tag.SadConsole, Tag.Demo, Tag.Instructions, Tag.Timer, Tag.ComplexMath };
 
         var path = Path.Combine("Resources", "Fluid");
         files = Directory.GetFiles(path);
@@ -102,11 +104,12 @@ class Fluid : Page, IRestartable
         currentFileIndex++;
         currentFileIndex = currentFileIndex == files.Length ? 0 : currentFileIndex;
 
+        // remove any previous instructions (can happen on quick consecutive space button presses)
         var instructions = SadComponents.Where(sc => sc is InstructionSet).FirstOrDefault();
         if (instructions is InstructionSet)
             SadComponents.Remove(instructions);
 
-        // pause and restart the time after delay
+        // pause and restart the timer after delay
         instructions = new InstructionSet() { RemoveOnFinished = true }
             .Wait(TimeSpan.FromSeconds(2))
             .Code((o, t) =>
@@ -125,8 +128,6 @@ class Fluid : Page, IRestartable
         // any other non-space character represents normal particles.
         int particlesCounter = 0;
         string source = File.ReadAllText(path);
-        ColoredString wall = new("#", Color.Yellow, Color.Transparent);
-        ColoredString particle = new("*", Color.LightBlue, Color.Transparent);
         Surface.Clear();
         Cursor.Move(Point.Zero);
         foreach (char x in source)
@@ -242,10 +243,8 @@ class Fluid : Page, IRestartable
 
         for (particlesCursor = 0; particlesCursor < totalOfParticles; particlesCursor++)
         {
-
             if (particles[particlesCursor].wallflag != 1)
             {
-
                 // This is the newtonian mechanics part: knowing the force vector acting on each
                 // particle, we accelerate the particle (see the change in velocity).
                 // In turn, velocity changes the position at each tick.
@@ -269,7 +268,6 @@ class Fluid : Page, IRestartable
                 particles[particlesCursor].yPos += particles[particlesCursor].yVelocity;
             }
 
-
             // given the position of the particle, determine the screen buffer
             // position that it's going to be in.
             x = (int)particles[particlesCursor].xPos;
@@ -277,7 +275,6 @@ class Fluid : Page, IRestartable
             // "2" rows in the particle space.
             y = (int)particles[particlesCursor].yPos / 2;
             screenBufferIndex = x + CONSOLE_WIDTH * y;
-
 
             // if the particle is on screen, update
             // four buffer cells around it

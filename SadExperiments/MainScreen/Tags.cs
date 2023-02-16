@@ -14,6 +14,7 @@ enum Tag
     SadCanvas,
 
     // other
+    ComplexMath,
     SplashScreen,
     Demo,
     Pixels,
