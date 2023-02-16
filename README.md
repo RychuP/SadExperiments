@@ -3,8 +3,10 @@ Tests of various features of the SadConsole and related libraries. Feel free to 
 
 ## Screenshots:
 
-![Fluid](/Fluid.gif)
-
-![Torus](/Donut.gif)
-
-![ADemo](/ADemo.gif)
+<p align="center" style="margin-bottom: 0px !important;">
+  <img width="750" src="/Fluid.gif" alt="Ascii Fluid Simulation" align="center">
+  <br><br>
+  <img width="750" src="/Donut.gif" alt="Torus" align="center">
+  <br><br>
+  <img width="750" src="/ADemo.gif" alt="Font Pixel Manipulations" align="center">
+</p>
