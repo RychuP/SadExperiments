@@ -36,7 +36,7 @@ class Fluid : Page
         Title = "Fluid";
         Summary = "Ascii fluid simulation originally written by Yusuke Endoh.";
         Submitter = Submitter.Rychu;
-        Tags = new Tag[] { Tag.SadConsole, Tag.Demo, Tag.Instructions };
+        Tags = new Tag[] { Tag.SadConsole, Tag.Demo, Tag.Instructions, Tag.Timer };
 
         var path = Path.Combine("Resources", "Fluid");
         files = Directory.GetFiles(path);

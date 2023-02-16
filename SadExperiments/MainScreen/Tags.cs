@@ -44,6 +44,7 @@ enum Tag
     StringParser,
     CellDecorator,
     Renderer,
+    Timer,
 
     Area,               // primitives
     Rectangle,
