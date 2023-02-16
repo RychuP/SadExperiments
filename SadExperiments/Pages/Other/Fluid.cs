@@ -164,9 +164,6 @@ class Fluid : Page
                     if (particles[particlesCounter].wallflag != 1)
                         Cursor.Print(particle);
 
-                    // serves both wall and particle
-                    
-
                     // we just added two particles
                     totalOfParticles = particlesCounter += 2;
                     break;
@@ -344,9 +341,6 @@ class Fluid : Page
             // 10 maps into |    11 maps into \    12 maps into _
             // 13 maps into \    14 maps into /    15 maps into #
         }
-
-        //for (int i = 0; i < screenBuffer.Length; i++)
-        //    Surface[i].Glyph = screenBuffer[i];
         
         IsDirty = true;
     }
