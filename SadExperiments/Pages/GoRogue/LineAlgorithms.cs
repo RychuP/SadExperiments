@@ -16,7 +16,7 @@ internal class LineAlgorithms : Page
     public LineAlgorithms()
     {
         Title = "Line Algorithms";
-        Summary = "Experimenting with GoRogue lines, Point, Distance and similar primitives.";
+        Summary = "Experimenting with GoRogue lines, Point, Distance and related types.";
         Submitter = Submitter.Rychu;
         Tags = new Tag[] {Tag.SadConsole, Tag.GoRogue, Tag.Primitives, Tag.Lines, Tag.Algorithm, Tag.Drawing,
             Tag.Keyboard, Tag.Direction, Tag.Distance};

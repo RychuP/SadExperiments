@@ -6,7 +6,7 @@ Tests of various features of the SadConsole and related libraries. Feel free to 
 <p align="center" style="margin-bottom: 0px !important;">
   <img width="750" src="/Fluid.gif" alt="Ascii Fluid Simulation" align="center">
   <br><br>
-  <img width="750" src="/Donut.gif" alt="Torus" align="center">
+  <img width="750" src="/Lines.gif" alt="GoRogue Line Algorithms" align="center">
   <br><br>
   <img width="750" src="/ADemo.gif" alt="Font Pixel Manipulations" align="center">
 </p>
