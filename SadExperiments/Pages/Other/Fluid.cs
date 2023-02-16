@@ -41,7 +41,7 @@ class Fluid : Page, IRestartable
         Submitter = Submitter.Rychu;
         Tags = new Tag[] { Tag.SadConsole, Tag.Demo, Tag.Instructions, Tag.Timer, Tag.ComplexMath };
 
-        // read example files and show the firt 
+        // read files and show the first example
         var path = Path.Combine("Resources", "Fluid");
         files = Directory.GetFiles(path);
         ShowNextExample();
@@ -51,13 +51,13 @@ class Fluid : Page, IRestartable
         SadComponents.Add(_timer);
 
         // add a prompt at the bottom of the screen
-        var prompt = ColoredString.Parser.Parse("Press [c:r f:lightgreen]SPACE[c:undo] to toggle simulation examples");
-        var surface = new ScreenSurface(prompt.Length, 1)
+        var text = ColoredString.Parser.Parse("Press [c:r f:lightgreen]SPACE[c:undo] to toggle simulation examples");
+        var prompt = new ScreenSurface(text.Length, 1)
         {
             Parent = this,
-            Position = (Width / 2 - prompt.Length / 2, Height - 1)
+            Position = (Width / 2 - text.Length / 2, Height - 1)
         };
-        surface.Surface.Print(Point.Zero, prompt);
+        prompt.Surface.Print(Point.Zero, text);
     }
 
     public void Restart()
@@ -113,9 +113,9 @@ class Fluid : Page, IRestartable
         if (instructions is InstructionSet)
             SadComponents.Remove(instructions);
 
-        // pause and restart the timer after delay
+        // restart the timer after a delay
         instructions = new InstructionSet() { RemoveOnFinished = true }
-            .Wait(TimeSpan.FromSeconds(2))
+            .Wait(TimeSpan.FromSeconds(1.5d))
             .Code((o, t) =>
             {
                 Surface.Clear();
