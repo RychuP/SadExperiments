@@ -6,7 +6,7 @@ namespace SadExperiments.Pages;
 // asciiFluidSimulation by Yusuke Endoh (obfuscated version written in C)
 // de-obfuscated version by Davide Della Casa (https://github.com/davidedc/Ascii-fluid-simulation-deobfuscated)
 // converted to C# and SadConsole by RychuP
-class Fluid : Page
+class Fluid : Page, IRestartable
 {
     const int CONSOLE_WIDTH = 80;
     const int CONSOLE_HEIGHT = 30;
@@ -52,6 +52,12 @@ class Fluid : Page
             Position = (Width / 2 - prompt.Length / 2, Height - 1)
         };
         surface.Surface.Print(Point.Zero, prompt);
+    }
+
+    public void Restart()
+    {
+        currentFileIndex = 0;
+        ShowNextExample();
     }
 
     void ResetData()
