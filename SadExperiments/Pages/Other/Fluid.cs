@@ -96,8 +96,12 @@ class Fluid : Page
         currentFileIndex++;
         currentFileIndex = currentFileIndex == files.Length ? 0 : currentFileIndex;
 
+        var instructions = SadComponents.Where(sc => sc is InstructionSet).FirstOrDefault();
+        if (instructions is InstructionSet)
+            SadComponents.Remove(instructions);
+
         // pause and restart the time after delay
-        var instructions = new InstructionSet() { RemoveOnFinished = true }
+        instructions = new InstructionSet() { RemoveOnFinished = true }
             .Wait(TimeSpan.FromSeconds(2))
             .Code((o, t) =>
             {
