@@ -55,19 +55,26 @@ class Tetris : Page
 
     public override bool ProcessKeyboard(Keyboard keyboard)
     {
+        // slower moves
         if (keyboard.HasKeysPressed)
         {
             if (keyboard.IsKeyPressed(Keys.X))
-                Board.Current.RotateRight();
+                Board.RotateTetrominoRight();
             else if (keyboard.IsKeyPressed(Keys.Z))
-                Board.Current.RotateLeft();
+                Board.RotateTetrominoLeft();
             else if (keyboard.IsKeyPressed(Keys.Left))
                 Board.MoveTetrominoLeft();
             else if (keyboard.IsKeyPressed(Keys.Right))
                 Board.MoveTetrominoRight();
-            else if (keyboard.IsKeyPressed(Keys.Down))
+        }
+
+        // faster moves
+        if (keyboard.HasKeysDown)
+        {
+            if (keyboard.IsKeyDown(Keys.Down))
                 Board.MoveTetrominoDown();
         }
+
         return base.ProcessKeyboard(keyboard);
     }
 }
@@ -118,6 +125,22 @@ class TetrisBoard : ScreenSurface
     #endregion Properties
 
     #region Methods
+    public void RotateTetrominoLeft() => RotateTetromino(Current.RotateLeft, Current.RotateRight);
+    public void RotateTetrominoRight() => RotateTetromino(Current.RotateRight, Current.RotateLeft);
+    public void MoveTetrominoLeft() => MoveTetrominoHorizontally(Current.MoveLeft, Current.MoveRight);
+    public void MoveTetrominoRight() => MoveTetrominoHorizontally(Current.MoveRight, Current.MoveLeft);
+    public void MoveTetrominoDown()
+    {
+        Current.MoveDown();
+
+        if (!LocationIsValid())
+        {
+            Current.MoveUp();
+            PlantCurrentTetromino();
+            return;
+        }
+    }
+
     void Timer_OnTimerElapsed(object? o, EventArgs e)
     {
         MoveTetrominoDown();
@@ -127,30 +150,86 @@ class TetrisBoard : ScreenSurface
     {
         Current = Next;
         Next = Tetromino.Next();
+        RemoveFullRows();
         OnTetrominoPlanted();
     }
 
-    public void MoveTetrominoDown()
+    void RemoveFullRows()
     {
-        Current.MoveDown();
+        // start at the bottom row
+        int row = Surface.Height - 1;
 
-        if (!CheckBlocksInBounds() || !CheckCollisionsWithOthers())
+        for (int i = 0; i < 20; i++)
         {
-            Current.MoveUp();
-            PlantCurrentTetromino();
-            return;
+            // get all blocks with the row number
+            var blocks = _renderer.Entities.Where(b => b.Position.Y == row).ToArray();
+
+            // check if the row is full
+            if (blocks.Count() == Surface.Width)
+            {
+                // remove all blocks in the row
+                foreach (var block in blocks)
+                    _renderer.Remove(block);
+
+                // move all higher rows down
+                foreach (var block in _renderer.Entities)
+                    if (block.Position.Y < row)
+                        block.Position = block.Position.Translate(0, 1);
+
+                // skip changing the row number
+                continue;
+            }
+
+            // move to the higher row
+            row--;
         }
     }
 
     void MoveTetrominoHorizontally(Action desiredMove, Action reversedMove)
     {
         desiredMove();
-        if (!CheckBlocksInBounds() || !CheckCollisionsWithOthers())
+        if (!LocationIsValid())
             reversedMove();
     }
 
-    public void MoveTetrominoLeft() => MoveTetrominoHorizontally(Current.MoveLeft, Current.MoveRight);
-    public void MoveTetrominoRight() => MoveTetrominoHorizontally(Current.MoveRight, Current.MoveLeft);
+    void RotateTetromino(Action desiredMove, Action reversedMove)
+    {
+        desiredMove();
+        if (!LocationIsValid() && !KickLocationIsValid())
+            reversedMove();
+    }
+
+    bool KickLocationIsValid()
+    {
+        Current.MoveLeft();
+        if (LocationIsValid()) return true;
+
+        Current.MoveRight();
+        Current.MoveRight();
+        if (LocationIsValid()) return true;
+
+        Current.MoveLeft();
+        Current.MoveDown();
+        if (LocationIsValid()) return true;
+
+        Current.MoveLeft();
+        if (LocationIsValid()) return true;
+
+        Current.MoveRight();
+        Current.MoveRight();
+        if (LocationIsValid()) return true;
+
+        Current.MoveLeft();
+        Current.MoveUp();
+        return false;
+    }
+
+    bool LocationIsValid()
+    {
+        if (!CheckBlocksInBounds() || !CheckCollisionsWithOthers())
+            return false;
+        return true;
+    }
 
     bool CheckCollisionsWithOthers()
     {
@@ -208,9 +287,9 @@ class Tetromino
     public static readonly int ShapeCount = Enum.GetNames(typeof(Shape)).Length;
 
     // bag of tetrominos to randomly select one from as per official guidance
-    static List<Tetromino> s_bag = new(ShapeCount);
+    readonly static List<Tetromino> s_bag = new(ShapeCount);
 
-    // type/shape of the tetromino
+    // shape of the tetromino
     public Shape Type { get; init; }
 
     // individual squares that form a tetromino
