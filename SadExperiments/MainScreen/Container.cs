@@ -43,6 +43,7 @@ sealed class Container : ScreenObject
     readonly Page[] _pages =
     {
         //new Test(),
+        //new Tetris(),                 // work in progress
         new WelcomePage(),
         new Fluid(),
         new AnimatedGlobe(),
@@ -76,7 +77,6 @@ sealed class Container : ScreenObject
         new SadCanvasPage(),
         new Instructions(),
         new EffectsAndDecorators(),
-        //new Fluid(),                  // doesn't quite work yet
         //new Crash(),                  // this page crashes the engine
     };
 
@@ -105,7 +105,11 @@ sealed class Container : ScreenObject
         // add consoles to children 
         Children.Add(CurrentPage, _header);
 
+        // create page sorter
         _defaultPageSorter = new(_pages);
+
+        // save initial repeat delay value for pages that change it
+        DefaultInitialRepeatDelay = Game.Instance.Keyboard.InitialRepeatDelay;
     }
     #endregion Constructors
 
@@ -114,6 +118,11 @@ sealed class Container : ScreenObject
     /// Singleton instance of the <see cref="Container"/> class.
     /// </summary>
     public static Container Instance => s_lazy.Value;
+
+    /// <summary>
+    /// Cached value of the default initial keyboard delay for keys pressed.
+    /// </summary>
+    public float DefaultInitialRepeatDelay { get; init; }
 
     /// <summary>
     /// Page currently selected for the display.

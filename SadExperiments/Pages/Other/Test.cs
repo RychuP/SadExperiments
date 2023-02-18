@@ -1,4 +1,5 @@
-﻿using SadConsole.UI;
+﻿using SadConsole.Entities;
+using SadConsole.UI;
 using SadConsole.UI.Controls;
 using SadExperiments.UI;
 
@@ -6,36 +7,44 @@ namespace SadExperiments.Pages;
 
 internal class Test : Page
 {
+    Entity _square;
+
     public Test()
     {
-        var console = new ControlsConsole(Width, Height);
-        console.SetDefaultColors(Color.Black, Color.LightBlue);
-        Children.Add(console);
+        Font = Fonts.Square10;
+        FontSize *= 2;
 
-        var textBox = new TextBox(10);
-        console.Controls.Add(textBox);
+        var renderer = new Renderer();
+        SadComponents.Add(renderer);
 
-        //textBox.EditModeExit += (o, e) =>
-        //{
-        //    int x = 0;
-        //};
+        var rectangle = new Rectangle(1, 1, 12, 22);
+        Surface.DrawRectangle(rectangle, Color.Pink);
 
-        //textBox.EditModeEnter += (o, e) =>
-        //{
-        //    int y = 0;
-        //};
+        var entity = new Entity(Color.Cyan, Color.Transparent, Font.SolidGlyphIndex, 1);
+        entity.Position = (rectangle.MinExtentX + 1, rectangle.MaxExtentY - 1);
+        renderer.Add(entity);
 
-        //textBox.EditingTextChanged += (o, e) =>
-        //{
-        //    int z = 0;
-        //};
+        _square = new Entity(Color.Red, Color.Transparent, Font.SolidGlyphIndex, 1);
+        _square.Position = (rectangle.MinExtentX + 3, rectangle.MaxExtentY - 1);
+        renderer.Add(_square);
     }
 
-    void OnEditingTextChanged(object? sender, EventArgs e)
+    public override bool ProcessKeyboard(Keyboard keyboard)
     {
-        if (sender is TextBox textBox)
+        if (keyboard.HasKeysPressed)
         {
-            var x = textBox.EditingText;
+            int x = _square.Position.X;
+
+            if (keyboard.IsKeyPressed(Keys.Left))
+            {
+                _square.Position = _square.Position.WithX(x - 1);
+            }
+            else if (keyboard.IsKeyPressed(Keys.Right))
+            {
+                _square.Position = _square.Position.WithX(x + 1);
+            }
         }
+
+        return base.ProcessKeyboard(keyboard);
     }
 }
