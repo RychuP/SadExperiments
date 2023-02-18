@@ -1,8 +1,10 @@
 ﻿using GoRogue.Random;
+using SadCanvas;
 using SadConsole.Components;
 using SadConsole.Entities;
 using SadConsole.UI;
 using SadConsole.UI.Controls;
+using System.IO;
 
 namespace SadExperiments.Pages;
 
@@ -24,9 +26,10 @@ class Tetris : Page
         #endregion Meta
 
         // create tetris board elements
-        _board = new TetrisBoard() { Position = (2, 0) };
+        _board = new TetrisBoard() { Position = (4, 0) };
         var parameters = Border.BorderParameters.GetDefault().ChangeBorderForegroundColor(Color.Pink);
-        var border = new Border(_board, parameters) { Position = (1, -1) };
+        var border = new Border(_board, parameters);
+        border.Position = (_board.Position.X - 1, _board.Position.Y - 1);
 
         // a mask covering the top two board rows (tetromino spawn area) shifted up by a few pixels 
         // as per guidance https://tetris.fandom.com/wiki/Tetris_Guideline
@@ -43,12 +46,24 @@ class Tetris : Page
         // add all board elements to children
         Children.Add(border, _board, mask);
 
+        // create tetris logo
+        var filePath = Path.Combine("Resources", "Images", "tetris_logo.png");
+        var logo = new Canvas(filePath)
+        {
+            Parent = this,
+            UsePixelPositioning = true,
+        };
+
+        // calculate logo position
+        int boardSpaceWidth = border.AbsolutePosition.X + border.WidthPixels;
+        int remainingWidthHalved = (WidthPixels - boardSpaceWidth - logo.Width) / 2;
+        int x = boardSpaceWidth + remainingWidthHalved;
+        int y = mask.AbsolutePosition.Y;
+        logo.Position = (x, y);
+
         // register event handlers
         _gameOver.RestartButton.Click += RestartButton_OnClick;
         _board.GameOver += Board_OnGameOver;
-
-        // info 
-        Surface.Print(35, 2, "Controls: z, x, left, right, down");
     }
 
     protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
@@ -74,6 +89,8 @@ class Tetris : Page
                 _board.MoveTetrominoRight();
             else if (keyboard.IsKeyPressed(Keys.Space))
                 _board.HardDropTetromino();
+            else if (keyboard.IsKeyPressed(Keys.P))
+                _board.TogglePause();
         }
 
         // faster moves
@@ -133,7 +150,7 @@ class TetrisBoard : ScreenSurface
     Tetromino _current = Tetromino.Next();
     int _gravity = 1;
     const int MaxGravity = 20;
-    Timer _timer;
+    readonly Timer _timer;
     #endregion Fields
 
     #region Constructors
@@ -191,6 +208,11 @@ class TetrisBoard : ScreenSurface
             Current.MoveDown();
         Current.MoveUp();
         PlantCurrentTetromino();
+    }
+
+    public void TogglePause()
+    {
+        _timer.IsPaused = !_timer.IsPaused;
     }
 
     public void Restart()
