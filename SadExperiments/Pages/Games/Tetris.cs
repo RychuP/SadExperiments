@@ -2,6 +2,7 @@
 using SadConsole.Components;
 using SadConsole.Entities;
 using SadConsole.UI;
+using SadConsole.UI.Controls;
 
 namespace SadExperiments.Pages;
 
@@ -9,7 +10,8 @@ class Tetris : Page
 {
     public static readonly int SolidGlyph = Fonts.C64.SolidGlyphIndex;
 
-    public TetrisBoard Board;
+    readonly TetrisBoard _board;
+    readonly GameOverWindow _gameOver = new();
 
     public Tetris()
     {
@@ -22,9 +24,9 @@ class Tetris : Page
         #endregion Meta
 
         // create tetris board elements
-        Board = new TetrisBoard() { Position = (2, 0) };
+        _board = new TetrisBoard() { Position = (2, 0) };
         var parameters = Border.BorderParameters.GetDefault().ChangeBorderForegroundColor(Color.Pink);
-        var border = new Border(Board, parameters) { Position = (1, -1) };
+        var border = new Border(_board, parameters) { Position = (1, -1) };
 
         // a mask covering the top two board rows (tetromino spawn area) shifted up by a few pixels 
         // as per guidance https://tetris.fandom.com/wiki/Tetris_Guideline
@@ -39,7 +41,11 @@ class Tetris : Page
             mask.Surface.SetCellAppearance(i, 1, border.Surface[i]);
 
         // add all board elements to children
-        Children.Add(border, Board, mask);
+        Children.Add(border, _board, mask);
+
+        // register event handlers
+        _gameOver.RestartButton.Click += RestartButton_OnClick;
+        _board.GameOver += Board_OnGameOver;
 
         // info 
         Surface.Print(35, 2, "Controls: z, x, left, right, down");
@@ -59,23 +65,60 @@ class Tetris : Page
         if (keyboard.HasKeysPressed)
         {
             if (keyboard.IsKeyPressed(Keys.X))
-                Board.RotateTetrominoRight();
+                _board.RotateTetrominoRight();
             else if (keyboard.IsKeyPressed(Keys.Z))
-                Board.RotateTetrominoLeft();
+                _board.RotateTetrominoLeft();
             else if (keyboard.IsKeyPressed(Keys.Left))
-                Board.MoveTetrominoLeft();
+                _board.MoveTetrominoLeft();
             else if (keyboard.IsKeyPressed(Keys.Right))
-                Board.MoveTetrominoRight();
+                _board.MoveTetrominoRight();
+            else if (keyboard.IsKeyPressed(Keys.Space))
+                _board.HardDropTetromino();
         }
 
         // faster moves
         if (keyboard.HasKeysDown)
         {
             if (keyboard.IsKeyDown(Keys.Down))
-                Board.MoveTetrominoDown();
+                _board.MoveTetrominoDown();
         }
 
         return base.ProcessKeyboard(keyboard);
+    }
+
+    void Board_OnGameOver(object? o, EventArgs e)
+    {
+        _gameOver.Show(true);
+    }
+
+    void RestartButton_OnClick(object? o, EventArgs e)
+    {
+        _gameOver.Hide();
+        _board.Restart();
+    }
+}
+
+class GameOverWindow : Window
+{
+    public Button RestartButton;
+
+    public GameOverWindow() : base(40, 9)
+    {
+        Title = "Game Over";
+        Center();
+
+        int halfWidth = Surface.Width / 2;
+
+        string text = "Restart";
+        RestartButton = new(text.Length + 4);
+        RestartButton.Position = (halfWidth - RestartButton.Surface.Width / 2, Surface.Height - 3);
+        RestartButton.Text = text;
+        Controls.Add(RestartButton);
+
+        text = "Your final score is: ";
+        Surface.Print(halfWidth - text.Length / 2, 2, text);
+        text = "Level reached: ";
+        Surface.Print(halfWidth - text.Length / 2, 4, text);
     }
 }
 
@@ -129,6 +172,7 @@ class TetrisBoard : ScreenSurface
     public void RotateTetrominoRight() => RotateTetromino(Current.RotateRight, Current.RotateLeft);
     public void MoveTetrominoLeft() => MoveTetrominoHorizontally(Current.MoveLeft, Current.MoveRight);
     public void MoveTetrominoRight() => MoveTetrominoHorizontally(Current.MoveRight, Current.MoveLeft);
+
     public void MoveTetrominoDown()
     {
         Current.MoveDown();
@@ -141,6 +185,23 @@ class TetrisBoard : ScreenSurface
         }
     }
 
+    public void HardDropTetromino()
+    {
+        while (LocationIsValid())
+            Current.MoveDown();
+        Current.MoveUp();
+        PlantCurrentTetromino();
+    }
+
+    public void Restart()
+    {
+        _renderer.RemoveAll();
+        Tetromino.ResetBag();
+        Current = Tetromino.Next();
+        Next = Tetromino.Next();
+        _timer.Restart();
+    }
+
     void Timer_OnTimerElapsed(object? o, EventArgs e)
     {
         MoveTetrominoDown();
@@ -148,10 +209,25 @@ class TetrisBoard : ScreenSurface
 
     void PlantCurrentTetromino()
     {
-        Current = Next;
-        Next = Tetromino.Next();
-        RemoveFullRows();
-        OnTetrominoPlanted();
+        if (IsGameOver())
+        {
+            _timer.IsPaused = true;
+            OnGameOver();
+        }
+        else
+        {
+            Current = Next;
+            Next = Tetromino.Next();
+            RemoveFullRows();
+            OnTetrominoPlanted();
+        }
+    }
+
+    bool IsGameOver()
+    {
+        if (Current.Blocks.Any(b => b.Position.Y < 2))
+            return true;
+        return false;
     }
 
     void RemoveFullRows()
@@ -256,10 +332,16 @@ class TetrisBoard : ScreenSurface
     {
         TetrominoPlanted?.Invoke(this, EventArgs.Empty);
     }
+
+    void OnGameOver()
+    {
+        GameOver?.Invoke(this, EventArgs.Empty);
+    }
     #endregion Methods
 
     #region Events
     public event EventHandler? TetrominoPlanted;
+    public event EventHandler? GameOver;
     #endregion Events
 }
 
@@ -306,6 +388,11 @@ class Tetromino
         if (s_bag.Count > 0) s_bag.Clear();
         for (int i = 0; i < ShapeCount; i++)
             s_bag.Add(new Tetromino((Shape)i));
+    }
+
+    public static void ResetBag()
+    {
+        s_bag.Clear();
     }
 
     public static Tetromino Next()
