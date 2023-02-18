@@ -47,12 +47,7 @@ class Tetris : Page
         Children.Add(border, _board, mask);
 
         // create tetris logo
-        var filePath = Path.Combine("Resources", "Images", "tetris_logo.png");
-        var logo = new Canvas(filePath)
-        {
-            Parent = this,
-            UsePixelPositioning = true,
-        };
+        var logo = CreateCanvas("tetris.png");
 
         // calculate logo position
         int boardSpaceWidth = border.AbsolutePosition.X + border.WidthPixels;
@@ -61,9 +56,27 @@ class Tetris : Page
         int y = mask.AbsolutePosition.Y;
         logo.Position = (x, y);
 
+        // create 'next' title
+        var nextTitle = CreateCanvas("next.png");
+        nextTitle.Position = (x, y + logo.Height + nextTitle.Height / 2);
+
+        // create 'score' title
+        var scoreTitle = CreateCanvas("score.png");
+        scoreTitle.Position = nextTitle.Position + (0, nextTitle.Height * 3);
+
         // register event handlers
         _gameOver.RestartButton.Click += RestartButton_OnClick;
         _board.GameOver += Board_OnGameOver;
+    }
+
+    Canvas CreateCanvas(string fileName)
+    {
+        var filePath = Path.Combine("Resources", "Images", "Tetris", fileName);
+        return new Canvas(filePath)
+        {
+            Parent = this,
+            UsePixelPositioning = true
+        };
     }
 
     protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
