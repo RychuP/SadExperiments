@@ -43,7 +43,6 @@ sealed class Container : ScreenObject
     readonly Page[] _pages =
     {
         //new Test(),
-        //new Tetris(),                 // work in progress
         new WelcomePage(),
         new Fluid(),
         new AnimatedGlobe(),
@@ -77,6 +76,7 @@ sealed class Container : ScreenObject
         new SadCanvasPage(),
         new Instructions(),
         new EffectsAndDecorators(),
+        new Tetris(),                   // work in progress
         //new Crash(),                  // this page crashes the engine
     };
 
