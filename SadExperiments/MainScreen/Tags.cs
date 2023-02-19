@@ -17,6 +17,7 @@ enum Tag
     ComplexMath,
     SplashScreen,
     Demo,
+    Game,
     Pixels,
     Bits,
     UI,

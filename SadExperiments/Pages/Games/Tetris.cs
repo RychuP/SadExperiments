@@ -24,8 +24,8 @@ class Tetris : Page, IRestartable
         Title = "Tetris";
         Summary = "My own implementation of the most famous game in the world.";
         Submitter = Submitter.Rychu;
-        Date = new(2023, 01, 01);
-        Tags = Array.Empty<Tag>();
+        Date = new(2023, 2, 19);
+        Tags = new Tag[] {Tag.SadConsole, Tag.SadCanvas, Tag.Game};
         #endregion Meta
 
         // create tetris board elements
