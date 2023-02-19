@@ -8,18 +8,21 @@ using System.IO;
 
 namespace SadExperiments.Pages;
 
-class Tetris : Page
+class Tetris : Page, IRestartable
 {
     public static readonly int SolidGlyph = Fonts.C64.SolidGlyphIndex;
 
     readonly TetrisBoard _board;
     readonly GameOverWindow _gameOver = new();
+    readonly StartGameWindow _startGame = new();
+    readonly NextTetromino _nextTetromino = new();
+    readonly Score _score;
 
     public Tetris()
     {
         #region Meta
         Title = "Tetris";
-        Summary = "Mini game (work in progress).";
+        Summary = "My own implementation of the most famous game in the world.";
         Submitter = Submitter.Rychu;
         Date = new(2023, 01, 01);
         Tags = Array.Empty<Tag>();
@@ -60,13 +63,44 @@ class Tetris : Page
         var nextTitle = CreateCanvas("next.png");
         nextTitle.Position = (x, y + logo.Height + nextTitle.Height / 2);
 
+        // add next tetromino screen
+        _nextTetromino.ShowTetromino(_board.Next);
+        Children.Add(_nextTetromino);
+
+        // calculate next tetromino screen position
+        remainingWidthHalved = (WidthPixels - boardSpaceWidth - _nextTetromino.WidthPixels) / 2;
+        x = boardSpaceWidth + remainingWidthHalved;
+        y = nextTitle.Position.Y + Convert.ToInt32(nextTitle.Height * 1.5);
+        _nextTetromino.Position = (x, y);
+
         // create 'score' title
         var scoreTitle = CreateCanvas("score.png");
         scoreTitle.Position = nextTitle.Position + (0, nextTitle.Height * 3);
 
+        // add score surface
+        _score = new Score(10);
+
+        // calculate score surface position
+        remainingWidthHalved = (WidthPixels - boardSpaceWidth - _score.WidthPixels) / 2;
+        x = boardSpaceWidth + remainingWidthHalved;
+        y = scoreTitle.Position.Y + Convert.ToInt32(scoreTitle.Height * 1.4);
+        _score.Position = (x, y);
+        Children.Add(_score);
+
         // register event handlers
         _gameOver.RestartButton.Click += RestartButton_OnClick;
+        _startGame.StartButton.Click += StartButton_OnClick;
+        _board.TetrominoPlanted += Board_OnTetrominoPlanted;
+        _board.ScoreChanged += Board_OnScoreChanged;
         _board.GameOver += Board_OnGameOver;
+    }
+
+    public void Restart()
+    {
+        _board.Reset();
+        _board.Pause();
+        _score.ShowScore(0);
+        _startGame.Show(true);
     }
 
     Canvas CreateCanvas(string fileName)
@@ -84,6 +118,14 @@ class Tetris : Page
         // reduce initial keyboard repeat delay to make the moves left and right start faster
         Game.Instance.Keyboard.InitialRepeatDelay = newParent is Container ? 0.3f : 
             Container.Instance.DefaultInitialRepeatDelay;
+
+        // hide all the windows when page hidden
+        if (oldParent is Container)
+        {
+            _gameOver.Hide();
+            _startGame.Hide();
+        }
+
         base.OnParentChanged(oldParent, newParent);
     }
 
@@ -110,7 +152,7 @@ class Tetris : Page
         if (keyboard.HasKeysDown)
         {
             if (keyboard.IsKeyDown(Keys.Down))
-                _board.MoveTetrominoDown();
+                _board.SoftDropTetromino();
         }
 
         return base.ProcessKeyboard(keyboard);
@@ -118,6 +160,7 @@ class Tetris : Page
 
     void Board_OnGameOver(object? o, EventArgs e)
     {
+        _gameOver.ShowFinals(_board.Score, _board.Level);
         _gameOver.Show(true);
     }
 
@@ -125,6 +168,83 @@ class Tetris : Page
     {
         _gameOver.Hide();
         _board.Restart();
+        _score.ShowScore(0);
+    }
+
+    void Board_OnTetrominoPlanted(object? o, EventArgs e)
+    {
+        _nextTetromino.ShowTetromino(_board.Next);
+    }
+
+    void Board_OnScoreChanged(object? o, EventArgs e)
+    {
+        _score.ShowScore(_board.Score);
+    }
+
+    void StartButton_OnClick(Object? o, EventArgs e)
+    {
+        _startGame.Hide();
+        _board.TogglePause();
+    }
+}
+
+class Score : ScreenSurface
+{
+    public Score(int w) : base (w, 1)
+    {
+        FontSize *= 3;
+        UsePixelPositioning = true;
+        ShowScore(0);
+    }
+
+    public void ShowScore(int score)
+    {
+        Surface.Clear();
+        Surface.Print(0, score.ToString());
+    }
+}
+
+class NextTetromino : ScreenSurface
+{
+    public NextTetromino() : base(4, 4)
+    {
+        Font = Fonts.Square10;
+        FontSize *= 2.5;
+        UsePixelPositioning = true;
+
+        Surface.SetDefaultColors(Color.White, Color.LightGray);
+    }
+
+    public void ShowTetromino(Tetromino t)
+    {
+        Surface.Clear();
+        foreach (var block in t.Blocks)
+        {
+            (int x, int y) = block.Position - (4, 0);
+            Surface.SetCellAppearance(x, y, block.Appearance);
+        }
+    }
+}
+
+class StartGameWindow : Window
+{
+    public Button StartButton;
+
+    public StartGameWindow() : base(40, 9)
+    {
+        Title = "Tetris";
+        Center();
+
+        string text = "Controls:";
+        Surface.Print(Surface.Width / 2 - text.Length / 2, 2, text);
+        text = "x, z, left, right, down, space";
+        Surface.Print(Surface.Width / 2 - text.Length / 2, 4, text);
+
+        text = "Start Game";
+        StartButton = new(text.Length + 4);
+        StartButton.Position = (Surface.Width / 2 - StartButton.Surface.Width / 2, Surface.Height - 3);
+        StartButton.Text = text;
+        Controls.Add(StartButton);
     }
 }
 
@@ -137,18 +257,19 @@ class GameOverWindow : Window
         Title = "Game Over";
         Center();
 
-        int halfWidth = Surface.Width / 2;
-
         string text = "Restart";
         RestartButton = new(text.Length + 4);
-        RestartButton.Position = (halfWidth - RestartButton.Surface.Width / 2, Surface.Height - 3);
+        RestartButton.Position = (Surface.Width / 2 - RestartButton.Surface.Width / 2, Surface.Height - 3);
         RestartButton.Text = text;
         Controls.Add(RestartButton);
+    }
 
-        text = "Your final score is: ";
-        Surface.Print(halfWidth - text.Length / 2, 2, text);
-        text = "Level reached: ";
-        Surface.Print(halfWidth - text.Length / 2, 4, text);
+    public void ShowFinals(int score, int level)
+    {
+        string text = $"Your final score is: {score}";
+        Surface.Print(Surface.Width / 2 - text.Length / 2, 2, text);
+        text = $"Level reached: {level}";
+        Surface.Print(Surface.Width / 2 - text.Length / 2, 4, text);
     }
 }
 
@@ -161,9 +282,10 @@ class TetrisBoard : ScreenSurface
     #region Fields
     readonly TetrominoManager _renderer = new();
     Tetromino _current = Tetromino.Next();
-    int _gravity = 1;
-    const int MaxGravity = 20;
+    int _score = 0;
+    int _level = 1;
     readonly Timer _timer;
+    readonly int[] _lineScoring = new int[] { 40, 100, 300, 1200 };
     #endregion Fields
 
     #region Constructors
@@ -177,6 +299,7 @@ class TetrisBoard : ScreenSurface
 
         _timer = new(TimeSpan.FromSeconds(0.6d));
         _timer.TimerElapsed += Timer_OnTimerElapsed;
+        _timer.IsPaused = true;
         SadComponents.Add(_timer);
     }
     #endregion Constructors
@@ -194,7 +317,17 @@ class TetrisBoard : ScreenSurface
 
     public Tetromino Next { get; private set; } = Tetromino.Next();
 
-    public int Score { get; private set; }
+    public int Level => _level;
+
+    public int Score
+    {
+        get => _score;
+        set
+        {
+            _score = value;
+            OnScoreChanged();
+        }
+    }
     #endregion Properties
 
     #region Methods
@@ -203,7 +336,7 @@ class TetrisBoard : ScreenSurface
     public void MoveTetrominoLeft() => MoveTetrominoHorizontally(Current.MoveLeft, Current.MoveRight);
     public void MoveTetrominoRight() => MoveTetrominoHorizontally(Current.MoveRight, Current.MoveLeft);
 
-    public void MoveTetrominoDown()
+    public bool MoveTetrominoDown()
     {
         Current.MoveDown();
 
@@ -211,16 +344,34 @@ class TetrisBoard : ScreenSurface
         {
             Current.MoveUp();
             PlantCurrentTetromino();
-            return;
+            return false;
         }
+
+        return true;
     }
 
     public void HardDropTetromino()
     {
+        int score = 0;
         while (LocationIsValid())
+        {
             Current.MoveDown();
+            score += 2;
+        }
         Current.MoveUp();
+        score -= 2;
+
+        // calculate score
+        if (score > 0)
+            Score += score;
+
         PlantCurrentTetromino();
+    }
+
+    public void SoftDropTetromino()
+    {
+        if (MoveTetrominoDown())
+            Score += 1;
     }
 
     public void TogglePause()
@@ -228,12 +379,22 @@ class TetrisBoard : ScreenSurface
         _timer.IsPaused = !_timer.IsPaused;
     }
 
-    public void Restart()
+    public void Pause()
+    {
+        _timer.IsPaused = true;
+    }
+
+    public void Reset()
     {
         _renderer.RemoveAll();
         Tetromino.ResetBag();
         Current = Tetromino.Next();
         Next = Tetromino.Next();
+    }
+
+    public void Restart()
+    {
+        Reset();
         _timer.Restart();
     }
 
@@ -267,6 +428,8 @@ class TetrisBoard : ScreenSurface
 
     void RemoveFullRows()
     {
+        int rowsCleared = 0;
+
         // start at the bottom row
         int row = Surface.Height - 1;
 
@@ -281,6 +444,7 @@ class TetrisBoard : ScreenSurface
                 // remove all blocks in the row
                 foreach (var block in blocks)
                     _renderer.Remove(block);
+                rowsCleared++;
 
                 // move all higher rows down
                 foreach (var block in _renderer.Entities)
@@ -294,6 +458,11 @@ class TetrisBoard : ScreenSurface
             // move to the higher row
             row--;
         }
+
+        // calculate score
+        rowsCleared = Math.Clamp(rowsCleared, 0, _lineScoring.Length);
+        if (rowsCleared > 0)
+            Score += _lineScoring[rowsCleared - 1] * _level;
     }
 
     void MoveTetrominoHorizontally(Action desiredMove, Action reversedMove)
@@ -372,11 +541,17 @@ class TetrisBoard : ScreenSurface
     {
         GameOver?.Invoke(this, EventArgs.Empty);
     }
+
+    void OnScoreChanged()
+    {
+        ScoreChanged?.Invoke(this, EventArgs.Empty);
+    }
     #endregion Methods
 
     #region Events
     public event EventHandler? TetrominoPlanted;
     public event EventHandler? GameOver;
+    public event EventHandler? ScoreChanged;
     #endregion Events
 }
 
