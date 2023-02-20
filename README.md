@@ -8,5 +8,7 @@ Tests of various features of the SadConsole and related libraries. Feel free to 
   <br><br>
   <img width="750" src="/Lines.gif" alt="GoRogue Line Algorithms" align="center">
   <br><br>
+  <img width="750" src="/Tetris.gif" alt="Tetris MiniGame" align="center">
+  <br><br>
   <img width="750" src="/ADemo.gif" alt="Font Pixel Manipulations" align="center">
 </p>

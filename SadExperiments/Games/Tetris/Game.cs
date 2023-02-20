@@ -1,6 +1,4 @@
 ﻿using SadCanvas;
-using SadConsole.UI;
-using SadRogue.Primitives;
 using System.IO;
 
 namespace SadExperiments.Games.Tetris;
