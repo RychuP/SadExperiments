@@ -66,7 +66,6 @@ class Game : Page, IRestartable
         y = _logo.Position.Y + _logo.Height + 20;
         _nextDisplay.Position = (startX, y);
         Children.Add(_nextDisplay);
-        _nextDisplay.ShowNext(_board.Next);
 
         // create info display
         _infoDisplay = new InfoDisplay(widthCells);
@@ -92,6 +91,7 @@ class Game : Page, IRestartable
     {
         _board.Reset();
         _infoDisplay.ShowScore(0);
+        _nextDisplay.ShowNext(_board.Next);
         _startWindow.Show(true);
         _startWindow.StartButton.IsFocused = true;
     }
