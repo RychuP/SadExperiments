@@ -1,5 +1,6 @@
 ﻿using SadConsole.UI.Windows;
 using SadExperiments.Pages;
+using SadExperiments.UI;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
@@ -76,8 +77,7 @@ sealed class Container : ScreenObject
         new SadCanvasPage(),
         new Instructions(),
         new EffectsAndDecorators(),
-        new Tetris(),                   // work in progress
-        //new Crash(),                  // this page crashes the engine
+        new Games.Tetris.Game(),
     };
 
     readonly TagSorter _tagSorter = new();

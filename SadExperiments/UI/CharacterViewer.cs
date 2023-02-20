@@ -1,7 +1,7 @@
 ﻿using SadConsole.UI;
 using SadConsole.UI.Controls;
 
-namespace SadExperiments;
+namespace SadExperiments.UI;
 
 /// <summary>
 /// Displays the glyphs associated with the default font.
@@ -45,7 +45,7 @@ public class CharacterViewer : Window
         var closeButton = new Button(7);
         closeButton.Text = "Close";
         closeButton.Position = (Width - 8, _label.Position.Y);
-        closeButton.Click += (s, e) => this.Hide();
+        closeButton.Click += (s, e) => Hide();
         Controls.Add(closeButton);
 
         CloseOnEscKey = true;

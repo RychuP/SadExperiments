@@ -1,5 +1,6 @@
 ﻿using GoRogue;
 using GoRogue.Random;
+using SadConsole.Components;
 using SadExperiments;
 using SadExperiments.UI;
 using SadExperiments.UI.Controls;
@@ -77,9 +78,11 @@ internal class LineAlgorithms : Page
         // 4. StartStopMovement button
         _buttons.AddButton("Stop Movement", Keys.D4).Click += (o, e) =>
         {
-            _map.Player.IsMoving = !_map.Player.IsMoving;
+            //_map.Player.IsMoving = !_map.Player.IsMoving;
+            _map.Timer.IsPaused = !_map.Timer.IsPaused;
+            
             if (o is VariableWidthButton b)
-                b.Text = _map.Player.IsMoving ? "Stop Movement" : "Start Movement";
+                b.Text = _map.Timer.IsPaused ? "Start Movement" : "Stop Movement";
         };
     }
 
@@ -156,7 +159,8 @@ internal class LineAlgorithms : Page
     class Map : ScreenSurface
     {
         readonly Grid _grid;
-        readonly DeltaTime _deltaTime = new(0.25d);
+        //readonly DeltaTime _deltaTime = new(0.25d);
+        public readonly Timer Timer = new(TimeSpan.FromSeconds(0.25d));
 
         public Player Player { get; init; }
 
@@ -200,8 +204,10 @@ internal class LineAlgorithms : Page
             Player.PositionChanged += LineSurface.Player_OnPositionChanged;
             Player.PositionChanged += Player_OnPositionChanged;
 
+            SadComponents.Add(Timer);
             // add event handler
-            _deltaTime.TresholdReached += DeltaTime_OnTresholdReached;
+            //_deltaTime.TresholdReached += DeltaTime_OnTresholdReached;
+            Timer.TimerElapsed += DeltaTime_OnTresholdReached;
         }
 
         public void Redraw()
@@ -279,8 +285,8 @@ internal class LineAlgorithms : Page
 
         public override void Update(TimeSpan delta)
         {
-            if (Player.IsMoving)
-                _deltaTime.Add(delta);
+            //if (Player.IsMoving)
+            //    _deltaTime.Add(delta);
             base.Update(delta);
         }
     }
