@@ -14,18 +14,18 @@ class FinishedWindow : Window
 
         string text = "Restart";
         RestartButton = new(text.Length + 4);
-        RestartButton.Position = (Surface.Width / 2 - RestartButton.Surface.Width / 2, Surface.Height - 3);
+        RestartButton.Position = ((Surface.Width - RestartButton.Surface.Width) / 2, Surface.Height - 3);
         RestartButton.Text = text;
         Controls.Add(RestartButton);
     }
 
-    public void ShowFinals(int score, int level)
+    public void ShowFinals(int score, int level, int lines)
     {
-        string text = $"Final score is: {score}";
+        var text = ColoredString.Parser.Parse($"Final score: [c:r f:yellow]{score}");
         Surface.Clear(1, 2, Surface.Width - 2);
-        Surface.Print(Surface.Width / 2 - text.Length / 2, 2, text);
-        text = $"Level reached: {level}";
+        Surface.Print((Surface.Width - text.Length) / 2, 2, text);
+        text = ColoredString.Parser.Parse($"Level: [c:r f:lightcoral]{level}[c:undo], Lines: [c:r f:cyan]{lines}");
         Surface.Clear(1, 4, Surface.Width - 2);
-        Surface.Print(Surface.Width / 2 - text.Length / 2, 4, text);
+        Surface.Print((Surface.Width - text.Length) / 2, 4, text);
     }
 }

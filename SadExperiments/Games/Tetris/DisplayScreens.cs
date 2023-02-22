@@ -38,7 +38,8 @@ class InfoDisplay : ScreenSurface
 
     public void ShowScore(int score)
     {
-        if (_scoreDisplay.Position != Point.Zero)
+        // check if the score display is out of view and there is no instructions component to bring it back in
+        if (_scoreDisplay.Position != Point.Zero && SadComponents.Count == 0)
         {
             _scoreDisplay.Position = Point.Zero;
             _levelDisplay.Position = _hiddenPosition;

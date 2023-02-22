@@ -13,13 +13,13 @@ class StartWindow : Window
         Center();
 
         string text = "Controls:";
-        Surface.Print(Surface.Width / 2 - text.Length / 2, 2, text);
+        Surface.Print((Surface.Width - text.Length) / 2, 2, text);
         text = "x, z, left, right, down, space";
-        Surface.Print(Surface.Width / 2 - text.Length / 2, 4, text);
+        Surface.Print((Surface.Width - text.Length) / 2, 4, text);
 
         text = "Start Game";
         StartButton = new(text.Length + 4);
-        StartButton.Position = (Surface.Width / 2 - StartButton.Surface.Width / 2, Surface.Height - 3);
+        StartButton.Position = ((Surface.Width - StartButton.Surface.Width) / 2, Surface.Height - 3);
         StartButton.Text = text;
         Controls.Add(StartButton);
     }

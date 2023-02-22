@@ -118,7 +118,7 @@ class Game : Page, IRestartable
         SadConsole.Game.Instance.Keyboard.InitialRepeatDelay = newParent is Container ? 0.3f :
             Container.Instance.DefaultInitialRepeatDelay;
 
-        // hide all the windows when page hidden
+        // clean up when page is removed
         if (oldParent is Container)
         {
             _finishedWindow.Hide();
@@ -160,9 +160,8 @@ class Game : Page, IRestartable
 
     void Board_OnGameOver(object? o, EventArgs e)
     {
-        _finishedWindow.ShowFinals(_board.Score, _board.Level);
+        _finishedWindow.ShowFinals(_board.Score, _board.Level, _board.Lines);
         _finishedWindow.Show(true);
-        _finishedWindow.RestartButton.IsFocused = true;
     }
 
     void RestartButton_OnClick(object? o, EventArgs e)

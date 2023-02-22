@@ -15,6 +15,7 @@ class Board : ScreenSurface
     Tetromino _current = Tetromino.Next();
     readonly BlockManager _renderer = new();
     readonly Timer _timer = new(TimeSpan.Zero) { IsPaused = true };
+    // gravity and line scoring values taken from classic NES tetris
     readonly int[] _lineScoring = new int[] { 40, 100, 300, 1200 };
     readonly int[] _gravity = new int[] { 48, 43, 38, 33, 28, 23, 18, 13, 
         8, 6, 5, 5, 5, 4, 4, 4, 3, 3, 3 };
