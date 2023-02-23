@@ -15,7 +15,7 @@ class Board : ScreenSurface
     int _lines = 0;
     Tetromino _current = Tetromino.Next();
     readonly BlockManager _renderer = new();
-    readonly Timer _timer = new(TimeSpan.Zero) { IsPaused = true };
+    readonly Timer _timer = new(TimeSpan.Zero);
     // gravity and line scoring values taken from classic NES tetris
     readonly int[] _lineScoring = new int[] { 40, 100, 300, 1200 };
     readonly int[] _gravity = new int[] { 48, 43, 38, 33, 28, 23, 18, 13, 
@@ -33,6 +33,7 @@ class Board : ScreenSurface
 
         _timer.TimerElapsed += Timer_OnTimerElapsed;
         SadComponents.Add(_timer);
+        Pause();
     }
     #endregion Constructors
 
@@ -127,17 +128,25 @@ class Board : ScreenSurface
 
     public void TogglePause()
     {
-        _timer.IsPaused = !_timer.IsPaused;
+        if (_timer.IsPaused) UnPause();
+        else Pause();
     }
 
     public void Pause()
     {
+        _timer.Repeat = false;
         _timer.IsPaused = true;
+    }
+
+    public void UnPause()
+    {
+        _timer.Repeat = true;
+        _timer.Restart();
     }
 
     public void Reset()
     {
-        _timer.IsPaused = true;
+        Pause();
         _renderer.RemoveAll();
         Tetromino.ResetBag();
         Current = Tetromino.Next();
@@ -150,7 +159,7 @@ class Board : ScreenSurface
     public void Restart()
     {
         Reset();
-        _timer.Restart();
+        UnPause();
     }
 
     void Timer_OnTimerElapsed(object? o, EventArgs e)
@@ -162,7 +171,7 @@ class Board : ScreenSurface
     {
         if (IsGameOver())
         {
-            _timer.IsPaused = true;
+            Pause();
             OnGameOver();
         }
         else
@@ -299,8 +308,8 @@ class Board : ScreenSurface
 
     void OnGameOver()
     {
-        var t = _timer.IsPaused;
-        //Sounds.Lost.Play(); <- annoying due to Timer bug
+        Pause();
+        Sounds.Lost.Play();
         GameOver?.Invoke(this, EventArgs.Empty);
     }
 

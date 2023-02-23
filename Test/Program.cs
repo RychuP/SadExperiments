@@ -1,5 +1,6 @@
 ﻿using SadConsole;
 using SadConsole.Components;
+using SadConsole.Input;
 using SadRogue.Primitives;
 using Console = SadConsole.Console;
 
@@ -31,18 +32,45 @@ class Program
     }
 }
 
-internal class Test : ScreenObject
+internal class Test : ScreenSurface
 {
-    public Test()
+    SadConsole.Components.Timer _timer;
+    int _index = 0;
+
+    public Test() : base(GameHost.Instance.ScreenCellsX, GameHost.Instance.ScreenCellsY)
     {
-        var timer = new SadConsole.Components.Timer(TimeSpan.FromSeconds(0.1d));
-        SadComponents.Add(timer);
-        timer.TimerElapsed += Timer_OnTimerElapsed;
+        _timer = new(TimeSpan.FromSeconds(0.1d));
+        SadComponents.Add(_timer);
+        _timer.TimerElapsed += Timer_OnTimerElapsed;
+        IsFocused = true;
     }
 
     void Timer_OnTimerElapsed(object? sender, EventArgs e)
     {
-        if (sender is SadConsole.Components.Timer t)
-            t.IsPaused = true;
+        if (_index == Surface.Count)
+        {
+            _index = -1;
+            Surface.Clear();
+        }
+        Surface[_index++].GlyphCharacter = '.';
+        IsDirty = true;
+    }
+
+    public override bool ProcessKeyboard(Keyboard keyboard)
+    {
+        if (keyboard.IsKeyPressed(Keys.Space))
+        {
+            if (_timer.IsPaused)
+            {
+                _timer.Repeat = true;
+                _timer.Restart();
+            }
+            else
+            {
+                _timer.Repeat = false;
+                _timer.IsPaused = true;
+            }
+        }
+        return base.ProcessKeyboard(keyboard);
     }
 }

@@ -179,6 +179,7 @@ class Game : Page, IRestartable
     {
         _finishedWindow.ShowFinals(_board.Score, _board.Level, _board.Lines);
         _finishedWindow.Show(true);
+        _finishedWindow.RestartButton.IsFocused = false;
     }
 
     void RestartButton_OnClick(object? o, EventArgs e)

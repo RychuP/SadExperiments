@@ -70,7 +70,6 @@ sealed class Container : ScreenObject
         new FocusSetting(),
         new SurfaceShifting(),
         new CheckeredRoom(),
-        new PixelNoise(),
         new CellSurfaceResizing(),
         new EasingFunctions(),
         new ImageConversion(),
