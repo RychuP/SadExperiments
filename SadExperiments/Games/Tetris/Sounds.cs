@@ -3,6 +3,8 @@ using System.IO;
 
 namespace SadExperiments.Games.Tetris;
 
+// sounds taken from "Tetris - Sound Effects Collection" YouTube video
+// https://www.youtube.com/watch?v=Xm9O2iJLWxY&ab_channel=InactiveChannel
 static class Sounds
 {
     public static SoundEffectInstance Start, Lost, Rotate, Load, Plant, Line, LevelUp;

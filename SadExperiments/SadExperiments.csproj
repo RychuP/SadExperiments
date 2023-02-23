@@ -20,4 +20,8 @@
     <None Include="Resources\**" LinkBase="Fonts\" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Games\PacMan\" />
+  </ItemGroup>
+
 </Project>
