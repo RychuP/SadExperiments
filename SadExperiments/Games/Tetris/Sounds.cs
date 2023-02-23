@@ -9,19 +9,19 @@ static class Sounds
 
     static Sounds()
     {
-        Start = FromFile("start").CreateInstance();
-        Lost = FromFile("lost").CreateInstance();
-        Rotate = FromFile("rotate").CreateInstance();
-        Load = FromFile("load").CreateInstance();
-        Plant = FromFile("plant").CreateInstance();
-        Line = FromFile("line").CreateInstance();
-        LevelUp = FromFile("levelup").CreateInstance();
+        Start = FromFile("start");
+        Lost = FromFile("lost");
+        Rotate = FromFile("rotate");
+        Load = FromFile("load");
+        Plant = FromFile("plant");
+        Line = FromFile("line");
+        LevelUp = FromFile("levelup");
 }
 
-    static SoundEffect FromFile(string fileName)
+    static SoundEffectInstance FromFile(string fileName)
     {
         string path = Path.Combine("Resources", "Sounds", "Tetris", $"{fileName}.wav");
-        return SoundEffect.FromFile(path);
+        return SoundEffect.FromFile(path).CreateInstance();
     }
 
     public static void StopAll()

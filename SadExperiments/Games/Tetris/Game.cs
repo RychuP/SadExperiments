@@ -26,10 +26,10 @@ class Game : Page, IRestartable
     {
         #region Meta
         Title = "Tetris";
-        Summary = "My own implementation of the most famous game in the world.";
+        Summary = "Arguably the most famous game in the world.";
         Submitter = Submitter.Rychu;
         Date = new(2023, 2, 19);
-        Tags = new Tag[] { Tag.SadConsole, Tag.SadCanvas, Tag.Game, Tag.Renderer };
+        Tags = new Tag[] { Tag.SadConsole, Tag.SadCanvas, Tag.Game, Tag.Renderer, Tag.Timer };
         #endregion Meta
 
         // create tetris board elements
