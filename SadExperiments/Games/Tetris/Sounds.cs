@@ -5,14 +5,33 @@ namespace SadExperiments.Games.Tetris;
 
 static class Sounds
 {
-    public static SoundEffect Beep = ReadFile("turn.wav");
-    public static SoundEffect Drop = ReadFile("drop.wav");
-    public static SoundEffect Move = ReadFile("move.wav");
+    public static SoundEffectInstance Start, Lost, Rotate, Load, Plant, Line, LevelUp;
 
-    static SoundEffect ReadFile (string fileName)
+    static Sounds()
     {
-        string path = Path.Combine("Resources", "Sounds", fileName);
-        var bytes = File.ReadAllBytes(path);
-        return new SoundEffect(bytes, 44100, AudioChannels.Stereo);
+        Start = FromFile("start").CreateInstance();
+        Lost = FromFile("lost").CreateInstance();
+        Rotate = FromFile("rotate").CreateInstance();
+        Load = FromFile("load").CreateInstance();
+        Plant = FromFile("plant").CreateInstance();
+        Line = FromFile("line").CreateInstance();
+        LevelUp = FromFile("levelup").CreateInstance();
+}
+
+    static SoundEffect FromFile(string fileName)
+    {
+        string path = Path.Combine("Resources", "Sounds", "Tetris", $"{fileName}.wav");
+        return SoundEffect.FromFile(path);
+    }
+
+    public static void StopAll()
+    {
+        Start!.Stop();
+        Lost!.Stop();
+        Rotate!.Stop();
+        Load!.Stop();
+        Plant!.Stop();
+        Line!.Stop();
+        LevelUp!.Stop();
     }
 }

@@ -1,4 +1,5 @@
-﻿using SadConsole.Components;
+﻿using Microsoft.Xna.Framework.Audio;
+using SadConsole.Components;
 
 namespace SadExperiments.Games.Tetris;
 
@@ -54,12 +55,7 @@ class Board : ScreenSurface
         private set
         {
             _level = value;
-            int gravity = _level == 29 ? 1 :
-                          _level < 29 && _level >= _gravity.Length ? 2 :
-                          _gravity[_level];
-            var delay = TimeSpan.FromSeconds(60 / gravity);
-            _timer.TimerAmount = delay;
-            OnLevelChanged();
+            OnLevelChanged(_level);
         }
     }
 
@@ -68,14 +64,9 @@ class Board : ScreenSurface
         get => _lines;
         private set
         {
+            int prevLinesCount = _lines;
             _lines = value;
-            if (value % LinesPerLevel == 0)
-            {
-                int level = value / LinesPerLevel;
-                if (level != Level)
-                    Level = level;
-            }
-            OnLinesChanged();
+            OnLinesChanged(prevLinesCount, _lines);
         }
     }
 
@@ -103,7 +94,7 @@ class Board : ScreenSurface
         if (!LocationIsValid())
         {
             Current.MoveUp();
-            PlantCurrentTetromino();
+            PlantTetromino();
             return false;
         }
 
@@ -125,7 +116,7 @@ class Board : ScreenSurface
         if (score > 0)
             Score += score;
 
-        PlantCurrentTetromino();
+        PlantTetromino();
     }
 
     public void SoftDropTetromino()
@@ -167,7 +158,7 @@ class Board : ScreenSurface
         MoveTetrominoDown();
     }
 
-    void PlantCurrentTetromino()
+    void PlantTetromino()
     {
         if (IsGameOver())
         {
@@ -176,7 +167,6 @@ class Board : ScreenSurface
         }
         else
         {
-            Sounds.Drop.Play();
             Current = Next;
             Next = Tetromino.Next();
             RemoveFullRows();
@@ -302,11 +292,15 @@ class Board : ScreenSurface
 
     void OnTetrominoPlanted()
     {
+        if (Sounds.LevelUp.State != SoundState.Playing && Sounds.Line.State != SoundState.Playing)
+            Sounds.Plant.Play();
         TetrominoPlanted?.Invoke(this, EventArgs.Empty);
     }
 
     void OnGameOver()
     {
+        var t = _timer.IsPaused;
+        //Sounds.Lost.Play(); <- annoying due to Timer bug
         GameOver?.Invoke(this, EventArgs.Empty);
     }
 
@@ -315,13 +309,29 @@ class Board : ScreenSurface
         ScoreChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    void OnLinesChanged()
+    void OnLinesChanged(int prevLinesCount, int newLinesCount)
     {
+        if (newLinesCount > 0)
+        {
+            if (newLinesCount % LinesPerLevel == 0)
+                Level = newLinesCount / LinesPerLevel;
+            else            
+                Sounds.Line.Play();
+        }
         LinesChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    void OnLevelChanged()
+    void OnLevelChanged(int newLevel)
     {
+        if (newLevel > 0)
+            Sounds.LevelUp.Play();
+
+        int gravity = _level == 29 ? 1 :
+                      _level < 29 && _level >= _gravity.Length ? 2 :
+                      _gravity[_level];
+        var delay = TimeSpan.FromSeconds((double) gravity / 60);
+        _timer.TimerAmount = delay;
+
         LevelChanged?.Invoke(this, EventArgs.Empty);
     }
     #endregion Methods

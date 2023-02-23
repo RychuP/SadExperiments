@@ -1,4 +1,5 @@
-﻿using SadCanvas;
+﻿using Microsoft.Xna.Framework.Audio;
+using SadCanvas;
 using System.IO;
 
 namespace SadExperiments.Games.Tetris;
@@ -16,7 +17,7 @@ class Game : Page, IRestartable
     readonly InfoDisplay _infoDisplay;
     readonly Canvas _logo;
     readonly Board _board;
-    readonly BorderSurface _mask;
+    readonly Mask _mask;
     readonly BorderSurface _border;
     #endregion Fields
 
@@ -80,6 +81,7 @@ class Game : Page, IRestartable
         _board.TetrominoPlanted += Board_OnTetrominoPlanted;
         _board.ScoreChanged += Board_OnScoreChanged;
         _board.LevelChanged += Board_OnLevelChanged;
+        _board.LinesChanged += Board_OnLinesChanged;
         _board.GameOver += Board_OnGameOver;
     }
     #endregion Constructors
@@ -114,16 +116,21 @@ class Game : Page, IRestartable
 
     protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
     {
-        // reduce initial keyboard repeat delay to make the moves left and right start faster
-        SadConsole.Game.Instance.Keyboard.InitialRepeatDelay = newParent is Container ? 0.3f :
-            Container.Instance.DefaultInitialRepeatDelay;
-
-        // clean up when page is removed
-        if (oldParent is Container)
+        if (newParent is Container)
         {
+            Sounds.Load.Play();
+
+            // reduce initial keyboard repeat delay to make the moves left and right start faster
+            SadConsole.Game.Instance.Keyboard.InitialRepeatDelay = 0.3f;
+        }
+        // clean up when the page is removed
+        else if (oldParent is Container)
+        {
+            Sounds.StopAll();
             _finishedWindow.Hide();
             _startWindow.Hide();
             _infoDisplay.RemoveInstructions();
+            SadConsole.Game.Instance.Keyboard.InitialRepeatDelay = Container.Instance.DefaultInitialRepeatDelay;
         }
 
         base.OnParentChanged(oldParent, newParent);
@@ -136,22 +143,20 @@ class Game : Page, IRestartable
         {
             if (keyboard.IsKeyPressed(Keys.X))
             {
-                Sounds.Beep.Play();
+                Sounds.Rotate.Play();
                 _board.RotateTetrominoRight();
             }
             else if (keyboard.IsKeyPressed(Keys.Z))
             {
-                Sounds.Beep.Play();
+                Sounds.Rotate.Play();
                 _board.RotateTetrominoLeft();
             }
             else if (keyboard.IsKeyPressed(Keys.Left))
             {
-                Sounds.Move.Play();
                 _board.MoveTetrominoLeft();
             }
             else if (keyboard.IsKeyPressed(Keys.Right))
             {
-                Sounds.Move.Play();
                 _board.MoveTetrominoRight();
             }
             else if (keyboard.IsKeyPressed(Keys.Space))
@@ -178,6 +183,7 @@ class Game : Page, IRestartable
 
     void RestartButton_OnClick(object? o, EventArgs e)
     {
+        Sounds.Start.Play();
         _finishedWindow.Hide();
         _board.Restart();
     }
@@ -192,8 +198,14 @@ class Game : Page, IRestartable
         _infoDisplay.ShowScore(_board.Score);
     }
 
+    void Board_OnLinesChanged(object? o, EventArgs e)
+    {
+        _mask.PrintLines(_board.Lines);
+    }
+
     void Board_OnLevelChanged(object? o, EventArgs e)
     {
+        _mask.PrintLevel(_board.Level);
         if (_board.Level != 0)
         {
             Color color = Color.Black;
@@ -208,6 +220,9 @@ class Game : Page, IRestartable
 
     void StartButton_OnClick(object? o, EventArgs e)
     {
+        if (Sounds.Load.State == SoundState.Playing)
+            Sounds.Load.Stop();
+        Sounds.Start.Play();
         _startWindow.Hide();
         _board.TogglePause();
     }
@@ -221,4 +236,39 @@ class BorderSurface : ScreenSurface
         Font = Fonts.Square10;
         FontSize *= 2;
     }
+}
+
+class Mask : BorderSurface
+{
+    LinesAndLevelDisplay _levelDisplay;
+    LinesAndLevelDisplay _linesDisplay;
+
+    public Mask(int w, int h) : base(w, h)
+    {
+        _levelDisplay = new(4, HorizontalAlignment.Left);
+        _linesDisplay = new(10, HorizontalAlignment.Right);
+        int x = _levelDisplay.FontSize.X * 2;
+        int y = _levelDisplay.FontSize.Y * 2 + 2;
+        _levelDisplay.Position = (x, y);
+        x = WidthPixels - _linesDisplay.WidthPixels - x;
+        _linesDisplay.Position = (x, y);
+        Children.Add(_levelDisplay, _linesDisplay);
+    }
+
+    public void PrintLevel(int level) => _levelDisplay.Print(level);
+    public void PrintLines(int lines) => _linesDisplay.Print(lines);
+}
+
+class LinesAndLevelDisplay : ScreenSurface
+{
+    HorizontalAlignment _horizontalAlignment;
+
+    public LinesAndLevelDisplay(int w, HorizontalAlignment alignment) : base(w, 1)
+    {
+        UsePixelPositioning = true;
+        _horizontalAlignment = alignment;
+    }
+
+    public void Print(int number) =>
+        Surface.Print(Point.Zero, number.ToString().Align(_horizontalAlignment, Surface.Width));
 }

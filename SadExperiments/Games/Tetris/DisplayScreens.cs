@@ -60,6 +60,7 @@ class InfoDisplay : ScreenSurface
                 _scoreDisplay.Position = _hiddenPosition;
                 return true;
             })
+            // flash info surface
             .Code((o, t) =>
             {
                 Surface.SetDefaultColors(Color.Black, Color.LightGray);
@@ -71,16 +72,6 @@ class InfoDisplay : ScreenSurface
                 return true;
             })
             .Wait(TimeSpan.FromSeconds(1.2))
-            .Code((o, t) =>
-            {
-                Surface.SetDefaultColors(Color.Black, Color.LightGray);
-                return true;
-            })
-            .Code((o, t) =>
-            {
-                Surface.SetDefaultColors(Color.White, Color.Black);
-                return true;
-            })
             .Code((o, t) =>
             {
                 _levelDisplay.Position = _hiddenPosition;
