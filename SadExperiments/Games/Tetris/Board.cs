@@ -176,6 +176,7 @@ class Board : ScreenSurface
         }
         else
         {
+            Sounds.Drop.Play();
             Current = Next;
             Next = Tetromino.Next();
             RemoveFullRows();

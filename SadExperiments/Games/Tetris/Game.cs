@@ -135,13 +135,25 @@ class Game : Page, IRestartable
         if (keyboard.HasKeysPressed)
         {
             if (keyboard.IsKeyPressed(Keys.X))
+            {
+                Sounds.Beep.Play();
                 _board.RotateTetrominoRight();
+            }
             else if (keyboard.IsKeyPressed(Keys.Z))
+            {
+                Sounds.Beep.Play();
                 _board.RotateTetrominoLeft();
+            }
             else if (keyboard.IsKeyPressed(Keys.Left))
+            {
+                Sounds.Move.Play();
                 _board.MoveTetrominoLeft();
+            }
             else if (keyboard.IsKeyPressed(Keys.Right))
+            {
+                Sounds.Move.Play();
                 _board.MoveTetrominoRight();
+            }
             else if (keyboard.IsKeyPressed(Keys.Space))
                 _board.HardDropTetromino();
             else if (keyboard.IsKeyPressed(Keys.P))
