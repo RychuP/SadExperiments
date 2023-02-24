@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Games\PacMan\" />
+    <Folder Include="Resources\Sounds\PacMan\" />
   </ItemGroup>
 
 </Project>

@@ -116,7 +116,7 @@ class Fluid : Page, IRestartable
 
         // restart the timer after a delay
         instructions = new InstructionSet() { RemoveOnFinished = true }
-            .Wait(TimeSpan.FromSeconds(1d))
+            .Wait(TimeSpan.FromSeconds(0.5d))
             .Code((o, t) =>
             {
                 Surface.Clear();

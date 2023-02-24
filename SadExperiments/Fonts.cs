@@ -1,11 +1,12 @@
-﻿using SadConsole.Readers;
+﻿using System.IO;
+using SadConsole.Readers;
 using System.Collections;
 
 namespace SadExperiments;
 
 static class Fonts
 {
-    static readonly string FontsDirectoryPath = "./Resources/Fonts/";
+    static readonly string FontsDirectoryPath = Path.Combine("Resources", "Fonts");
     static HashSet<TheDrawFont> s_drawFonts = new();
 
     public static IFont Default => GameHost.Instance.DefaultFont;
@@ -15,7 +16,8 @@ static class Fonts
     public static IFont C64_petscii => GetFont("c64_petscii");
     public static IFont Cheepicus12 => GetFont("Cheepicus12");
     public static IFont Jpetscii => GetFont("jpetscii");
-    public static IFont Empty => GetFont("empty_font");
+    public static IFont Empty => GetFont("empty_font");                                 // for pixel manipulations
+    public static IFont Maze => GetFont("maze");                                        // pacman maze
     public static TheDrawFont Destruct => GetDrawFont("Destruct", "DESTRUCX");
 
 
@@ -28,7 +30,8 @@ static class Fonts
             try
             {
                 fontFileName = fontFileName == string.Empty ? fontName : fontFileName;
-                var font = GameHost.Instance.LoadFont(FontsDirectoryPath + fontFileName + ".font");
+                string path = Path.Combine(FontsDirectoryPath, fontFileName + ".font");
+                var font = GameHost.Instance.LoadFont(path);
                 return font;
             }
             catch (System.Runtime.Serialization.SerializationException)
@@ -44,7 +47,8 @@ static class Fonts
             return df;
         else
         {
-            var fontEnumerable = TheDrawFont.ReadFonts(FontsDirectoryPath + fontFileName + ".TDF");
+            string path = Path.Combine(FontsDirectoryPath, fontFileName + ".TDF");
+            var fontEnumerable = TheDrawFont.ReadFonts(path);
             if (fontEnumerable is IEnumerable &&
                 fontEnumerable.Where(f => f.Title == fontName).FirstOrDefault() is TheDrawFont drawFont)
             {
@@ -52,9 +56,7 @@ static class Fonts
                 return drawFont;
             }
             else
-            {
                 throw new ArgumentException($"There has been a problem while loading the DrawFont {fontName}.");
-            }
         }
     }
 }
