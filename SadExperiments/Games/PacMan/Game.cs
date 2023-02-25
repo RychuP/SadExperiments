@@ -8,7 +8,7 @@ class Game : Page
 {
     public Game()
     {
-        // read the blueprint file
+        // read the blueprint file (to be replaced by random generation)
         string path = Path.Combine("Resources", "Other", "PacMan", "Maze.txt");
         var text = File.ReadAllText(path);
         string[] lines = text.Split("\r\n");
@@ -27,6 +27,8 @@ class Game : Page
             }
         }
 
-        //var board = new Board();
+        // create the board
+        var board = new Board(width, height, tiles);
+        Children.Add(board);
     }
 }

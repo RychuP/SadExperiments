@@ -1,73 +1,32 @@
-﻿using GoRogue.GameFramework;
-using SadRogue.Primitives.GridViews;
+﻿namespace SadExperiments.Games.PacMan;
 
-namespace SadExperiments.Games.PacMan;
-
-class Board : Map
+class Board : ScreenSurface
 {
-    readonly AdjacencyRule _adjacencyRule = AdjacencyRule.Cardinals;
-    public ScreenSurface Appearance { get; init; }
+    readonly AdjacencyRule _adjacencyRule = AdjacencyRule.EightWay;
 
-    public Board(int w, int h, Tile[] tiles) : base(w, h, 1, Distance.Manhattan)
+    public Board(int width, int height, Tile[] tiles) : base(width, height, tiles)
     {
-        Appearance = new ScreenSurface(w, h)
-        {
-            Position = (1, 1),
-            Font = Fonts.Maze
-        };
-        Appearance.FontSize *= 2;
+        Position = (2, 2);
+        Font = Fonts.Maze;
+        FontSize *= 4;
 
-        // cross road
-        // _|   |_
-        //   0 1
-        // _ 2 3 _
-        //  |   |
+        // get perimeter positions
+        var perimeter = Surface.Area.PerimeterPositions();
 
         foreach (var tile in tiles)
         {
-            if (tile is not Wall wall) continue;
-
-            var points = _adjacencyRule.Neighbors(wall.Position);
-            var neighbourWalls = tiles.Where(t => t is Wall && points.Contains(t.Position));
-
-            // there is a wall above
-            if (neighbourWalls.Any(t => t.Position.Y < wall.Position.Y))
+            if (tile is Wall wall)
             {
-                // there is a wall to the left
-                if (neighbourWalls.Any(t => t.Position.X < wall.Position.X))
-                {
+                // find neighbouring walls
+                var adjacentPoints = _adjacencyRule.Neighbors(wall.Position);
+                var adjacentWalls = tiles.Where(t => t is Wall && adjacentPoints.Contains(t.Position)).Select(t => (Wall)t);
 
-                }
+                // check if the wall is on the perimeter
+                bool isPerimeter = perimeter.Contains(wall.Position);
+
+                // set wall neighbours and change glyph
+                wall.SetAppearance(adjacentWalls, isPerimeter);
             }
-
-            // no wall above, but there is a wall below
-            else if (neighbourWalls.Any(t => t.Position.Y > wall.Position.Y))
-            {
-                // there is a wall to the left
-                if (neighbourWalls.Any(t => t.Position.X < wall.Position.X))
-                {
-                    // wall to the left and right
-                    if (neighbourWalls.Any(t => t.Position.X > wall.Position.X))
-                    {
-                        wall.Appearance.Glyph = 4;
-                        wall.Appearance.Mirror = Mirror.Vertical;
-                        //wall.Appearance.
-                    }
-                }
-                // no wall on the left, but there is a wall to the right
-                else if (neighbourWalls.Any(t => t is Wall && t.Position.X > wall.Position.X))
-                {
-                    wall.Appearance.Glyph = 0;
-                    wall.Appearance.Mirror = Mirror.Horizontal;
-                }
-            }
-
-            // no walls above and below
-            else
-            {
-
-            }
-                
         }
     }
 }
