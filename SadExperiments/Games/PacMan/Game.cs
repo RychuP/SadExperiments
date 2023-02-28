@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualBasic;
-using System.IO;
+﻿using System.IO;
 
 namespace SadExperiments.Games.PacMan;
 
@@ -8,6 +7,14 @@ class Game : Page
 {
     public Game()
     {
+        #region Meta
+        Title = "PacMan";
+        Summary = "Work in progress.";
+        Submitter = Submitter.Rychu;
+        Date = new(2023, 02, 28);
+        Tags = new Tag[] {Tag.Game};
+        #endregion Meta
+
         // read the blueprint file (to be replaced by random generation)
         string path = Path.Combine("Resources", "Other", "PacMan", "Maze.txt");
         var text = File.ReadAllText(path);

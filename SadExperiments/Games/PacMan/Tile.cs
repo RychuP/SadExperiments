@@ -28,14 +28,10 @@ class Wall : Tile
     public Wall(Point position) : base(position, Appearances.Wall.Foreground, Appearances.Wall.Glyph)
     { }
 
-    public void SetAppearance(IEnumerable<Wall> walls, bool isPerimeter)
+    public void SetAppearance(IEnumerable<Wall> walls, PerimeterWall pw)
     {
         SetNeighbours(walls);
-
-        if (!isPerimeter)
-            SetGlyph(Appearances.InnerWalls);
-        else
-            SetGlyph(Appearances.PerimeterWalls);
+        SetGlyph(pw);
     }
 
     void SetNeighbours(IEnumerable<Wall> walls)
@@ -56,18 +52,41 @@ class Wall : Tile
         }
     }
 
-    void SetGlyph(Dictionary<int, int> glyphs)
+    void SetGlyph(PerimeterWall pw)
     {
+        // pull appropriate glyphs according to the wall type
+        var glyphs = pw == PerimeterWall.None ? Appearances.InnerWalls : Appearances.PerimeterWalls;
+
         for (int i = 0; i < 4; i++)
         {
             if (glyphs.ContainsKey(_neighbours))
             {
-                // small hack to cover the imposibility of distinguishing straight perimeter walls 
-                // between left and right or top and bottom when no additional features are present
-                int index = glyphs == Appearances.PerimeterWalls && _neighbours == 56
-                    && (Position.X == 0 || Position.Y == 0) ? i + 2 : i;
+                // pull the glyph index from the appearances array
+                int glyphIndex = glyphs[_neighbours];
 
-                Glyph = glyphs[_neighbours] + index;
+                // some perimeter walls need additional checks
+                if (pw != PerimeterWall.None)
+                {
+                    if (_neighbours == 56 && (pw == PerimeterWall.Left || pw == PerimeterWall.Top))
+                        glyphIndex += 2;
+                    else if (_neighbours == 432)
+                    {
+                        if ((i == 0 && pw == PerimeterWall.Right) ||
+                            (i == 1 && pw == PerimeterWall.Top) ||
+                            (i == 2 && pw == PerimeterWall.Left) || 
+                            (i == 3 && pw == PerimeterWall.Bottom) )
+                            glyphIndex = 28;
+                    }
+                }
+
+                // if the glyph is not in the column 0, the overflow (glyphs index 4 and above) has to be rolled over
+                int offset = i;
+                int delta = glyphIndex % 4;
+                if (delta + i >= 4)
+                    offset = delta - offset + 1;
+
+                // set the glyph and return
+                Glyph = glyphIndex + offset;
                 return;
             }
             else
