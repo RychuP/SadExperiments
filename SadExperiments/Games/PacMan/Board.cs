@@ -1,10 +1,13 @@
-﻿namespace SadExperiments.Games.PacMan;
+﻿using SadConsole.Entities;
+
+namespace SadExperiments.Games.PacMan;
 
 class Board : ScreenSurface
 {
     readonly AdjacencyRule _adjacencyRule = AdjacencyRule.EightWay;
+    readonly Renderer _renderer = new();
 
-    public Board(int width, int height, Tile[] tiles) : base(width, height, tiles)
+    public Board(Level level) : base(level.Width, level.Height, level.Tiles)
     {
         Position = (1, 2);
         Font = Fonts.Maze;
@@ -14,14 +17,13 @@ class Board : ScreenSurface
         var perimeter = Surface.Area.PerimeterPositions();
 
         // iterate through tiles to find all walls
-        foreach (var tile in tiles)
+        foreach (var tile in level.Tiles)
         {
-            
             if (tile is Wall wall)
             {
                 // find neighbouring walls
                 var adjacentPoints = _adjacencyRule.Neighbors(wall.Position);
-                var adjacentWalls = tiles.Where(t => t is Wall && adjacentPoints.Contains(t.Position))
+                var adjacentWalls = level.Tiles.Where(t => t is Wall && adjacentPoints.Contains(t.Position))
                     .Select(t => (Wall)t).ToList();
 
                 // check if the wall is on the perimeter
@@ -30,18 +32,17 @@ class Board : ScreenSurface
 
                 if (isPerimeter)
                 {
-                    // fake wall index
                     int x = wall.Position.X;
                     int y = wall.Position.Y;
 
-                    int index = x == 0 & y == 0 ? 0 :                       // top left corner
-                                x == 0 & y == height - 1 ? 0 :
-                                x == width - 1 && y == 0 ? 0 :
-                                x == width - 1 && y == height - 1 ? 0 :
-                                x == 0 ? 3 :                                // left wall
-                                x == width - 1 ? 5 :                        // right wall
-                                y == 0 ? 1 :                                // top wall
-                                y == height - 1 ? 7 :                       // bottom wall
+                    int index = x == 0 & y == 0 ? 0 :                               // top left corner
+                                x == 0 & y == level.Height - 1 ? 0 :
+                                x == level.Width - 1 && y == 0 ? 0 :
+                                x == level.Width - 1 && y == level.Height - 1 ? 0 :
+                                x == 0 ? 3 :                                        // left wall
+                                x == level.Width - 1 ? 5 :                          // right wall
+                                y == 0 ? 1 :                                        // top wall
+                                y == level.Height - 1 ? 7 :                         // bottom wall
                                 4;
 
                     pw = index switch
@@ -59,6 +60,9 @@ class Board : ScreenSurface
                 wall.SetAppearance(adjacentWalls, pw);
             }
         }
+
+        _renderer.AddRange(level.Dots);
+        SadComponents.Add(_renderer);
     }
 }
 

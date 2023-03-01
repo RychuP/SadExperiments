@@ -15,8 +15,16 @@ class Game : Page
         Tags = new Tag[] {Tag.Game};
         #endregion Meta
 
+        // create the board
+        var level = LoadMaze("Maze.txt");
+        var board = new Board(level);
+        Children.Add(board);
+    }
+
+    static Level LoadMaze(string fileName)
+    {
         // read the blueprint file (to be replaced by random generation)
-        string path = Path.Combine("Resources", "Other", "PacMan", "Maze.txt");
+        string path = Path.Combine("Resources", "Other", "PacMan", fileName);
         var text = File.ReadAllText(path);
         string[] lines = text.Split("\r\n");
         int width = lines[0].Length;
@@ -24,18 +32,51 @@ class Game : Page
 
         // create tiles
         var tiles = new Tile[width * height];
-        int i = 0;
-        foreach (string row in lines)
+        var dots = new List<Dot>(tiles.Length * 3 / 4);
+        Point start = Point.Zero;
+        for (int y = 0, i = 0; y < height; y++)
         {
-            foreach (char c in row)
+            string line = lines[y];
+            for (int x = 0; x < width; x++, i++)
             {
-                Point position = Point.FromIndex(i, width);
-                tiles[i++] = c == '.' ? new Floor(position) : new Wall(position);
+                char symbol = line[x];
+                Point position = (x, y);
+
+                switch (symbol)
+                {
+                    case '#':
+                        tiles[i] = new Wall(position);
+                        break;
+
+                    case '.':
+                        dots.Add(new Dot(position));
+                        goto default;
+
+                    case '*':
+                        dots.Add(new PowerUp(position));
+                        goto default;
+
+                    case 'A':
+                        tiles[i] = new Teleport(position, 'A');
+                        break;
+
+                    case 'B':
+                        tiles[i] = new Teleport(position, 'B');
+                        break;
+
+                    case 'S':
+                        start = position;
+                        goto default;
+
+                    default:
+                        tiles[i] = new Floor(position);
+                        break;
+                }
             }
         }
 
-        // create the board
-        var board = new Board(width, height, tiles);
-        Children.Add(board);
+        return new Level(width, height, start, tiles, dots);
     }
 }
+
+record Level(int Width, int Height, Point Start, Tile[] Tiles, List<Dot> Dots);
