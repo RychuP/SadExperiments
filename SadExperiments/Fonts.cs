@@ -18,6 +18,7 @@ static class Fonts
     public static IFont Jpetscii => GetFont("jpetscii");
     public static IFont Empty => GetFont("empty_font");                                 // for pixel manipulations
     public static IFont Maze => GetFont("maze");                                        // pacman maze
+    public static IFont Sprites => GetFont("sprites");                                  // pacman sprites
     public static TheDrawFont Destruct => GetDrawFont("Destruct", "DESTRUCX");
 
 

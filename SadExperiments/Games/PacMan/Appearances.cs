@@ -6,7 +6,7 @@ static class Appearances
 
     static Appearances()
     {
-        Wall = new("#2121ff".ToColor(), Color.Transparent, 38);
+        Wall = new(Color.DodgerBlue, Color.Transparent, 38); // "#2121ff"
         Floor = new(Color.White, Color.Transparent, 43);
         Dot = new("#ffb7ae".ToColor(), Color.Transparent, 36);
         Player = new(Color.Yellow, Color.Transparent, 0);

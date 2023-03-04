@@ -5,6 +5,11 @@ namespace SadExperiments.Games.PacMan;
 // game logic inspired by the article at https://pacman.holenet.info/
 class Game : Page
 {
+    public const double FontSizeMultiplier = 2;
+    public static readonly Point DefaultFontSize = new Point(8, 8) * FontSizeMultiplier;
+    readonly Player _player = new();
+    Board _board;
+
     public Game()
     {
         #region Meta
@@ -17,8 +22,15 @@ class Game : Page
 
         // create the board
         var level = LoadMaze("Maze.txt");
-        var board = new Board(level);
-        Children.Add(board);
+        _board = new Board(level, _player);
+        Children.Add(_board);
+    }
+
+    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
+    {
+        if (newParent is Container)
+            _board.IsFocused = true;
+        base.OnParentChanged(oldParent, newParent);
     }
 
     static Level LoadMaze(string fileName)

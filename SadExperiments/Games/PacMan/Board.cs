@@ -1,4 +1,5 @@
-﻿using SadConsole.Entities;
+﻿using SadConsole.Components;
+using SadConsole.Entities;
 
 namespace SadExperiments.Games.PacMan;
 
@@ -6,17 +7,108 @@ class Board : ScreenSurface
 {
     readonly AdjacencyRule _adjacencyRule = AdjacencyRule.EightWay;
     readonly Renderer _renderer = new();
+    readonly Timer _timer;
+    readonly Player _player;
+    readonly Point _playerStart;
 
-    public Board(Level level) : base(level.Width, level.Height, level.Tiles)
+    public Board(Level level, Player player) : base(level.Width, level.Height, level.Tiles)
     {
         Position = (1, 2);
         Font = Fonts.Maze;
-        FontSize *= 2;
+        FontSize = Game.DefaultFontSize;
 
-        // get perimeter positions
+        // draw board
+        DrawWalls(level);
+        DrawDots(level);
+
+        // save start points
+        _playerStart = level.Start.SurfaceLocationToPixel(FontSize);
+
+        // spawn actors
+        _player = player;
+        Children.Add(player);
+
+        // start timer
+        _timer = new(TimeSpan.FromMilliseconds(1));
+        _timer.TimerElapsed += Timer_OnTimerElapsed;
+        SadComponents.Add(_timer);
+    }
+
+    public override bool ProcessKeyboard(Keyboard keyboard)
+    {
+        if (keyboard.HasKeysDown)
+        {
+            if (keyboard.IsKeyDown(Keys.Right))
+            {
+                _player.NextDirection = Direction.Right;
+                return true;
+            }
+            else if (keyboard.IsKeyDown(Keys.Left))
+            {
+                _player.NextDirection = Direction.Left;
+                return true;
+            }
+            else if (keyboard.IsKeyDown(Keys.Up))
+            {
+                _player.NextDirection = Direction.Up;
+                return true;
+            }
+            else if (keyboard.IsKeyDown(Keys.Down))
+            {
+                _player.NextDirection = Direction.Down;
+                return true;
+            }
+        }
+        return base.ProcessKeyboard(keyboard);
+    }
+
+    void Timer_OnTimerElapsed(object? o, EventArgs e)
+    {
+        foreach (var child in Children)
+        {
+            if (child is Sprite actor)
+                actor.UpdatePosition();
+        }
+    }
+
+    public Point GetStartPosition(Sprite sprite)
+    {
+        return sprite switch
+        {
+            Player => _playerStart,
+            _ => _playerStart
+        };
+    }
+
+    public Point GetNextPosition(Point currentPosition, Direction direction)
+    {
+        Point surfacePosition = currentPosition.PixelLocationToSurface(FontSize);
+
+        if (direction == Direction.None)
+            return currentPosition;
+
+        Point nextPosition = surfacePosition + direction;
+        if (IsWalkable(nextPosition))
+            return nextPosition.SurfaceLocationToPixel(FontSize);
+        else
+            return currentPosition;
+    }
+
+    // checks if the position is valid and walkable
+    bool IsWalkable(Point position) =>
+        Surface.Area.Contains(position) && Surface[position.ToIndex(Surface.Width)] is Floor;
+
+    // adds dots to the map
+    void DrawDots(Level level)
+    {
+        _renderer.AddRange(level.Dots);
+        SadComponents.Add(_renderer);
+    }
+
+    // assigns glyphs to wall tiles
+    void DrawWalls(Level level)
+    {
         var perimeter = Surface.Area.PerimeterPositions();
-
-        // iterate through tiles to find all walls
         foreach (var tile in level.Tiles)
         {
             if (tile is Wall wall)
@@ -60,9 +152,6 @@ class Board : ScreenSurface
                 wall.SetAppearance(adjacentWalls, pw);
             }
         }
-
-        _renderer.AddRange(level.Dots);
-        SadComponents.Add(_renderer);
     }
 }
 
