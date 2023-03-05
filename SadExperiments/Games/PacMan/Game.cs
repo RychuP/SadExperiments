@@ -3,11 +3,12 @@
 namespace SadExperiments.Games.PacMan;
 
 // game logic inspired by the article at https://pacman.holenet.info/
-class Game : Page
+class Game : Page, IRestartable
 {
     public const double FontSizeMultiplier = 2;
     public static readonly Point DefaultFontSize = new Point(8, 8) * FontSizeMultiplier;
     readonly Player _player = new();
+    readonly Score _score = new();
     Board _board;
 
     public Game()
@@ -20,16 +21,35 @@ class Game : Page
         Tags = new Tag[] {Tag.Game};
         #endregion Meta
 
-        // create the board
+        _board = CreateBoard("Maze.txt");
+    }
+
+    public void Restart()
+    {
+        Children.Clear();
+        _board = CreateBoard("Maze.txt");
+        Children.Add(_score, _board);
+    }
+
+    Board CreateBoard(string fileName)
+    {
         var level = LoadMaze("Maze.txt");
-        _board = new Board(level, _player);
-        Children.Add(_board);
+        var board = new Board(level, _player);
+        board.ScoreChanged += Board_OnScoreChanged;
+        return board;
+    }
+
+    void Board_OnScoreChanged(object? o, EventArgs e)
+    {
+        _score.PrintScore(_board.Score);
     }
 
     protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
     {
         if (newParent is Container)
             _board.IsFocused = true;
+        else if (oldParent is Container)
+            Sounds.StopAll();
         base.OnParentChanged(oldParent, newParent);
     }
 
@@ -57,7 +77,8 @@ class Game : Page
                 switch (symbol)
                 {
                     case '#':
-                        tiles[i] = new Wall(position);
+                        tiles[i] = (x == 0 || y == 0 || x == width - 1 || y == height - 1) ?
+                            new PerimeterWall(position) : new Wall(position);
                         break;
 
                     case '.':
@@ -79,6 +100,14 @@ class Game : Page
                     case 'S':
                         start = position;
                         goto default;
+
+                    case 'X':
+                        tiles[i] = (new Spawner(position));
+                        break;
+
+                    case '-':
+                        tiles[i] = (new SpawnerEntrance(position));
+                        break;
 
                     default:
                         tiles[i] = new Floor(position);

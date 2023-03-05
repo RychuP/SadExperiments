@@ -1,5 +1,5 @@
-﻿using SadConsole.Components;
-using SadConsole.Entities;
+﻿using SadConsole.Entities;
+using SadConsole.Instructions;
 
 namespace SadExperiments.Games.PacMan;
 
@@ -7,12 +7,14 @@ class Board : ScreenSurface
 {
     readonly AdjacencyRule _adjacencyRule = AdjacencyRule.EightWay;
     readonly Renderer _renderer = new();
-    readonly Timer _timer;
     readonly Player _player;
     readonly Point _playerStart;
+    bool _isPaused = true;
+    int _score;
 
     public Board(Level level, Player player) : base(level.Width, level.Height, level.Tiles)
     {
+        UsePixelPositioning = true;
         Position = (1, 2);
         Font = Fonts.Maze;
         FontSize = Game.DefaultFontSize;
@@ -28,10 +30,25 @@ class Board : ScreenSurface
         _player = player;
         Children.Add(player);
 
-        // start timer
-        _timer = new(TimeSpan.FromMilliseconds(1));
-        _timer.TimerElapsed += Timer_OnTimerElapsed;
-        SadComponents.Add(_timer);
+        // reset score
+        Score = 0;
+
+        // add a small pause at the beginning
+        SadComponents.Add(
+            new InstructionSet() { RemoveOnFinished = true }
+            .Wait(TimeSpan.FromSeconds(1))
+            .Code((o, t) => { _isPaused = false; return true; })
+        );
+    }
+
+    public int Score
+    {
+        get => _score;
+        private set
+        {
+            _score = value;
+            OnScoreChanged();
+        }
     }
 
     public override bool ProcessKeyboard(Keyboard keyboard)
@@ -62,13 +79,30 @@ class Board : ScreenSurface
         return base.ProcessKeyboard(keyboard);
     }
 
-    void Timer_OnTimerElapsed(object? o, EventArgs e)
+    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
     {
-        foreach (var child in Children)
+        base.OnParentChanged(oldParent, newParent);
+        if (newParent is Game game)
         {
-            if (child is Sprite actor)
-                actor.UpdatePosition();
+            Sounds.Siren.Play();
+            Sounds.Siren.IsLooped = true;
+
+            Position = ((game.WidthPixels - WidthPixels) / 2,
+                game.HeightPixels - HeightPixels - Convert.ToInt32(Game.DefaultFontSize.Y * 1.5d));
         }
+    }
+
+    public override void Update(TimeSpan delta)
+    {
+        if (!_isPaused)
+        {
+            foreach (var child in Children)
+            {
+                if (child is Sprite actor)
+                    actor.UpdatePosition();
+            }
+        }
+        base.Update(delta);
     }
 
     public Point GetStartPosition(Sprite sprite)
@@ -94,6 +128,22 @@ class Board : ScreenSurface
             return currentPosition;
     }
 
+    public IEdible? GetConsumable(Point pixelPosition)
+    {
+        Point surfacePosition = pixelPosition.PixelLocationToSurface(FontSize);
+        var entity = _renderer.Entities.Where(e => e.Position == surfacePosition).FirstOrDefault();
+        if (entity is Dot dot)
+            return dot;
+        else
+            return null;
+    }
+
+    public void RemoveDot(Dot dot)
+    {
+        Score += dot.Value;
+        _renderer.Remove(dot);
+    }
+
     // checks if the position is valid and walkable
     bool IsWalkable(Point position) =>
         Surface.Area.Contains(position) && Surface[position.ToIndex(Surface.Width)] is Floor;
@@ -108,7 +158,6 @@ class Board : ScreenSurface
     // assigns glyphs to wall tiles
     void DrawWalls(Level level)
     {
-        var perimeter = Surface.Area.PerimeterPositions();
         foreach (var tile in level.Tiles)
         {
             if (tile is Wall wall)
@@ -118,49 +167,16 @@ class Board : ScreenSurface
                 var adjacentWalls = level.Tiles.Where(t => t is Wall && adjacentPoints.Contains(t.Position))
                     .Select(t => (Wall)t).ToList();
 
-                // check if the wall is on the perimeter
-                bool isPerimeter = perimeter.Contains(wall.Position);
-                PerimeterWall pw = PerimeterWall.None;
-
-                if (isPerimeter)
-                {
-                    int x = wall.Position.X;
-                    int y = wall.Position.Y;
-
-                    int index = x == 0 & y == 0 ? 0 :                               // top left corner
-                                x == 0 & y == level.Height - 1 ? 0 :
-                                x == level.Width - 1 && y == 0 ? 0 :
-                                x == level.Width - 1 && y == level.Height - 1 ? 0 :
-                                x == 0 ? 3 :                                        // left wall
-                                x == level.Width - 1 ? 5 :                          // right wall
-                                y == 0 ? 1 :                                        // top wall
-                                y == level.Height - 1 ? 7 :                         // bottom wall
-                                4;
-
-                    pw = index switch
-                    {
-                        0 => PerimeterWall.Corner,
-                        1 => PerimeterWall.Top,
-                        3 => PerimeterWall.Left,
-                        5 => PerimeterWall.Right,
-                        7 => PerimeterWall.Bottom,
-                        _ => PerimeterWall.None,
-                    };
-                }
-
-                // set wall neighbours and change glyph
-                wall.SetAppearance(adjacentWalls, pw);
+                // set wall glyph
+                wall.SetAppearance(adjacentWalls);
             }
         }
     }
-}
 
-enum PerimeterWall
-{
-    None,
-    Corner,
-    Top,
-    Bottom,
-    Left,
-    Right,
+    void OnScoreChanged()
+    {
+        ScoreChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    public event EventHandler? ScoreChanged;
 }

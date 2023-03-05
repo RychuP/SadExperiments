@@ -44,6 +44,7 @@ sealed class Container : ScreenObject
     readonly Page[] _pages =
     {
         //new Test(),
+        
         new WelcomePage(),
         new Fluid(),
         new AnimatedGlobe(),

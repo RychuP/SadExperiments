@@ -6,8 +6,8 @@ static class Appearances
 
     static Appearances()
     {
-        Wall = new(Color.DodgerBlue, Color.Transparent, 38); // "#2121ff"
-        Floor = new(Color.White, Color.Transparent, 43);
+        Wall = new(Color.DodgerBlue, Color.Transparent, 38); 
+        Floor = new(Color.White, Color.Transparent, 39);
         Dot = new("#ffb7ae".ToColor(), Color.Transparent, 36);
         Player = new(Color.Yellow, Color.Transparent, 0);
     }
@@ -16,7 +16,7 @@ static class Appearances
     public static readonly Dictionary<int, int> InnerWalls = new()
     {
         // 010  
-        // 010  buggy
+        // 010
         // 010  
         { 146, 4 },
 
@@ -133,5 +133,47 @@ static class Appearances
         // 110
         // 000
         { 432, 32 },
+
+        // 111
+        // 111
+        // 000
+        { 504, 40 },
+    };
+
+    // <int neighboursAsBits, int glyphIndex>
+    public static readonly Dictionary<int, int> SpawnerWalls = new()
+    {
+        // 000
+        // 110
+        // 010
+        { 50, 44 },
+
+        // 000
+        // 111
+        // 000
+        { 56, 14 },
+
+        // 101
+        // 111
+        // 000
+        { 376, 14 },
+
+        // 001
+        // 111
+        // 000
+        { 120, 14 },
+
+        // 100
+        // 111
+        // 000
+        { 312, 14 },
+    };
+
+    public static readonly Dictionary<int, int> SpawnerEntranceWalls = new()
+    {
+        // 000
+        // 111
+        // 000
+        { 56, 48 },
     };
 }

@@ -15,6 +15,59 @@ class Floor : Tile
     { }
 }
 
+class Spawner : Wall
+{
+    public Spawner(Point position) : base(position)
+    {
+        Glyphs = Appearances.SpawnerWalls;
+    }
+
+    protected override int GetGlyph(IEnumerable<Wall> walls, int i)
+    {
+        return Glyphs[Neighbours];
+    }
+}
+
+class SpawnerEntrance : Spawner
+{
+    public SpawnerEntrance(Point position) : base(position)
+    {
+        Glyphs = Appearances.SpawnerEntranceWalls;
+        Foreground = Color.OrangeRed;
+    }
+}
+
+class PerimeterWall : Wall
+{
+    public PerimeterWall(Point position) : base(position)
+    {
+        Glyphs = Appearances.PerimeterWalls;
+    }
+
+    protected override int GetGlyph(IEnumerable<Wall> walls, int i)
+    {
+        // straight perimeter line
+        if (Neighbours == 56)
+        {
+            if ((i == 0 && Position.Y == 0) ||
+                (i == 1 && Position.X == 0))
+                return 14;
+        }
+
+        // square corner of an exit coridor
+        else if (Neighbours == 432)
+        {
+            if ((i == 0 && walls.Any(w => w.Position == Position + Direction.Up && w.Glyph == 21)) ||
+                (i == 1 && Position.Y == 0) ||
+                (i == 2 && Position.X == 0) ||
+                (i == 3 && Position.X != 0))
+                return 28;
+        }
+
+        return Glyphs[Neighbours];
+    }
+}
+
 class Wall : Tile
 {
     // used for bit rotation
@@ -23,15 +76,17 @@ class Wall : Tile
     // 000
     // 010  the bit in the center is always set
     // 000  and represents this wall
-    int _neighbours = 16;
+    protected int Neighbours { get; private set; } = 16;
+
+    protected Dictionary<int, int> Glyphs { get; set; } = Appearances.InnerWalls;
 
     public Wall(Point position) : base(position, Appearances.Wall.Foreground, Appearances.Wall.Glyph)
     { }
 
-    public void SetAppearance(IEnumerable<Wall> walls, PerimeterWall pw)
+    public void SetAppearance(IEnumerable<Wall> walls)
     {
         SetNeighbours(walls);
-        SetGlyph(pw);
+        SetGlyph(walls);
     }
 
     void SetNeighbours(IEnumerable<Wall> walls)
@@ -48,45 +103,37 @@ class Wall : Tile
             int flag = 256 >> i;
 
             // store the neighbour position as the bit
-            _neighbours |= flag;
+            Neighbours |= flag;
         }
     }
 
-    void SetGlyph(PerimeterWall pw)
+    protected virtual int GetGlyph(IEnumerable<Wall> walls, int i)
     {
-        // pull appropriate glyphs according to the wall type
-        var glyphs = pw == PerimeterWall.None ? Appearances.InnerWalls : Appearances.PerimeterWalls;
+        // straight inner line (for single line walls; mainly square wall shapes)
+        if (Neighbours == 146)
+        {
+            if (i == 0 && walls.Any(w => w.Position == Position + Direction.Up && w.Glyph == 6) ||
+                i == 1 && walls.Any(w => w.Position == Position + Direction.Left && w.Glyph == 7))
+                    return 6;
+        }
 
+        return Glyphs[Neighbours];
+    }
+
+    void SetGlyph(IEnumerable<Wall> walls)
+    {
         for (int i = 0; i < 4; i++)
         {
-            if (glyphs.ContainsKey(_neighbours))
+            if (Glyphs.ContainsKey(Neighbours))
             {
                 // pull the glyph index from the appearances array
-                int glyphIndex = glyphs[_neighbours];
+                int glyphIndex = GetGlyph(walls, i);
 
-                // some perimeter walls need additional checks
-                if (pw != PerimeterWall.None)
-                {
-                    if (_neighbours == 56 && (pw == PerimeterWall.Left || pw == PerimeterWall.Top))
-                        glyphIndex += 2;
-                    else if (_neighbours == 432)
-                    {
-                        if ((i == 0 && pw == PerimeterWall.Right) ||
-                            (i == 1 && pw == PerimeterWall.Top) ||
-                            (i == 2 && pw == PerimeterWall.Left) || 
-                            (i == 3 && pw == PerimeterWall.Bottom) )
-                            glyphIndex = 28;
-                    }
-                }
-
-                // if the glyph is not in the column 0, the overflow (glyphs index 4 and above) has to be rolled over
-                int offset = i;
+                // rotate glyph index if it overflows the row
                 int delta = glyphIndex % 4;
-                if (delta + i >= 4)
-                    offset = delta - offset + 1;
+                Glyph = delta + i >= 4 ?
+                    glyphIndex - 4 + i : glyphIndex + i;
 
-                // set the glyph and return
-                Glyph = glyphIndex + offset;
                 return;
             }
             else
@@ -104,7 +151,7 @@ class Wall : Tile
             int flag = 256 >> _bitsRotatedClockwise[i];
 
             // copy the bit from neighbours
-            int bit = _neighbours & flag;
+            int bit = Neighbours & flag;
 
             // shift the bit back to position 0;
             bit <<= _bitsRotatedClockwise[i];
@@ -116,6 +163,6 @@ class Wall : Tile
             temp ^= bit;
         }
 
-        _neighbours = temp;
+        Neighbours = temp;
     }
 }

@@ -22,6 +22,16 @@ class Player : Sprite
     {
         if (Parent is Board board)
         {
+            // check if there is a consumable at the current location
+            IEdible? edible = board.GetConsumable(FromPosition);
+            if (edible is Dot dot)
+            {
+                board.RemoveDot(dot);
+                Sounds.Munch.Play();
+            }
+            else
+                Sounds.Munch.Stop();
+
             // check premove first
             if (NextDirection != Direction.None)
             {
