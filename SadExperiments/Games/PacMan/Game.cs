@@ -26,8 +26,10 @@ class Game : Page, IRestartable
 
     public void Restart()
     {
-        Children.Clear();
+        _score.Reset();
         _board = CreateBoard("Maze.txt");
+
+        Children.Clear();
         Children.Add(_score, _board);
     }
 

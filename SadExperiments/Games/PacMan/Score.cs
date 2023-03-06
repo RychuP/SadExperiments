@@ -21,4 +21,9 @@ class Score : ScreenSurface
     {
         Surface.Print(0, _scoreTitle + $"{score:000}");
     }
+
+    public void Reset()
+    {
+        PrintScore(0);
+    }
 }

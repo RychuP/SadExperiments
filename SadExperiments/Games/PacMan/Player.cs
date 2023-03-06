@@ -15,6 +15,7 @@ class Player : Sprite
             Direction = Direction.Left;
             NextDirection = Direction.None;
             ToPosition = board.GetNextPosition(FromPosition, Direction);
+            Speed = 2d;
         }
     }
 

@@ -1,6 +1,6 @@
 namespace SadExperiments.Games.PacMan;
 
-class Sprite : ScreenSurface
+abstract class Sprite : ScreenSurface
 {
     static readonly Point DefaultFontSize = Game.DefaultFontSize + new Point(3, 3) * Game.FontSizeMultiplier;
     Direction _direction = Direction.None;
@@ -12,6 +12,7 @@ class Sprite : ScreenSurface
     Point _fromPosition = Point.None;
     Point _toPosition = Point.None;
     Point _currentPosition = Point.None;
+    double _distanceTravelled = 0;
 
     // sprites occupy more space than a board tile (their position is offsetted a few pixels)
     readonly Point _positionOffset;
@@ -21,6 +22,7 @@ class Sprite : ScreenSurface
     TimeSpan _timeElapsed = TimeSpan.Zero;
     int _currentAnimFrame = 0;
     int _animationColumn = 0;
+    int _firstFrameIndex = 0;
 
     public Sprite() : base(1, 1)
     {
@@ -32,18 +34,17 @@ class Sprite : ScreenSurface
         _positionOffset = (offset, offset);
     }
 
-    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
-    {
-        if (newParent is Board board)
-        {
-            FontSize = DefaultFontSize;
-            FromPosition = board.GetStartPosition(this);
-            CurrentPosition = FromPosition;
-        }
-        base.OnParentChanged(oldParent, newParent);
-    }
+    public Point Start { get; set; } = Point.Zero;
 
-    protected int AnimationRow { get; set; }
+    protected double Speed { get; set; } = 1d;
+
+    protected int AnimationRow
+    {
+        set
+        {
+            _firstFrameIndex = value * 4;
+        }
+    }
 
     // direction in which the sprite is currently going
     public Direction Direction
@@ -93,12 +94,12 @@ class Sprite : ScreenSurface
                 if (Direction == Direction.Up || Direction == Direction.Down)
                 {
                     if (FromPosition.X != value.X)
-                        throw new ArgumentException("Vertical movement can only happen in straight line.");
+                        throw new ArgumentException("Vertical movement can only happen in a straight line.");
                 }
                 else if (Direction == Direction.Left || Direction == Direction.Right)
                 {
                     if (FromPosition.Y != value.Y)
-                        throw new ArgumentException("Horizontal movement can only happen in straight line.");
+                        throw new ArgumentException("Horizontal movement can only happen in a straight line.");
                 }
                 else
                     throw new InvalidOperationException("Only cardinal directions allowed.");
@@ -119,13 +120,33 @@ class Sprite : ScreenSurface
         }
     }
 
+    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
+    {
+        if (newParent is Board board)
+        {
+            FontSize = DefaultFontSize;
+            FromPosition = Start;
+            CurrentPosition = FromPosition;
+        }
+        base.OnParentChanged(oldParent, newParent);
+    }
+
     // used mainly for movement
     public void UpdatePosition()
     {
         if (FromPosition != ToPosition && Direction != Direction.None)
         {
-            CurrentPosition += Direction;
-            CurrentPosition += Direction;
+            _distanceTravelled += Speed;
+            if (_distanceTravelled > 1)
+            {
+                double reminder = _distanceTravelled % 1;
+                int distance = Convert.ToInt32(_distanceTravelled - reminder);
+                _distanceTravelled = reminder;
+
+                int x = Direction.DeltaX * distance;
+                int y = Direction.DeltaY * distance;
+                CurrentPosition += (x, y);
+            }
         }
     }
 
@@ -136,9 +157,9 @@ class Sprite : ScreenSurface
         if (_timeElapsed >= _animationFreq)
         {
             _timeElapsed = TimeSpan.Zero;
-            Surface[0].Glyph = AnimationRow + _animationColumn + _currentAnimFrame * 4;
-            Surface.IsDirty = true;
+            Surface[0].Glyph = _firstFrameIndex + _animationColumn + _currentAnimFrame * 4;
             _currentAnimFrame = _currentAnimFrame == 0 ? 1 : 0;
+            Surface.IsDirty = true;
         }
         base.Update(delta);
     }

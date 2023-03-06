@@ -1,5 +1,6 @@
 ﻿using SadConsole.Entities;
 using SadConsole.Instructions;
+using SadExperiments.Games.PacMan.Ghosts;
 
 namespace SadExperiments.Games.PacMan;
 
@@ -7,10 +8,16 @@ class Board : ScreenSurface
 {
     readonly AdjacencyRule _adjacencyRule = AdjacencyRule.EightWay;
     readonly Renderer _renderer = new();
-    readonly Player _player;
-    readonly Point _playerStart;
+    readonly GhostHouse _ghostHouse;
     bool _isPaused = true;
     int _score;
+
+    // sprites
+    readonly Player _player;
+    readonly Blinky _blinky;
+    readonly Inky _inky;
+    readonly Pinky _pinky;
+    readonly Clyde _clyde;
 
     public Board(Level level, Player player) : base(level.Width, level.Height, level.Tiles)
     {
@@ -18,27 +25,34 @@ class Board : ScreenSurface
         Position = (1, 2);
         Font = Fonts.Maze;
         FontSize = Game.DefaultFontSize;
+        _player = player;
 
         // draw board
         DrawWalls(level);
         DrawDots(level);
 
-        // save start points
-        _playerStart = level.Start.SurfaceLocationToPixel(FontSize);
+        // create ghost house
+        var spawner = level.Tiles.Where(t => t is Spawner).FirstOrDefault();
+        if (spawner != null)
+            _ghostHouse = new(spawner.Position);
+        else
+            throw new ArgumentException("Tiles do not container a spawner location.");
 
-        // spawn actors
-        _player = player;
-        Children.Add(player);
+        // create ghosts
+        _blinky = new(_ghostHouse.BlinkyPosition);
+        _pinky = new(_ghostHouse.PinkyPosition);
+        _inky = new(_ghostHouse.InkyPosition);
+        _clyde = new(_ghostHouse.ClydePosition);
+
+        // assign start points
+        _player.Start = level.Start.SurfaceLocationToPixel(FontSize);
+        Children.Add(_pinky, _inky, _clyde, _blinky, player);
 
         // reset score
         Score = 0;
 
         // add a small pause at the beginning
-        SadComponents.Add(
-            new InstructionSet() { RemoveOnFinished = true }
-            .Wait(TimeSpan.FromSeconds(1))
-            .Code((o, t) => { _isPaused = false; return true; })
-        );
+        SadComponents.Add(new Pause());
     }
 
     public int Score
@@ -105,14 +119,7 @@ class Board : ScreenSurface
         base.Update(delta);
     }
 
-    public Point GetStartPosition(Sprite sprite)
-    {
-        return sprite switch
-        {
-            Player => _playerStart,
-            _ => _playerStart
-        };
-    }
+    public void TogglePause() { _isPaused = !_isPaused; }
 
     public Point GetNextPosition(Point currentPosition, Direction direction)
     {
@@ -142,6 +149,7 @@ class Board : ScreenSurface
     {
         Score += dot.Value;
         _renderer.Remove(dot);
+        _renderer.IsDirty = true;
     }
 
     // checks if the position is valid and walkable
@@ -179,4 +187,18 @@ class Board : ScreenSurface
     }
 
     public event EventHandler? ScoreChanged;
+}
+
+class Pause : InstructionSet
+{
+    public Pause()
+    {
+        RemoveOnFinished = true;
+        Instructions.AddFirst(new Wait(TimeSpan.FromSeconds(1)));
+        Instructions.AddLast(new CodeInstruction((o, t) =>
+        {
+            if (o is Board b) b.TogglePause();
+            return true;
+        }));
+    }
 }
