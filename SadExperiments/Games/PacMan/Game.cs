@@ -6,9 +6,14 @@ namespace SadExperiments.Games.PacMan;
 class Game : Page, IRestartable
 {
     public const double FontSizeMultiplier = 2;
+    const int LivesStart = 3;
+
     public static readonly Point DefaultFontSize = new Point(8, 8) * FontSizeMultiplier;
-    readonly Player _player = new();
-    readonly Score _score = new();
+    readonly GameOverWindow _gameOverWindow = new();
+    readonly Header _header = new();
+    int _lives = LivesStart;
+    int _level = 1;
+    int _score = 0;
     Board _board;
 
     public Game()
@@ -18,39 +23,69 @@ class Game : Page, IRestartable
         Summary = "Work in progress.";
         Submitter = Submitter.Rychu;
         Date = new(2023, 02, 28);
-        Tags = new Tag[] {Tag.Game};
+        Tags = new Tag[] {Tag.SadConsole, Tag.Pixels, Tag.Game, Tag.Renderer};
         #endregion Meta
 
         _board = CreateBoard("Maze.txt");
+        _gameOverWindow.RestartButton.Click += RestartButton_OnClick;
     }
 
     public void Restart()
     {
-        _score.Reset();
+        _level = 1;
+        _score = 0;
+        _lives = LivesStart;
         _board = CreateBoard("Maze.txt");
-
+        _header.Print(_lives, _score, _level);
         Children.Clear();
-        Children.Add(_score, _board);
+        Children.Add(_header, _board);
     }
 
     Board CreateBoard(string fileName)
     {
         var level = LoadMaze("Maze.txt");
-        var board = new Board(level, _player);
-        board.ScoreChanged += Board_OnScoreChanged;
+        var board = new Board(level);
+        board.IsFocused = true;
+        board.DotEaten += Board_OnDotEaten;
+        board.LiveLost += Board_OnLiveLost;
         return board;
     }
 
-    void Board_OnScoreChanged(object? o, EventArgs e)
+    void Board_OnLiveLost(object? o, EventArgs e)
     {
-        _score.PrintScore(_board.Score);
+        if (--_lives == 0)
+            OnGameOver();
+        else
+        {
+            _header.PrintLives(_lives);
+            _board.Restart();
+        }
+    }
+
+    void Board_OnDotEaten(object? o, ScoreEventArgs e)
+    {
+        _score += e.Value;
+        _header.PrintScore(_score);
+    }
+
+    void OnGameOver()
+    {
+        _board.RemoveAllDots();
+        _gameOverWindow.Show();
+        _gameOverWindow.ShowScore(_score, _level);
+        _gameOverWindow.RestartButton.IsFocused = true;
+    }
+
+    void RestartButton_OnClick(object? o, EventArgs e)
+    {
+        _gameOverWindow.Hide();
+        Restart();
     }
 
     protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
     {
-        if (newParent is Container)
-            _board.IsFocused = true;
-        else if (oldParent is Container)
+        _gameOverWindow.Hide();
+        if (oldParent is Container)
             Sounds.StopAll();
         base.OnParentChanged(oldParent, newParent);
     }
@@ -88,15 +123,15 @@ class Game : Page, IRestartable
                         goto default;
 
                     case '*':
-                        dots.Add(new PowerUp(position));
+                        dots.Add(new PowerDot(position));
                         goto default;
 
                     case 'A':
-                        tiles[i] = new Teleport(position, 'A');
+                        tiles[i] = new Portal(position, 'A');
                         break;
 
                     case 'B':
-                        tiles[i] = new Teleport(position, 'B');
+                        tiles[i] = new Portal(position, 'B');
                         break;
 
                     case 'S':

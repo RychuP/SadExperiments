@@ -1,92 +1,90 @@
-﻿using SadConsole.Entities;
+﻿using GoRogue.Pathing;
+using SadConsole.Entities;
 using SadConsole.Instructions;
 using SadExperiments.Games.PacMan.Ghosts;
+using SadRogue.Primitives.GridViews;
 
 namespace SadExperiments.Games.PacMan;
 
 class Board : ScreenSurface
 {
+    #region Fields
     readonly AdjacencyRule _adjacencyRule = AdjacencyRule.EightWay;
+    readonly List<Dot> _removedDots;
     readonly Renderer _renderer = new();
-    readonly GhostHouse _ghostHouse;
+    readonly AStar _aStar;
     bool _isPaused = true;
-    int _score;
+    bool _levelCompleted = false;
+    #endregion Fields
 
-    // sprites
-    readonly Player _player;
-    readonly Blinky _blinky;
-    readonly Inky _inky;
-    readonly Pinky _pinky;
-    readonly Clyde _clyde;
-
-    public Board(Level level, Player player) : base(level.Width, level.Height, level.Tiles)
+    #region Constructors
+    public Board(Level level) : base(level.Width, level.Height, level.Tiles)
     {
         UsePixelPositioning = true;
         Position = (1, 2);
         Font = Fonts.Maze;
         FontSize = Game.DefaultFontSize;
-        _player = player;
+        Sounds.Siren.IsLooped = true;
 
-        // draw board
+        // walls
         DrawWalls(level);
+
+        // dots
+        _removedDots = new List<Dot>(level.Dots.Count);
         DrawDots(level);
 
         // create ghost house
         var spawner = level.Tiles.Where(t => t is Spawner).FirstOrDefault();
         if (spawner != null)
-            _ghostHouse = new(spawner.Position);
+            GhostHouse = new(spawner.Position);
         else
-            throw new ArgumentException("Tiles do not container a spawner location.");
+            throw new ArgumentException("Tiles do not contain a spawner location.");
 
-        // create ghosts
-        _blinky = new(_ghostHouse.BlinkyPosition);
-        _pinky = new(_ghostHouse.PinkyPosition);
-        _inky = new(_ghostHouse.InkyPosition);
-        _clyde = new(_ghostHouse.ClydePosition);
+        // create player
+        Player = new Player(level.Start.SurfaceLocationToPixel(FontSize));
+        Player.DeathAnimationFinished += Player_OnDeathAnimationFinished;
+        Children.Add(Player);
 
-        // assign start points
-        _player.Start = level.Start.SurfaceLocationToPixel(FontSize);
-        Children.Add(_pinky, _inky, _clyde, _blinky, player);
-
-        // reset score
-        Score = 0;
+        // create ghost house
+        Children.Add(GhostHouse.Ghosts);
 
         // add a small pause at the beginning
         SadComponents.Add(new Pause());
-    }
 
-    public int Score
-    {
-        get => _score;
-        private set
-        {
-            _score = value;
-            OnScoreChanged();
-        }
+        // astar
+        var walkabilityView = new WalkabilityView(this);
+        _aStar = new AStar(walkabilityView, Distance.Manhattan);
     }
+    #endregion Constructors
 
+    #region Properties
+    public Player Player { get; init; }
+    public GhostHouse GhostHouse { get; init; }
+    #endregion Properties
+
+    #region Methods
     public override bool ProcessKeyboard(Keyboard keyboard)
     {
-        if (keyboard.HasKeysDown)
+        if (!Player.IsDead && !_levelCompleted && keyboard.HasKeysDown)
         {
             if (keyboard.IsKeyDown(Keys.Right))
             {
-                _player.NextDirection = Direction.Right;
+                Player.NextDirection = Direction.Right;
                 return true;
             }
             else if (keyboard.IsKeyDown(Keys.Left))
             {
-                _player.NextDirection = Direction.Left;
+                Player.NextDirection = Direction.Left;
                 return true;
             }
             else if (keyboard.IsKeyDown(Keys.Up))
             {
-                _player.NextDirection = Direction.Up;
+                Player.NextDirection = Direction.Up;
                 return true;
             }
             else if (keyboard.IsKeyDown(Keys.Down))
             {
-                _player.NextDirection = Direction.Down;
+                Player.NextDirection = Direction.Down;
                 return true;
             }
         }
@@ -99,7 +97,7 @@ class Board : ScreenSurface
         if (newParent is Game game)
         {
             Sounds.Siren.Play();
-            Sounds.Siren.IsLooped = true;
+            
 
             Position = ((game.WidthPixels - WidthPixels) / 2,
                 game.HeightPixels - HeightPixels - Convert.ToInt32(Game.DefaultFontSize.Y * 1.5d));
@@ -108,18 +106,39 @@ class Board : ScreenSurface
 
     public override void Update(TimeSpan delta)
     {
-        if (!_isPaused)
+        if (!_isPaused && !Player.IsDead)
         {
+            // update all sprite positions
             foreach (var child in Children)
-            {
                 if (child is Sprite actor)
                     actor.UpdatePosition();
+
+            // check for collisions
+            foreach (var child in Children)
+            {
+                if (child is Ghost ghost && Player.HitBox.Intersects(ghost.HitBox))
+                {
+                    OnPlayerCaught();
+                    return;
+                }
             }
         }
         base.Update(delta);
     }
 
     public void TogglePause() { _isPaused = !_isPaused; }
+
+    public Point GetNextPositionToPlayer(Point currentGhostPosition)
+    {
+        Point toPosition = Player.ToPosition != currentGhostPosition ? Player.ToPosition : Player.FromPosition;
+        toPosition = toPosition.PixelLocationToSurface(FontSize);
+        Point ghostPosition = currentGhostPosition.PixelLocationToSurface(FontSize);
+        var path = _aStar.ShortestPath(ghostPosition, toPosition);
+        if (path != null && path.Length > 1)
+            return path.GetStepWithStart(1).SurfaceLocationToPixel(FontSize);
+        else
+            return currentGhostPosition;
+    }
 
     public Point GetNextPosition(Point currentPosition, Direction direction)
     {
@@ -135,6 +154,25 @@ class Board : ScreenSurface
             return currentPosition;
     }
 
+    bool IsPortal(Point surfacePosition, out Portal? destination)
+    {
+        if (Surface.Area.Contains(surfacePosition))
+        {
+            int index = surfacePosition.ToIndex(Surface.Width);
+            if (Surface[index] is Portal portal)
+            {
+                destination = Surface.Where(cg => cg is Portal p 
+                    && p.Position != surfacePosition
+                    && p.Id == portal.Id).FirstOrDefault() as Portal;
+                if (destination is null)
+                    throw new ArgumentException($"Map doesn't contain a destination portal for id: {portal.Id}");
+                return true;
+            }
+        }
+        destination = null;
+        return false;
+    }
+
     public IEdible? GetConsumable(Point pixelPosition)
     {
         Point surfacePosition = pixelPosition.PixelLocationToSurface(FontSize);
@@ -147,13 +185,16 @@ class Board : ScreenSurface
 
     public void RemoveDot(Dot dot)
     {
-        Score += dot.Value;
         _renderer.Remove(dot);
+        _removedDots.Add(dot);
         _renderer.IsDirty = true;
+        OnDotEaten(dot.Value);
+        if (_renderer.Entities.Count == 0)
+            OnLevelComplete();
     }
 
     // checks if the position is valid and walkable
-    bool IsWalkable(Point position) =>
+    public bool IsWalkable(Point position) =>
         Surface.Area.Contains(position) && Surface[position.ToIndex(Surface.Width)] is Floor;
 
     // adds dots to the map
@@ -181,24 +222,77 @@ class Board : ScreenSurface
         }
     }
 
-    void OnScoreChanged()
+    // soft restart with the score left unchanged
+    public void Restart()
     {
-        ScoreChanged?.Invoke(this, EventArgs.Empty);
+        _isPaused = true;
+        _levelCompleted = false;
+
+        // add dots
+        _renderer.AddRange(_removedDots);
+        _removedDots.Clear();
+
+        // add sprites
+        Children.Clear();
+        Children.Add(Player);
+        Children.Add(GhostHouse.Ghosts);
+
+        // add a small pause at the beginning
+        SadComponents.Add(new Pause());
     }
 
-    public event EventHandler? ScoreChanged;
+    public void RemoveAllDots()
+    {
+        _renderer.RemoveAll();
+    }
+
+    void Player_OnDeathAnimationFinished(object? o, EventArgs e)
+    {
+        Children.Remove(Player);
+        OnLiveLost();
+    }
+
+    void OnPlayerCaught()
+    {
+        foreach (var ghost in GhostHouse.Ghosts)
+            Children.Remove(ghost);
+        Player.Die();
+        Sounds.StopAll();
+        Sounds.Death.Play();
+    }
+
+    void OnLiveLost()
+    {
+        LiveLost?.Invoke(this, EventArgs.Empty);
+    }
+
+    void OnDotEaten(int value)
+    {
+        DotEaten?.Invoke(this, new ScoreEventArgs(value));
+    }
+
+    void OnGhostEaten(int value)
+    {
+        GhostEaten?.Invoke(this, new ScoreEventArgs(value));
+    }
+
+    void OnLevelComplete()
+    {
+        _levelCompleted = true;
+        LevelComplete?.Invoke(this, EventArgs.Empty);
+    }
+    #endregion Methods
+
+    #region Events
+    public event EventHandler<ScoreEventArgs>? DotEaten;
+    public event EventHandler<ScoreEventArgs>? GhostEaten;
+    public event EventHandler? LiveLost;
+    public event EventHandler? LevelComplete;
+    #endregion Events
 }
 
-class Pause : InstructionSet
+public class ScoreEventArgs : EventArgs
 {
-    public Pause()
-    {
-        RemoveOnFinished = true;
-        Instructions.AddFirst(new Wait(TimeSpan.FromSeconds(1)));
-        Instructions.AddLast(new CodeInstruction((o, t) =>
-        {
-            if (o is Board b) b.TogglePause();
-            return true;
-        }));
-    }
+    public int Value { get; init; }
+    public ScoreEventArgs(int value) => Value = value;
 }

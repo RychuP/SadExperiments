@@ -5,12 +5,13 @@ namespace SadExperiments.Games.PacMan;
 
 static class Sounds
 {
-    public static SoundEffectInstance Siren, Munch;
+    public static SoundEffectInstance Siren, Munch, Death;
 
     static Sounds()
     {
         Siren = FromFile("siren");
         Munch = FromFile("munch");
+        Death = FromFile("death");
 }
 
     static SoundEffectInstance FromFile(string fileName)
@@ -23,5 +24,6 @@ static class Sounds
     {
         Siren!.Stop();
         Munch!.Stop();
+        Death!.Stop();
     }
 }

@@ -2,13 +2,14 @@ namespace SadExperiments.Games.PacMan;
 
 static class Appearances
 {
-    public static readonly ColoredGlyph Wall, Floor, Dot, Player;
+    public static readonly ColoredGlyph Wall, Floor, Dot, PowerDot, Player;
 
     static Appearances()
     {
         Wall = new(Color.DodgerBlue, Color.Transparent, 38); 
         Floor = new(Color.White, Color.Transparent, 39);
         Dot = new("#ffb7ae".ToColor(), Color.Transparent, 36);
+        PowerDot = new("#ffb7ae".ToColor(), Color.Transparent, 37);
         Player = new(Color.Yellow, Color.Transparent, 0);
     }
 

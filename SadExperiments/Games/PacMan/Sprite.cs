@@ -1,3 +1,5 @@
+using Newtonsoft.Json.Linq;
+
 namespace SadExperiments.Games.PacMan;
 
 abstract class Sprite : ScreenSurface
@@ -9,6 +11,7 @@ abstract class Sprite : ScreenSurface
     Direction _nextDirection = Direction.None;
 
     // movement data
+    Point _start = Point.Zero;
     Point _fromPosition = Point.None;
     Point _toPosition = Point.None;
     Point _currentPosition = Point.None;
@@ -18,32 +21,49 @@ abstract class Sprite : ScreenSurface
     readonly Point _positionOffset;
 
     // two frame animation data
-    readonly TimeSpan _animationFreq = TimeSpan.FromSeconds((double)8 / 60);
+    TimeSpan _animationSpeed = TimeSpan.FromSeconds((double)8 / 60);
     TimeSpan _timeElapsed = TimeSpan.Zero;
     int _currentAnimFrame = 0;
     int _animationColumn = 0;
+    // first frame on the left of the animation row
     int _firstFrameIndex = 0;
 
-    public Sprite() : base(1, 1)
+    public Sprite(Point start) : base(1, 1)
     {
         Font = Fonts.Sprites;
+        FontSize = DefaultFontSize;
         UsePixelPositioning = true;
+        Start = start;
 
         // calculate sprite position offset
         int offset = Convert.ToInt32(1.5 * Game.FontSizeMultiplier);
         _positionOffset = (offset, offset);
+
+        HitBox = new Rectangle(0, 0, Game.DefaultFontSize.X, Game.DefaultFontSize.Y);
     }
 
-    public Point Start { get; set; } = Point.Zero;
+    public Point Start
+    {
+        get => _start;
+        set
+        {
+            _start = value;
+            OnStartChanged();
+        }
+    }
 
     protected double Speed { get; set; } = 1d;
 
+    public Rectangle HitBox { get; private set; }
+
     protected int AnimationRow
     {
-        set
-        {
-            _firstFrameIndex = value * 4;
-        }
+        set => _firstFrameIndex = value * 4;
+    }
+
+    protected double AnimationSpeed
+    {
+        set => _animationSpeed = TimeSpan.FromSeconds(value);
     }
 
     // direction in which the sprite is currently going
@@ -120,18 +140,7 @@ abstract class Sprite : ScreenSurface
         }
     }
 
-    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
-    {
-        if (newParent is Board board)
-        {
-            FontSize = DefaultFontSize;
-            FromPosition = Start;
-            CurrentPosition = FromPosition;
-        }
-        base.OnParentChanged(oldParent, newParent);
-    }
-
-    // used mainly for movement
+    // used for movement
     public void UpdatePosition()
     {
         if (FromPosition != ToPosition && Direction != Direction.None)
@@ -150,11 +159,11 @@ abstract class Sprite : ScreenSurface
         }
     }
 
-    // used mainly to display sprite animation
+    // used to display sprite animation
     public override void Update(TimeSpan delta)
     {
         _timeElapsed += delta;
-        if (_timeElapsed >= _animationFreq)
+        if (_timeElapsed >= _animationSpeed)
         {
             _timeElapsed = TimeSpan.Zero;
             Surface[0].Glyph = _firstFrameIndex + _animationColumn + _currentAnimFrame * 4;
@@ -162,6 +171,22 @@ abstract class Sprite : ScreenSurface
             Surface.IsDirty = true;
         }
         base.Update(delta);
+    }
+
+    protected bool TrySetToPosition(Direction direction)
+    {
+        if (Parent is not Board board)
+            throw new InvalidOperationException("Trying to find a destination when not assigned to a board.");
+
+        var position = board.GetNextPosition(FromPosition, direction);
+        if (position != FromPosition)
+        {
+            Direction = direction;
+            ToPosition = position;
+            return true;
+        }
+        else
+            return false;
     }
 
     virtual protected void OnToPositionReached()
@@ -172,27 +197,54 @@ abstract class Sprite : ScreenSurface
     virtual protected void OnCurrentPositionChanged(Point prevCurPos, Point newCurPos)
     {
         // move the sprite to a new position
-        Position = CurrentPosition - _positionOffset;
+        Position = newCurPos - _positionOffset;
 
         // calculate distance to the destination
-        int distance = Direction.Type switch
+        if (ToPosition != Point.None)
         {
-            Direction.Types.Up => CurrentPosition.Y - ToPosition.Y,
-            Direction.Types.Down => ToPosition.Y - CurrentPosition.Y,
-            Direction.Types.Left => CurrentPosition.X - ToPosition.X,
-            Direction.Types.Right => ToPosition.X - CurrentPosition.X,
-            _ => int.MaxValue
-        };
+            int distance = Direction.Type switch
+            {
+                Direction.Types.Up => newCurPos.Y - ToPosition.Y,
+                Direction.Types.Down => ToPosition.Y - newCurPos.Y,
+                Direction.Types.Left => newCurPos.X - ToPosition.X,
+                Direction.Types.Right => ToPosition.X - newCurPos.X,
+                _ => int.MaxValue
+            };
 
-        // check if the destination is reached
-        if (distance <= 0)
-        {
-            FromPosition = ToPosition;
-            OnToPositionReached();
+            // check if the destination is reached
+            if (distance <= 0)
+            {
+                FromPosition = ToPosition;
+                OnToPositionReached();
+            }
         }
+
+        // move the hit box
+        HitBox = HitBox.WithPosition(newCurPos);
 
         // invoke event
         CurrentPositionChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
+    {
+        if (newParent is Board)
+        {
+            // prepare to start
+            CurrentPosition = FromPosition = Start;
+            if (Direction != Direction.None)
+            {
+                if (!TrySetToPosition(Direction))
+                    throw new InvalidOperationException("Sprite unable to go in the given direction.");
+            }
+        }
+        else if (oldParent is Board)
+        {
+            _fromPosition = Point.None;
+            _toPosition = Point.None;
+            _currentPosition = Point.None;
+        }
+        base.OnParentChanged(oldParent, newParent);
     }
 
     virtual protected void OnDirectionChanged(Direction prevDirection, Direction newDirection)
@@ -240,7 +292,13 @@ abstract class Sprite : ScreenSurface
         }
     }
 
+    protected virtual void OnStartChanged()
+    {
+        StartChanged?.Invoke(this, EventArgs.Empty);
+    }
+
     public event EventHandler? ToPositionReached;
     public event EventHandler? CurrentPositionChanged;
     public event EventHandler? DirectionChanged;
+    public event EventHandler? StartChanged;
 }

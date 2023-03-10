@@ -65,20 +65,21 @@ sealed class Container : ScreenObject
         new KeyboardProcessing(),
         new UpdateAndRender(),
         new BinaryOperationsPage(),
-        //new CharsAndCursors(),
         new MovableCharacter(),
         new MoveAndResize(),
-        //new FocusSetting(),
-        //new SurfaceShifting(),
         new CheckeredRoom(),
-        //new CellSurfaceResizing(),
-        //new EasingFunctions(),
         new ImageConversion(),
         new SadCanvasPage(),
         new Instructions(),
         new EffectsAndDecorators(),
         new Games.Tetris.Game(),
         new Games.PacMan.Game(),
+
+        //new CellSurfaceResizing(),    // older pages marked for deletion
+        //new EasingFunctions(),
+        //new FocusSetting(),
+        //new SurfaceShifting(),
+        //new CharsAndCursors(),
     };
 
     readonly TagSorter _tagSorter = new();

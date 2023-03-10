@@ -2,23 +2,28 @@ namespace SadExperiments.Games.PacMan.Ghosts;
 
 abstract class Ghost : Sprite
 {
-    public Ghost(Point start)
+    #region Fields
+
+    #endregion Fields
+
+    #region Constructors
+    public Ghost(Point start) : base(start)
     {
-        Start = start;
+        AnimationSpeed = 0.25d;
+        Speed = 1.9d;
     }
+    #endregion Constructors
 
-    public void Scatter()
-    {
+    #region Properties
 
-    }
+    #endregion Properties
 
-    public void Chase()
-    {
+    #region Methods
 
-    }
+    #endregion Methods
+}
 
-    public void Run()
-    {
-
-    }
+enum GhostState
+{
+    Idle,
 }
