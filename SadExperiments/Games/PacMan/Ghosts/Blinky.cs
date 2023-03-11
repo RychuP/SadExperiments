@@ -27,8 +27,8 @@ class Blinky : Ghost
     {
         if (Parent is not Board board) return;
 
-        // check if the current location is a portal
-        CheckReachedPortal();
+        // leave this here (check for portals)
+        base.OnToPositionReached();
 
         var nextPosition = board.GetNextPositionToPlayer(FromPosition);
         var direction = Direction.GetDirection(FromPosition, nextPosition);
@@ -70,7 +70,5 @@ class Blinky : Ghost
                 }
             }
         }
-
-        base.OnToPositionReached();
     }
 }

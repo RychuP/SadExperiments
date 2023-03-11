@@ -1,4 +1,5 @@
 using Newtonsoft.Json.Linq;
+using SadExperiments.Games.Tetris;
 
 namespace SadExperiments.Games.PacMan;
 
@@ -16,6 +17,7 @@ abstract class Sprite : ScreenSurface
     Point _toPosition = Point.None;
     Point _currentPosition = Point.None;
     double _distanceTravelled = 0;
+    bool _isTeleporting = false;
 
     // sprites occupy more space than a board tile (their position is offsetted a few pixels)
     readonly Point _positionOffset;
@@ -70,6 +72,9 @@ abstract class Sprite : ScreenSurface
         get => _direction;
         protected set
         {
+            if (_direction == value) return;
+            if (_isTeleporting) return;
+
             var prevDirection = _direction;
             _direction = value;
             OnDirectionChanged(prevDirection, _direction);
@@ -81,6 +86,9 @@ abstract class Sprite : ScreenSurface
         get => _nextDirection;
         set
         {
+            if (_nextDirection == value) return;
+            if (_isTeleporting) return;
+
             var prevNextDirection = _nextDirection;
             _nextDirection = value;
             OnNextDirectionChanged(prevNextDirection, _nextDirection);
@@ -93,9 +101,9 @@ abstract class Sprite : ScreenSurface
         get => _fromPosition;
         protected set
         {
-            var prevFromPos = _fromPosition;
+            if (_fromPosition == value) return;
+            
             _fromPosition = value;
-            OnFromPositionChanged(prevFromPos, _fromPosition);
         }
     }
 
@@ -105,24 +113,28 @@ abstract class Sprite : ScreenSurface
         get => _toPosition;
         protected set
         {
-            if (FromPosition == Point.None)
-                throw new InvalidOperationException("FromPosition is not set.");
-            else if (Direction == Direction.None)
-                throw new InvalidOperationException("Direction is not set.");
-            else
+            if (_toPosition == value) return;
+            else if (value != Point.None)
             {
-                if (Direction == Direction.Up || Direction == Direction.Down)
-                {
-                    if (FromPosition.X != value.X)
-                        throw new ArgumentException("Vertical movement can only happen in a straight line.");
-                }
-                else if (Direction == Direction.Left || Direction == Direction.Right)
-                {
-                    if (FromPosition.Y != value.Y)
-                        throw new ArgumentException("Horizontal movement can only happen in a straight line.");
-                }
+                if (FromPosition == Point.None)
+                    throw new InvalidOperationException("FromPosition is not set.");
+                else if (Direction == Direction.None)
+                    throw new InvalidOperationException("Direction is not set.");
                 else
-                    throw new InvalidOperationException("Only cardinal directions allowed.");
+                {
+                    if (Direction == Direction.Up || Direction == Direction.Down)
+                    {
+                        if (FromPosition.X != value.X)
+                            throw new ArgumentException("Vertical movement can only happen in a straight line.");
+                    }
+                    else if (Direction == Direction.Left || Direction == Direction.Right)
+                    {
+                        if (FromPosition.Y != value.Y)
+                            throw new ArgumentException("Horizontal movement can only happen in a straight line.");
+                    }
+                    else
+                        throw new InvalidOperationException("Only cardinal directions allowed.");
+                }
             }
             _toPosition = value;
         }
@@ -134,6 +146,8 @@ abstract class Sprite : ScreenSurface
         get => _currentPosition;
         private set
         {
+            if (_currentPosition == value) return;
+
             var prevCurPos = _currentPosition;
             _currentPosition = value;
             OnCurrentPositionChanged(prevCurPos, _currentPosition);
@@ -192,31 +206,25 @@ abstract class Sprite : ScreenSurface
             return false;
     }
 
-    protected void CheckReachedPortal()
+    virtual protected void OnToPositionReached()
     {
         if (Parent is not Board board) return;
 
-        if (board.IsPortal(FromPosition, out Portal? destination)) 
+        if (board.IsPortal(FromPosition, out Portal? destination))
         {
             if (destination == null) return;
-            FromPosition = destination.Position.SurfaceLocationToPixel(board.FontSize);
+            _isTeleporting = true;
+            ToPosition = Point.None;
+            FromPosition = CurrentPosition = destination.Position.SurfaceLocationToPixel(board.FontSize);
         }
-    }
+        else if (_isTeleporting)
+            _isTeleporting = false;
 
-    virtual protected void OnToPositionReached()
-    {
         ToPositionReached?.Invoke(this, EventArgs.Empty);
-    }
-
-    virtual protected void OnFromPositionChanged(Point prevFromPosition, Point newFromPosition)
-    {
-        CurrentPosition = newFromPosition;
     }
 
     virtual protected void OnCurrentPositionChanged(Point prevCurPos, Point newCurPos)
     {
-        if (prevCurPos == newCurPos) return;
-
         // move the sprite to a new position
         Position = newCurPos - _positionOffset;
 
@@ -252,7 +260,7 @@ abstract class Sprite : ScreenSurface
         if (newParent is Board)
         {
             AnimationIsOn = true;
-            FromPosition = Start;
+            FromPosition = CurrentPosition = Start;
             if (Direction != Direction.None && !TrySetToPosition(Direction))
                 throw new InvalidOperationException("Invalid start. Sprite unable to go in the given direction.");
         }

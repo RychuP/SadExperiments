@@ -32,15 +32,15 @@ class Player : Sprite
     {
         if (Parent is not Board board) return;
 
+        // leave this here (check for portals)
+        base.OnToPositionReached();
+
         // check if there is a consumable at the current location
         IEdible? edible = board.GetConsumable(FromPosition);
         if (edible is Dot dot)
             board.RemoveDot(dot);
         else
             Sounds.Munch.Stop();
-
-        // check if the current location is a portal
-        CheckReachedPortal();
 
         // check if the next direction is set
         if (NextDirection != Direction.None)
@@ -65,8 +65,6 @@ class Player : Sprite
             if (!TrySetToPosition(Direction))
                 Direction = Direction.None;
         }
-
-        base.OnToPositionReached();
     }
 
     public override void Update(TimeSpan delta)
