@@ -45,16 +45,14 @@ abstract class Sprite : ScreenSurface
     public Point Start
     {
         get => _start;
-        set
-        {
-            _start = value;
-            OnStartChanged();
-        }
+        set => _start = value;
     }
 
     protected double Speed { get; set; } = 1d;
 
     public Rectangle HitBox { get; private set; }
+
+    public bool AnimationIsOn { get; set; } = false;
 
     protected int AnimationRow
     {
@@ -162,6 +160,8 @@ abstract class Sprite : ScreenSurface
     // used to display sprite animation
     public override void Update(TimeSpan delta)
     {
+        if (!AnimationIsOn) return;
+
         _timeElapsed += delta;
         if (_timeElapsed >= _animationSpeed)
         {
@@ -170,6 +170,7 @@ abstract class Sprite : ScreenSurface
             _currentAnimFrame = _currentAnimFrame == 0 ? 1 : 0;
             Surface.IsDirty = true;
         }
+
         base.Update(delta);
     }
 
@@ -230,13 +231,10 @@ abstract class Sprite : ScreenSurface
     {
         if (newParent is Board)
         {
-            // prepare to start
+            AnimationIsOn = true;
             CurrentPosition = FromPosition = Start;
-            if (Direction != Direction.None)
-            {
-                if (!TrySetToPosition(Direction))
-                    throw new InvalidOperationException("Sprite unable to go in the given direction.");
-            }
+            if (Direction != Direction.None && !TrySetToPosition(Direction))
+                throw new InvalidOperationException("Invalid start. Sprite unable to go in the given direction.");
         }
         else if (oldParent is Board)
         {
@@ -262,6 +260,7 @@ abstract class Sprite : ScreenSurface
         DirectionChanged?.Invoke(this, EventArgs.Empty);
     }
 
+    // used only with the player sprite
     virtual protected void OnNextDirectionChanged(Direction prevNextDirection, Direction newNextDirection)
     {
         if (newNextDirection != Direction.None)
@@ -292,13 +291,7 @@ abstract class Sprite : ScreenSurface
         }
     }
 
-    protected virtual void OnStartChanged()
-    {
-        StartChanged?.Invoke(this, EventArgs.Empty);
-    }
-
     public event EventHandler? ToPositionReached;
     public event EventHandler? CurrentPositionChanged;
     public event EventHandler? DirectionChanged;
-    public event EventHandler? StartChanged;
 }

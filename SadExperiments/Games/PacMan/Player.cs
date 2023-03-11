@@ -1,5 +1,3 @@
-using SadExperiments.Games.Tetris;
-
 namespace SadExperiments.Games.PacMan;
 
 class Player : Sprite
@@ -37,10 +35,7 @@ class Player : Sprite
         // check if there is a consumable at the current location
         IEdible? edible = board.GetConsumable(FromPosition);
         if (edible is Dot dot)
-        {
             board.RemoveDot(dot);
-            Sounds.Munch.Play();
-        }
         else
             Sounds.Munch.Stop();
 

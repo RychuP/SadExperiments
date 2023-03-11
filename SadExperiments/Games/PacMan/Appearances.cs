@@ -4,8 +4,12 @@ static class Appearances
 {
     public static readonly ColoredGlyph Wall, Floor, Dot, PowerDot, Player;
 
+    // level complete wall flash animation
+    public static readonly Color WallFlash;
+
     static Appearances()
     {
+        WallFlash = Color.LightGray;
         Wall = new(Color.DodgerBlue, Color.Transparent, 38); 
         Floor = new(Color.White, Color.Transparent, 39);
         Dot = new("#ffb7ae".ToColor(), Color.Transparent, 36);

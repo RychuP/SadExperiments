@@ -1,6 +1,5 @@
 ﻿using GoRogue.Pathing;
 using SadConsole.Entities;
-using SadConsole.Instructions;
 using SadExperiments.Games.PacMan.Ghosts;
 using SadRogue.Primitives.GridViews;
 
@@ -14,7 +13,13 @@ class Board : ScreenSurface
     readonly Renderer _renderer = new();
     readonly AStar _aStar;
     bool _isPaused = true;
-    bool _levelCompleted = false;
+    bool _playingLevelCompleteAnimation = false;
+
+    // level complete animation
+    readonly TimeSpan _colorChangeDuration = TimeSpan.FromSeconds(0.33d);
+    TimeSpan _animationTimeDelta = TimeSpan.Zero;
+    const int WallColorChangeMax = 6;
+    int _wallColorChangeCount = 0;
     #endregion Fields
 
     #region Constructors
@@ -40,12 +45,12 @@ class Board : ScreenSurface
         else
             throw new ArgumentException("Tiles do not contain a spawner location.");
 
-        // create player
+        // create a player
         Player = new Player(level.Start.SurfaceLocationToPixel(FontSize));
         Player.DeathAnimationFinished += Player_OnDeathAnimationFinished;
         Children.Add(Player);
 
-        // create ghost house
+        // create a ghost house
         Children.Add(GhostHouse.Ghosts);
 
         // add a small pause at the beginning
@@ -65,7 +70,7 @@ class Board : ScreenSurface
     #region Methods
     public override bool ProcessKeyboard(Keyboard keyboard)
     {
-        if (!Player.IsDead && !_levelCompleted && keyboard.HasKeysDown)
+        if (GamePlayIsOn() && keyboard.HasKeysDown)
         {
             if (keyboard.IsKeyDown(Keys.Right))
             {
@@ -97,8 +102,6 @@ class Board : ScreenSurface
         if (newParent is Game game)
         {
             Sounds.Siren.Play();
-            
-
             Position = ((game.WidthPixels - WidthPixels) / 2,
                 game.HeightPixels - HeightPixels - Convert.ToInt32(Game.DefaultFontSize.Y * 1.5d));
         }
@@ -106,12 +109,15 @@ class Board : ScreenSurface
 
     public override void Update(TimeSpan delta)
     {
-        if (!_isPaused && !Player.IsDead)
+        if (GamePlayIsOn())
         {
             // update all sprite positions
             foreach (var child in Children)
                 if (child is Sprite actor)
+                {
                     actor.UpdatePosition();
+                    if (_playingLevelCompleteAnimation) return;
+                }
 
             // check for collisions
             foreach (var child in Children)
@@ -123,8 +129,29 @@ class Board : ScreenSurface
                 }
             }
         }
+        else if (_playingLevelCompleteAnimation)
+        {
+            _animationTimeDelta += delta;
+            if (_animationTimeDelta >= _colorChangeDuration)
+            {
+                if (++_wallColorChangeCount <= WallColorChangeMax)
+                {
+                    var color = _wallColorChangeCount % 2 == 0 ? Appearances.Wall.Foreground : Appearances.WallFlash;
+                    _animationTimeDelta = TimeSpan.Zero;
+                    ChangeMazeColor(color);
+                }
+                else
+                {
+                    _playingLevelCompleteAnimation = false;
+                    OnLevelCompleteAnimationFinished();
+                }
+            }
+        }
         base.Update(delta);
     }
+
+    bool GamePlayIsOn() =>
+        Children.Contains(Player) && !_isPaused && !_playingLevelCompleteAnimation && !Player.IsDead;
 
     public void TogglePause() { _isPaused = !_isPaused; }
 
@@ -191,6 +218,8 @@ class Board : ScreenSurface
         OnDotEaten(dot.Value);
         if (_renderer.Entities.Count == 0)
             OnLevelComplete();
+        else
+            Sounds.Munch.Play();
     }
 
     // checks if the position is valid and walkable
@@ -226,7 +255,6 @@ class Board : ScreenSurface
     public void Restart()
     {
         _isPaused = true;
-        _levelCompleted = false;
 
         // add dots
         _renderer.AddRange(_removedDots);
@@ -239,11 +267,27 @@ class Board : ScreenSurface
 
         // add a small pause at the beginning
         SadComponents.Add(new Pause());
+
+        Sounds.Siren.Play();
     }
 
-    public void RemoveAllDots()
+    public void RemoveDots()
     {
         _renderer.RemoveAll();
+    }
+
+    void RemoveGhosts()
+    {
+        foreach (var ghost in GhostHouse.Ghosts)
+            Children.Remove(ghost);
+    }
+
+    void ChangeMazeColor(Color color)
+    {
+        var mazeWalls = Surface.Where(cg => cg is Wall && cg is not SpawnerEntrance);
+        foreach (var wall in mazeWalls)
+            wall.Foreground = color;
+        Surface.IsDirty = true;
     }
 
     void Player_OnDeathAnimationFinished(object? o, EventArgs e)
@@ -254,8 +298,7 @@ class Board : ScreenSurface
 
     void OnPlayerCaught()
     {
-        foreach (var ghost in GhostHouse.Ghosts)
-            Children.Remove(ghost);
+        RemoveGhosts();
         Player.Die();
         Sounds.StopAll();
         Sounds.Death.Play();
@@ -278,7 +321,16 @@ class Board : ScreenSurface
 
     void OnLevelComplete()
     {
-        _levelCompleted = true;
+        _playingLevelCompleteAnimation = true;
+        Player.AnimationIsOn = false;
+        RemoveGhosts();
+        Sounds.StopAll();
+        Sounds.LevelComplete.Play();
+    }
+
+    void OnLevelCompleteAnimationFinished()
+    {
+        Children.Clear();
         LevelComplete?.Invoke(this, EventArgs.Empty);
     }
     #endregion Methods

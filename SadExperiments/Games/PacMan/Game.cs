@@ -15,6 +15,7 @@ class Game : Page, IRestartable
     int _level = 1;
     int _score = 0;
     Board _board;
+    string mazeFileName = "Maze.txt";
 
     public Game()
     {
@@ -26,7 +27,7 @@ class Game : Page, IRestartable
         Tags = new Tag[] {Tag.SadConsole, Tag.Pixels, Tag.Game, Tag.Renderer};
         #endregion Meta
 
-        _board = CreateBoard("Maze.txt");
+        _board = CreateBoard(mazeFileName);
         _gameOverWindow.RestartButton.Click += RestartButton_OnClick;
     }
 
@@ -35,7 +36,7 @@ class Game : Page, IRestartable
         _level = 1;
         _score = 0;
         _lives = LivesStart;
-        _board = CreateBoard("Maze.txt");
+        _board = CreateBoard(mazeFileName);
         _header.Print(_lives, _score, _level);
         Children.Clear();
         Children.Add(_header, _board);
@@ -43,11 +44,12 @@ class Game : Page, IRestartable
 
     Board CreateBoard(string fileName)
     {
-        var level = LoadMaze("Maze.txt");
+        var level = LoadMaze(fileName);
         var board = new Board(level);
         board.IsFocused = true;
         board.DotEaten += Board_OnDotEaten;
         board.LiveLost += Board_OnLiveLost;
+        board.LevelComplete += Board_OnLevelComplete;
         return board;
     }
 
@@ -68,9 +70,17 @@ class Game : Page, IRestartable
         _header.PrintScore(_score);
     }
 
+    void Board_OnLevelComplete(object? o, EventArgs e)
+    {
+        _header.PrintLevel(++_level);
+        Children.Remove(_board);
+        _board = CreateBoard(mazeFileName);
+        Children.Add(_board);
+    }
+
     void OnGameOver()
     {
-        _board.RemoveAllDots();
+        _board.RemoveDots();
         _gameOverWindow.Show();
         _gameOverWindow.ShowScore(_score, _level);
         _gameOverWindow.RestartButton.IsFocused = true;
@@ -92,7 +102,7 @@ class Game : Page, IRestartable
 
     static Level LoadMaze(string fileName)
     {
-        // read the blueprint file (to be replaced by random generation)
+        // read the blueprint file
         string path = Path.Combine("Resources", "Other", "PacMan", fileName);
         var text = File.ReadAllText(path);
         string[] lines = text.Split("\r\n");
@@ -113,6 +123,10 @@ class Game : Page, IRestartable
 
                 switch (symbol)
                 {
+                    case 'S':
+                        start = position;
+                        goto default;
+
                     case '#':
                         tiles[i] = (x == 0 || y == 0 || x == width - 1 || y == height - 1) ?
                             new PerimeterWall(position) : new Wall(position);
@@ -134,16 +148,12 @@ class Game : Page, IRestartable
                         tiles[i] = new Portal(position, 'B');
                         break;
 
-                    case 'S':
-                        start = position;
-                        goto default;
-
                     case 'X':
-                        tiles[i] = (new Spawner(position));
+                        tiles[i] = new Spawner(position);
                         break;
 
                     case '-':
-                        tiles[i] = (new SpawnerEntrance(position));
+                        tiles[i] = new SpawnerEntrance(position);
                         break;
 
                     default:
