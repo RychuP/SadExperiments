@@ -5,6 +5,7 @@ namespace SadExperiments.Games.PacMan;
 // game logic inspired by the article at https://pacman.holenet.info/
 class Game : Page, IRestartable
 {
+    #region Fields
     public const double FontSizeMultiplier = 2;
     const int LivesStart = 3;
 
@@ -12,11 +13,12 @@ class Game : Page, IRestartable
     readonly GameOverWindow _gameOverWindow = new();
     readonly Header _header = new();
     int _lives = LivesStart;
-    int _level = 1;
     int _score = 0;
     Board _board;
     string mazeFileName = "Maze.txt";
+    #endregion Fields
 
+    #region Constructors
     public Game()
     {
         #region Meta
@@ -30,76 +32,13 @@ class Game : Page, IRestartable
         _board = CreateBoard(mazeFileName);
         _gameOverWindow.RestartButton.Click += RestartButton_OnClick;
     }
+    #endregion Constructors
 
-    public void Restart()
-    {
-        _level = 1;
-        _score = 0;
-        _lives = LivesStart;
-        _board = CreateBoard(mazeFileName);
-        _header.Print(_lives, _score, _level);
-        Children.Clear();
-        Children.Add(_header, _board);
-    }
+    #region Properties
+    public int Level { get; private set; } = 1;
+    #endregion Properties
 
-    Board CreateBoard(string fileName)
-    {
-        var level = LoadMaze(fileName);
-        var board = new Board(level);
-        board.IsFocused = true;
-        board.DotEaten += Board_OnDotEaten;
-        board.LiveLost += Board_OnLiveLost;
-        board.LevelComplete += Board_OnLevelComplete;
-        return board;
-    }
-
-    void Board_OnLiveLost(object? o, EventArgs e)
-    {
-        if (--_lives == 0)
-            OnGameOver();
-        else
-        {
-            _header.PrintLives(_lives);
-            _board.Restart();
-        }
-    }
-
-    void Board_OnDotEaten(object? o, ScoreEventArgs e)
-    {
-        _score += e.Value;
-        _header.PrintScore(_score);
-    }
-
-    void Board_OnLevelComplete(object? o, EventArgs e)
-    {
-        _header.PrintLevel(++_level);
-        Children.Remove(_board);
-        _board = CreateBoard(mazeFileName);
-        Children.Add(_board);
-    }
-
-    void OnGameOver()
-    {
-        _board.RemoveDots();
-        _gameOverWindow.Show();
-        _gameOverWindow.ShowScore(_score, _level);
-        _gameOverWindow.RestartButton.IsFocused = true;
-    }
-
-    void RestartButton_OnClick(object? o, EventArgs e)
-    {
-        _gameOverWindow.Hide();
-        Restart();
-    }
-
-    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
-    {
-        _gameOverWindow.Hide();
-        if (oldParent is Container)
-            Sounds.StopAll();
-        base.OnParentChanged(oldParent, newParent);
-    }
-
+    #region Methods
     static Level LoadMaze(string fileName)
     {
         // read the blueprint file
@@ -165,6 +104,75 @@ class Game : Page, IRestartable
 
         return new Level(width, height, start, tiles, dots);
     }
+    public void Restart()
+    {
+        Level = 1;
+        _score = 0;
+        _lives = LivesStart;
+        _board = CreateBoard(mazeFileName);
+        _header.Print(_lives, _score, Level);
+        Children.Clear();
+        Children.Add(_header, _board);
+    }
+
+    Board CreateBoard(string fileName)
+    {
+        var level = LoadMaze(fileName);
+        var board = new Board(level);
+        board.IsFocused = true;
+        board.DotEaten += Board_OnDotEaten;
+        board.LiveLost += Board_OnLiveLost;
+        board.LevelComplete += Board_OnLevelComplete;
+        return board;
+    }
+
+    void Board_OnLiveLost(object? o, EventArgs e)
+    {
+        if (--_lives == 0)
+            OnGameOver();
+        else
+        {
+            _header.PrintLives(_lives);
+            _board.Restart();
+        }
+    }
+
+    void Board_OnDotEaten(object? o, DotEventArgs e)
+    {
+        _score += e.Dot.Value;
+        _header.PrintScore(_score);
+    }
+
+    void Board_OnLevelComplete(object? o, EventArgs e)
+    {
+        _header.PrintLevel(++Level);
+        Children.Remove(_board);
+        _board = CreateBoard(mazeFileName);
+        Children.Add(_board);
+    }
+
+    void RestartButton_OnClick(object? o, EventArgs e)
+    {
+        _gameOverWindow.Hide();
+        Restart();
+    }
+
+    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
+    {
+        _gameOverWindow.Hide();
+        if (oldParent is Container)
+            Sounds.StopAll();
+        base.OnParentChanged(oldParent, newParent);
+    }
+
+    void OnGameOver()
+    {
+        _board.RemoveDots();
+        _gameOverWindow.Show();
+        _gameOverWindow.ShowScore(_score, Level);
+        _gameOverWindow.RestartButton.IsFocused = true;
+    }
+    #endregion Methods
 }
 
 record Level(int Width, int Height, Point Start, Tile[] Tiles, List<Dot> Dots);

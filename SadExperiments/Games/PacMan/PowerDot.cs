@@ -1,3 +1,4 @@
+using SadConsole.Components;
 using SadConsole.Effects;
 
 namespace SadExperiments.Games.PacMan;

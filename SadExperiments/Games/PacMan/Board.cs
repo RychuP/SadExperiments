@@ -25,11 +25,16 @@ class Board : ScreenSurface
     #region Constructors
     public Board(Level level) : base(level.Width, level.Height, level.Tiles)
     {
+        // setup
         UsePixelPositioning = true;
         Position = (1, 2);
         Font = Fonts.Maze;
         FontSize = Game.DefaultFontSize;
         Sounds.Siren.IsLooped = true;
+
+        // astar
+        var walkabilityView = new WalkabilityView(this);
+        _aStar = new AStar(walkabilityView, Distance.Manhattan);
 
         // walls
         DrawWalls(level);
@@ -38,27 +43,24 @@ class Board : ScreenSurface
         _removedDots = new List<Dot>(level.Dots.Count);
         DrawDots(level);
 
-        // create ghost house
+        // ghost house
         var spawner = level.Tiles.Where(t => t is Spawner).FirstOrDefault();
         if (spawner != null)
             GhostHouse = new(spawner.Position);
         else
             throw new ArgumentException("Tiles do not contain a spawner location.");
+        Children.Add(GhostHouse);
 
-        // create a player
+        // player
         Player = new Player(level.Start.SurfaceLocationToPixel(FontSize));
         Player.DeathAnimationFinished += Player_OnDeathAnimationFinished;
         Children.Add(Player);
 
-        // create a ghost house
+        // ghosts
         Children.Add(GhostHouse.Ghosts);
 
-        // add a small pause at the beginning
+        // small pause at the beginning
         SadComponents.Add(new Pause());
-
-        // astar
-        var walkabilityView = new WalkabilityView(this);
-        _aStar = new AStar(walkabilityView, Distance.Manhattan);
     }
     #endregion Constructors
 
@@ -68,6 +70,35 @@ class Board : ScreenSurface
     #endregion Properties
 
     #region Methods
+    // checks if the position is valid and walkable
+    public bool IsWalkable(Point position) =>
+        Surface.Area.Contains(position) && Surface[position.ToIndex(Surface.Width)] is Floor;
+
+    public bool IsPortal(Point pixelPosition, out Portal? destination)
+    {
+        var surfacePosition = pixelPosition.PixelLocationToSurface(FontSize);
+
+        if (Surface.Area.Contains(surfacePosition))
+        {
+            int index = surfacePosition.ToIndex(Surface.Width);
+            if (Surface[index] is Portal portal)
+            {
+                destination = Surface.Where(cg => cg is Portal p
+                    && p.Position != surfacePosition
+                    && p.Id == portal.Id).FirstOrDefault() as Portal;
+                if (destination is null)
+                    throw new ArgumentException($"Map doesn't contain a destination portal for id: {portal.Id}");
+                return true;
+            }
+        }
+
+        destination = null;
+        return false;
+    }
+
+    bool GamePlayIsOn() =>
+        Children.Contains(Player) && !_isPaused && !_playingLevelCompleteAnimation && !Player.IsDead;
+
     public override bool ProcessKeyboard(Keyboard keyboard)
     {
         if (keyboard.HasKeysPressed && keyboard.IsKeyPressed(Keys.P))
@@ -98,17 +129,6 @@ class Board : ScreenSurface
             }
         }
         return base.ProcessKeyboard(keyboard);
-    }
-
-    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
-    {
-        base.OnParentChanged(oldParent, newParent);
-        if (newParent is Game game)
-        {
-            Sounds.Siren.Play();
-            Position = ((game.WidthPixels - WidthPixels) / 2,
-                game.HeightPixels - HeightPixels - Convert.ToInt32(Game.DefaultFontSize.Y * 1.5d));
-        }
     }
 
     public override void Update(TimeSpan delta)
@@ -154,12 +174,10 @@ class Board : ScreenSurface
         base.Update(delta);
     }
 
-    bool GamePlayIsOn() =>
-        Children.Contains(Player) && !_isPaused && !_playingLevelCompleteAnimation && !Player.IsDead;
+    public void TogglePause() =>
+        _isPaused = !_isPaused;
 
-    public void TogglePause() { _isPaused = !_isPaused; }
-
-    public Point GetNextPositionToPlayer(Point currentGhostPosition)
+    public Point GetPositionToPlayer(Point currentGhostPosition)
     {
         Point toPosition = Player.ToPosition != currentGhostPosition ? Player.ToPosition : Player.FromPosition;
         toPosition = toPosition.PixelLocationToSurface(FontSize);
@@ -186,28 +204,6 @@ class Board : ScreenSurface
             return currentPosition;
     }
 
-    public bool IsPortal(Point pixelPosition, out Portal? destination)
-    {
-        var surfacePosition = pixelPosition.PixelLocationToSurface(FontSize);
-
-        if (Surface.Area.Contains(surfacePosition))
-        {
-            int index = surfacePosition.ToIndex(Surface.Width);
-            if (Surface[index] is Portal portal)
-            {
-                destination = Surface.Where(cg => cg is Portal p 
-                    && p.Position != surfacePosition
-                    && p.Id == portal.Id).FirstOrDefault() as Portal;
-                if (destination is null)
-                    throw new ArgumentException($"Map doesn't contain a destination portal for id: {portal.Id}");
-                return true;
-            }
-        }
-
-        destination = null;
-        return false;
-    }
-
     public IEdible? GetConsumable(Point pixelPosition)
     {
         Point surfacePosition = pixelPosition.PixelLocationToSurface(FontSize);
@@ -223,16 +219,12 @@ class Board : ScreenSurface
         _renderer.Remove(dot);
         _removedDots.Add(dot);
         _renderer.IsDirty = true;
-        OnDotEaten(dot.Value);
+        OnDotEaten(dot);
         if (_renderer.Entities.Count == 0)
             OnLevelComplete();
         else
-            Sounds.Munch.Play();
+            Sounds.MunchDot.Play();
     }
-
-    // checks if the position is valid and walkable
-    public bool IsWalkable(Point position) =>
-        Surface.Area.Contains(position) && Surface[position.ToIndex(Surface.Width)] is Floor;
 
     // adds dots to the map
     void DrawDots(Level level)
@@ -298,6 +290,17 @@ class Board : ScreenSurface
         Surface.IsDirty = true;
     }
 
+    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
+    {
+        base.OnParentChanged(oldParent, newParent);
+        if (newParent is Game game)
+        {
+            Sounds.Siren.Play();
+            Position = ((game.WidthPixels - WidthPixels) / 2,
+                game.HeightPixels - HeightPixels - Convert.ToInt32(Game.DefaultFontSize.Y * 1.5d));
+        }
+    }
+
     void Player_OnDeathAnimationFinished(object? o, EventArgs e)
     {
         Children.Remove(Player);
@@ -317,9 +320,9 @@ class Board : ScreenSurface
         LiveLost?.Invoke(this, EventArgs.Empty);
     }
 
-    void OnDotEaten(int value)
+    void OnDotEaten(Dot dot)
     {
-        DotEaten?.Invoke(this, new ScoreEventArgs(value));
+        DotEaten?.Invoke(this, new DotEventArgs(dot));
     }
 
     void OnGhostEaten(int value)
@@ -344,15 +347,21 @@ class Board : ScreenSurface
     #endregion Methods
 
     #region Events
-    public event EventHandler<ScoreEventArgs>? DotEaten;
+    public event EventHandler<DotEventArgs>? DotEaten;
     public event EventHandler<ScoreEventArgs>? GhostEaten;
     public event EventHandler? LiveLost;
     public event EventHandler? LevelComplete;
     #endregion Events
 }
 
-public class ScoreEventArgs : EventArgs
+class ScoreEventArgs : EventArgs
 {
     public int Value { get; init; }
     public ScoreEventArgs(int value) => Value = value;
+}
+
+class DotEventArgs : EventArgs
+{
+    public Dot Dot { get; init; }
+    public DotEventArgs(Dot dot) => Dot = dot;
 }

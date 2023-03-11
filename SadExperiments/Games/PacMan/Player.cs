@@ -40,7 +40,7 @@ class Player : Sprite
         if (edible is Dot dot)
             board.RemoveDot(dot);
         else
-            Sounds.Munch.Stop();
+            Sounds.MunchDot.Stop();
 
         // check if the next direction is set
         if (NextDirection != Direction.None)

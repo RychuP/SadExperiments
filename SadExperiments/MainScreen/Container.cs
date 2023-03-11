@@ -44,8 +44,9 @@ sealed class Container : ScreenObject
     readonly Page[] _pages =
     {
         //new Test(),
-        
         new WelcomePage(),
+        new Games.PacMan.Game(),
+        new Games.Tetris.Game(),
         new Fluid(),
         new AnimatedGlobe(),
         new Donut3dPage(),
@@ -72,9 +73,6 @@ sealed class Container : ScreenObject
         new SadCanvasPage(),
         new Instructions(),
         new EffectsAndDecorators(),
-        new Games.Tetris.Game(),
-        new Games.PacMan.Game(),
-
         //new CellSurfaceResizing(),    // older pages marked for deletion
         //new EasingFunctions(),
         //new FocusSetting(),
