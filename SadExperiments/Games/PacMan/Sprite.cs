@@ -1,4 +1,5 @@
 using Newtonsoft.Json.Linq;
+using SadExperiments.Games.PacMan.Ghosts;
 using SadExperiments.Games.Tetris;
 
 namespace SadExperiments.Games.PacMan;

@@ -70,7 +70,11 @@ class Board : ScreenSurface
     #region Methods
     public override bool ProcessKeyboard(Keyboard keyboard)
     {
-        if (GamePlayIsOn() && keyboard.HasKeysDown)
+        if (keyboard.HasKeysPressed && keyboard.IsKeyPressed(Keys.P))
+        {
+            TogglePause();
+        }
+        else if (GamePlayIsOn() && keyboard.HasKeysDown)
         {
             if (keyboard.IsKeyDown(Keys.Right))
             {
