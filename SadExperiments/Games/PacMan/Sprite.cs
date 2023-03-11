@@ -93,7 +93,9 @@ abstract class Sprite : ScreenSurface
         get => _fromPosition;
         protected set
         {
+            var prevFromPos = _fromPosition;
             _fromPosition = value;
+            OnFromPositionChanged(prevFromPos, _fromPosition);
         }
     }
 
@@ -190,13 +192,31 @@ abstract class Sprite : ScreenSurface
             return false;
     }
 
+    protected void CheckReachedPortal()
+    {
+        if (Parent is not Board board) return;
+
+        if (board.IsPortal(FromPosition, out Portal? destination)) 
+        {
+            if (destination == null) return;
+            FromPosition = destination.Position.SurfaceLocationToPixel(board.FontSize);
+        }
+    }
+
     virtual protected void OnToPositionReached()
     {
         ToPositionReached?.Invoke(this, EventArgs.Empty);
     }
 
+    virtual protected void OnFromPositionChanged(Point prevFromPosition, Point newFromPosition)
+    {
+        CurrentPosition = newFromPosition;
+    }
+
     virtual protected void OnCurrentPositionChanged(Point prevCurPos, Point newCurPos)
     {
+        if (prevCurPos == newCurPos) return;
+
         // move the sprite to a new position
         Position = newCurPos - _positionOffset;
 
@@ -232,7 +252,7 @@ abstract class Sprite : ScreenSurface
         if (newParent is Board)
         {
             AnimationIsOn = true;
-            CurrentPosition = FromPosition = Start;
+            FromPosition = Start;
             if (Direction != Direction.None && !TrySetToPosition(Direction))
                 throw new InvalidOperationException("Invalid start. Sprite unable to go in the given direction.");
         }

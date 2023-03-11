@@ -174,15 +174,18 @@ class Board : ScreenSurface
         if (direction == Direction.None)
             return currentPosition;
 
-        Point nextPosition = surfacePosition + direction;
-        if (IsWalkable(nextPosition))
-            return nextPosition.SurfaceLocationToPixel(FontSize);
+        Point position = surfacePosition + direction;
+        // check maze locations
+        if (IsWalkable(position))
+            return position.SurfaceLocationToPixel(FontSize);
         else
             return currentPosition;
     }
 
-    bool IsPortal(Point surfacePosition, out Portal? destination)
+    public bool IsPortal(Point pixelPosition, out Portal? destination)
     {
+        var surfacePosition = pixelPosition.PixelLocationToSurface(FontSize);
+
         if (Surface.Area.Contains(surfacePosition))
         {
             int index = surfacePosition.ToIndex(Surface.Width);
@@ -196,6 +199,7 @@ class Board : ScreenSurface
                 return true;
             }
         }
+
         destination = null;
         return false;
     }

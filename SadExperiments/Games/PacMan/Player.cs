@@ -39,6 +39,9 @@ class Player : Sprite
         else
             Sounds.Munch.Stop();
 
+        // check if the current location is a portal
+        CheckReachedPortal();
+
         // check if the next direction is set
         if (NextDirection != Direction.None)
         {
