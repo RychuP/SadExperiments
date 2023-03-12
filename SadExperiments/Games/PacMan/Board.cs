@@ -24,18 +24,22 @@ namespace SadExperiments.Games.PacMan;
 class Board : ScreenSurface
 {
     #region Fields
+    bool _playingLevelCompleteAnimation = false;
     readonly AdjacencyRule _adjacencyRule = AdjacencyRule.EightWay;
-    readonly List<Dot> _removedDots;
     readonly Renderer _renderer = new();
     readonly AStar _aStar;
-    bool _isPaused = true;
-    bool _playingLevelCompleteAnimation = false;
+
+    // custom gameplay feature
+    readonly bool ReplenishDotsOnLiveLost = false;
+    readonly List<Dot> _removedDots;
 
     // level complete animation
     readonly TimeSpan _colorChangeDuration = TimeSpan.FromSeconds(0.33d);
     TimeSpan _animationTimeDelta = TimeSpan.Zero;
     const int WallColorChangeMax = 6;
     int _wallColorChangeCount = 0;
+
+    ScreenSurface _debug;
     #endregion Fields
 
     #region Constructors
@@ -64,6 +68,8 @@ class Board : ScreenSurface
             GhostHouse = new(spawner.Position);
         else
             throw new ArgumentException("Tiles do not contain a spawner location.");
+        GhostHouse.PowerDotStarted += GhostHouse_OnPowerDotStarted;
+        GhostHouse.PowerDotDepleted += GhostHouse_OnPowerDotDepleted;
         Children.Add(GhostHouse);
 
         // player
@@ -75,13 +81,21 @@ class Board : ScreenSurface
         Children.Add(GhostHouse.Ghosts);
 
         // small pause at the beginning
-        SadComponents.Add(new Pause());
+        AddPauseWithSoundCallback();
+
+        // debug surface
+        _debug = new(Program.Width, 1)
+        {
+            Parent = this,
+            Position = (0, -1)
+        };
     }
     #endregion Constructors
 
     #region Properties
     public Player Player { get; init; }
     public GhostHouse GhostHouse { get; init; }
+    public bool IsPaused { get; set; }
     #endregion Properties
 
     #region Methods
@@ -112,7 +126,7 @@ class Board : ScreenSurface
     }
 
     bool GamePlayIsOn() =>
-        Children.Contains(Player) && !_isPaused && !_playingLevelCompleteAnimation && !Player.IsDead;
+        Children.Contains(Player) && !IsPaused && !_playingLevelCompleteAnimation && !Player.IsDead;
 
     public override bool ProcessKeyboard(Keyboard keyboard)
     {
@@ -146,6 +160,17 @@ class Board : ScreenSurface
         return base.ProcessKeyboard(keyboard);
     }
 
+    void AddPauseWithSoundCallback()
+    {
+        // add a small pause at the beginning
+        var pause = new Pause(1d, () =>
+        {
+            Sounds.StopAll();
+            Sounds.Siren.Play();
+        });
+        SadComponents.Add(pause);
+    }
+
     public override void Update(TimeSpan delta)
     {
         if (GamePlayIsOn())
@@ -175,6 +200,7 @@ class Board : ScreenSurface
                 }
             }
         }
+
         else if (_playingLevelCompleteAnimation)
         {
             _animationTimeDelta += delta;
@@ -193,11 +219,15 @@ class Board : ScreenSurface
                 }
             }
         }
+
+        // debug info
+        //_debug.Surface.Print(0, 0, $"Player: {Player.Speed}, Blinky: {GhostHouse.Blinky.Speed}     ");
+
         base.Update(delta);
     }
 
-    public void TogglePause() =>
-        _isPaused = !_isPaused;
+    void TogglePause() =>
+        IsPaused = !IsPaused;
 
     public Point GetPositionToPlayer(Point currentGhostPosition)
     {
@@ -338,7 +368,8 @@ class Board : ScreenSurface
     public void RemoveDot(Dot dot)
     {
         _renderer.Remove(dot);
-        _removedDots.Add(dot);
+        if (ReplenishDotsOnLiveLost)
+            _removedDots.Add(dot);
         _renderer.IsDirty = true;
         OnDotEaten(dot);
         if (_renderer.Entities.Count == 0)
@@ -375,22 +406,20 @@ class Board : ScreenSurface
     // soft restart with the score left unchanged
     public void Restart()
     {
-        _isPaused = true;
-
-        // add dots
-        _renderer.AddRange(_removedDots);
-        _removedDots.Clear();
+        // add removed dots
+        if (ReplenishDotsOnLiveLost)
+        {
+            _renderer.AddRange(_removedDots);
+            _removedDots.Clear();
+        }
 
         // add sprites
         RemoveSprites();
         Children.Add(Player);
         Children.Add(GhostHouse.Ghosts);
 
-        // add a small pause at the beginning
-        SadComponents.Add(new Pause());
-
-        Sounds.StopAll();
-        Sounds.Siren.Play();
+        // add small pause at the beginning
+        AddPauseWithSoundCallback();
     }
 
     public void RemoveDots()
@@ -418,21 +447,39 @@ class Board : ScreenSurface
         Surface.IsDirty = true;
     }
 
+    void Player_OnDeathAnimationFinished(object? o, EventArgs e)
+    {
+        Children.Remove(Player);
+        OnLiveLost();
+    }
+
+    void GhostHouse_OnPowerDotStarted(object? o, EventArgs e)
+    {
+        if (GamePlayIsOn())
+        {
+            Sounds.Siren.Stop();
+            Sounds.PowerDot.Play();
+        }
+    }
+
+    void GhostHouse_OnPowerDotDepleted(object? o, EventArgs e)
+    {
+        if (GamePlayIsOn())
+        {
+            Sounds.PowerDot.Stop();
+            Sounds.Siren.Play();
+        }
+    }
+
     protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
     {
         base.OnParentChanged(oldParent, newParent);
         if (newParent is Game game)
         {
-            Sounds.Siren.Play();
             Position = ((game.WidthPixels - WidthPixels) / 2,
                 game.HeightPixels - HeightPixels - Convert.ToInt32(Game.DefaultFontSize.Y * 1.5d));
+            OnFirstStart();
         }
-    }
-
-    void Player_OnDeathAnimationFinished(object? o, EventArgs e)
-    {
-        Children.Remove(Player);
-        OnLiveLost();
     }
 
     void OnPlayerCaught()
@@ -477,6 +524,12 @@ class Board : ScreenSurface
         RemoveSprites();
         LevelComplete?.Invoke(this, EventArgs.Empty);
     }
+
+    // called when the board is first assigned to a game
+    void OnFirstStart()
+    {
+        FirstStart?.Invoke(this, EventArgs.Empty);
+    }
     #endregion Methods
 
     #region Events
@@ -484,6 +537,7 @@ class Board : ScreenSurface
     public event EventHandler<ScoreEventArgs>? GhostEaten;
     public event EventHandler? LiveLost;
     public event EventHandler? LevelComplete;
+    public event EventHandler? FirstStart;
     #endregion Events
 }
 

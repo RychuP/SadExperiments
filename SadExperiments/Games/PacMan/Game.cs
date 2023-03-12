@@ -6,9 +6,11 @@ namespace SadExperiments.Games.PacMan;
 class Game : Page, IRestartable
 {
     #region Fields
-    public const double FontSizeMultiplier = 2;
+    public const double FontSizeMultiplier = 2d;
     public const double SpriteSpeed = 2d;
+    public const int MaxDifficultyLevel = 21;
     const int LivesStart = 3;
+    const int LevelStart = 2;
 
     public static readonly Point DefaultFontSize = new Point(8, 8) * FontSizeMultiplier;
     readonly GameOverWindow _gameOverWindow = new();
@@ -16,7 +18,7 @@ class Game : Page, IRestartable
     int _lives = LivesStart;
     int _score = 0;
     Board _board;
-    string mazeFileName = "Maze.txt";
+    readonly string mazeFileName = "Maze.txt";
     #endregion Fields
 
     #region Constructors
@@ -36,7 +38,7 @@ class Game : Page, IRestartable
     #endregion Constructors
 
     #region Properties
-    public int Level { get; private set; } = 1;
+    public int Level { get; private set; } = LevelStart;
     #endregion Properties
 
     #region Methods
@@ -122,6 +124,7 @@ class Game : Page, IRestartable
         var board = new Board(level);
         board.IsFocused = true;
         board.DotEaten += Board_OnDotEaten;
+        board.GhostEaten += Board_OnGhostEaten;
         board.LiveLost += Board_OnLiveLost;
         board.LevelComplete += Board_OnLevelComplete;
         return board;
@@ -144,9 +147,17 @@ class Game : Page, IRestartable
         _header.PrintScore(_score);
     }
 
+    void Board_OnGhostEaten(object? o, ScoreEventArgs e)
+    {
+        _score += e.Value;
+        _header.PrintScore(_score);
+    }
+
     void Board_OnLevelComplete(object? o, EventArgs e)
     {
         _header.PrintLevel(++Level);
+
+        // due to OnParentChanged and OnGameStart sprite events, every level a new board needs to be created
         Children.Remove(_board);
         _board = CreateBoard(mazeFileName);
         Children.Add(_board);
@@ -168,6 +179,7 @@ class Game : Page, IRestartable
 
     void OnGameOver()
     {
+        Sounds.StopAll();
         _board.RemoveDots();
         _gameOverWindow.Show();
         _gameOverWindow.ShowScore(_score, Level);

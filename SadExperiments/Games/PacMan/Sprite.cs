@@ -1,3 +1,5 @@
+using SadExperiments.Games.PacMan.Ghosts;
+
 namespace SadExperiments.Games.PacMan;
 
 abstract class Sprite : ScreenSurface
@@ -42,7 +44,7 @@ abstract class Sprite : ScreenSurface
 
     public Point Start { get; set; } = Point.Zero;
 
-    protected double Speed { get; set; } = 1d;
+    public double Speed { get; protected set; } = Game.SpriteSpeed;
 
     public Rectangle HitBox { get; private set; }
 
@@ -152,6 +154,7 @@ abstract class Sprite : ScreenSurface
         if (FromPosition != ToPosition && Direction != Direction.None)
         {
             _distanceTravelled += Speed;
+
             if (_distanceTravelled > 1)
             {
                 double reminder = _distanceTravelled % 1;

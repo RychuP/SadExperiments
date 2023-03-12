@@ -12,8 +12,6 @@ class Blinky : Ghost
         ChaseBehaviour = new ChaseAggressive();
         FrightenedBehaviour = new FrightenedWandering();
         EatenBehaviour = new EatenRunningHome();
-
-        Mode = GhostMode.Chase;
     }
 
     protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)

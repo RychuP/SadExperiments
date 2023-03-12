@@ -15,7 +15,6 @@ abstract class Ghost : Sprite
     public Ghost(Point start) : base(start)
     {
         AnimationSpeed = 0.25d;
-        Speed = 1.9d;
     }
     #endregion Constructors
 
@@ -30,9 +29,46 @@ abstract class Ghost : Sprite
         get => _mode;
         set
         {
-            if (_mode == value) return;
             _mode = value;
             OnModeChanged(_mode);
+        }
+    }
+
+    double SpeedMultiplier
+    {
+        get
+        {
+            if (Parent is Board board && board.Parent is Game game)
+            {
+                return game.Level switch
+                {
+                    >= Game.MaxDifficultyLevel => 0.95d,
+                    >= 5 => 0.95d,
+                    >= 2 => 0.85d,
+                    _ => 0.75d,
+                };
+            }
+            else
+                return 0.95d;
+        }
+    }
+
+    double FreightSpeedMultiplier
+    {
+        get
+        {
+            if (Parent is Board board && board.Parent is Game game)
+            {
+                return game.Level switch
+                {
+                    >= Game.MaxDifficultyLevel => 0.95d,
+                    >= 5 => 0.60d,
+                    >= 2 => 0.55d,
+                    _ => 0.50d,
+                };
+            }
+            else
+                return 0.95d;
         }
     }
     #endregion Properties
@@ -53,11 +89,11 @@ abstract class Ghost : Sprite
         switch (newMode)
         {
             case GhostMode.Chase:
-                Speed = Game.SpriteSpeed * 0.95d;
+                Speed = Game.SpriteSpeed * SpeedMultiplier;
                 break;
 
             case GhostMode.Frightened:
-                Speed /= 2;
+                Speed = Game.SpriteSpeed * FreightSpeedMultiplier;
                 break;
 
             case GhostMode.Eaten:
@@ -66,9 +102,36 @@ abstract class Ghost : Sprite
         }
     }
 
+    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
+    {
+        if (newParent is Board board)
+        {
+            // TODO: replace with scatter
+            Mode = GhostMode.Chase;
+
+            if (board.Parent is not Game)
+                board.FirstStart += Board_OnFirstStart;
+        }
+        base.OnParentChanged(oldParent, newParent);
+    }
+
+    protected virtual void Board_OnFirstStart(object? o, EventArgs e)
+    {
+        if (o is Board board && board.Parent is Game game)
+        {
+            // to set proper speed
+            Mode = GhostMode.Chase;
+        }
+        else
+            throw new InvalidOperationException("Board is not assigned to a Game.");
+    }
+
     protected override void OnToPositionReached()
     {
         if (Parent is not Board board) return;
+
+        // TODO: remove this line when other ghosts are implemented
+        if (this is not Blinky) return;
 
         // keep this here (portal check)
         base.OnToPositionReached();

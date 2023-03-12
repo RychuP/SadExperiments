@@ -9,7 +9,7 @@ class GhostHouse : ScreenObject
     #region Fields
     const int Width = 7;
     const int Height = 4;
-    const double FrightenedTime = 3d;
+    const double FrightenedTime = 7d;
     readonly Timer _timer = new(TimeSpan.FromSeconds(FrightenedTime));
     readonly Rectangle _area;
     int _ghostsEaten = 0;
@@ -61,44 +61,26 @@ class GhostHouse : ScreenObject
     bool IsInside(Ghost ghost) =>
         _area.Intersects(ghost.HitBox);
 
-    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
-    {
-        if (newParent is Board board)
-        {
-            board.DotEaten += Board_OnDotEaten;
-            board.LiveLost += Board_OnLiveLost;
-        }
-        base.OnParentChanged(oldParent, newParent);
-    }
-
     void Board_OnGhostEaten(object? o, EventArgs e)
     {
-        if (++_ghostsEaten == 3)
+        _ghostsEaten++;
+        bool ghostsFrightenedRemain = Ghosts.Any(g => g.Mode == GhostMode.Frightened);
+
+        // check if the ghosts eaten limit has been reached or if all ghosts respawned
+        if (_ghostsEaten == 3 || !ghostsFrightenedRemain)
             OnPowerDotDepleted();
     }
 
     void Board_OnLiveLost(object? o, EventArgs e)
     {
-        _timer.IsPaused = true;
+        if (!_timer.IsPaused)
+            OnPowerDotDepleted();
     }
 
     void Board_OnDotEaten(object? o, DotEventArgs e)
     {
-        if (e.Dot is not PowerDot) return;
-
-        _timer.Restart();
-        _ghostsEaten = 0;
-        Sounds.Siren.Stop();
-        Sounds.PowerDot.Play();
-
-        // place all ghosts outside the ghost house into a frightened mode
-        foreach (var ghost in Ghosts)
-            if (!IsInside(ghost))
-                ghost.Mode = GhostMode.Frightened;
-
-        // check if any ghost entered a frightened mode
-        if (!Ghosts.Any(g => g.Mode == GhostMode.Frightened))
-            OnPowerDotDepleted();
+        if (e.Dot is PowerDot)
+            OnPowerDotStarted();
     }
 
     void Timer_OnTimerElapsed(object? o, EventArgs e)
@@ -109,16 +91,54 @@ class GhostHouse : ScreenObject
         OnPowerDotDepleted();
     }
 
+    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
+    {
+        if (newParent is Board board)
+        {
+            board.DotEaten += Board_OnDotEaten;
+            board.GhostEaten += Board_OnGhostEaten;
+            board.LiveLost += Board_OnLiveLost;
+        }
+        base.OnParentChanged(oldParent, newParent);
+    }
+
     void OnPowerDotDepleted()
     {
         _timer.IsPaused = true;
-        Sounds.PowerDot.Stop();
-        Sounds.Siren.Play();
         PowerDotDepleted?.Invoke(this, EventArgs.Empty);
+    }
+
+    void OnPowerDotStarted()
+    {
+        if (Parent is not Board board || board.Parent is not Game game) return;
+
+        if (game.Level < Game.MaxDifficultyLevel)
+        {
+            // start power dot timer
+            double amount = (Game.MaxDifficultyLevel - game.Level + 1) / Game.MaxDifficultyLevel;
+            _timer.TimerAmount = TimeSpan.FromSeconds(FrightenedTime * amount);
+            _timer.Restart();
+
+            // set counter
+            _ghostsEaten = 0;
+
+            // place all ghosts outside the ghost house into a frightened mode
+            foreach (var ghost in Ghosts)
+                if (!IsInside(ghost))
+                    ghost.Mode = GhostMode.Frightened;
+
+            // invoke event
+            PowerDotStarted?.Invoke(this, EventArgs.Empty);
+
+            // if no ghosts entered a frightened mode stop the event
+            if (!Ghosts.Any(g => g.Mode == GhostMode.Frightened))
+                OnPowerDotDepleted();
+        }
     }
     #endregion Methods
 
     #region Events
     public event EventHandler? PowerDotDepleted;
+    public event EventHandler? PowerDotStarted;
     #endregion Events
 }

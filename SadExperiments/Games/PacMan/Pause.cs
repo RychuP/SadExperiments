@@ -4,14 +4,29 @@ namespace SadExperiments.Games.PacMan;
 
 class Pause : InstructionSet
 {
-    public Pause(double duration = 1d)
+    readonly Action? _callback;
+
+    public Pause(double duration = 1d, Action? callback = null)
     {
+        _callback = callback;
         RemoveOnFinished = true;
         Instructions.AddFirst(new Wait(TimeSpan.FromSeconds(duration)));
-        Instructions.AddLast(new CodeInstruction((o, t) =>
+    }
+
+    public override void OnAdded(IScreenObject host)
+    {
+        if (host is Board board)
+            board.IsPaused = true;
+        base.OnAdded(host);
+    }
+
+    public override void OnRemoved(IScreenObject host)
+    {
+        if (host is Board board)
         {
-            if (o is Board b) b.TogglePause();
-            return true;
-        }));
+            board.IsPaused = false;
+            _callback?.Invoke();
+        }
+        base.OnRemoved(host);
     }
 }
