@@ -5,7 +5,7 @@ namespace SadExperiments.Games.PacMan;
 
 static class Sounds
 {
-    public static SoundEffectInstance Siren, PowerDot, MunchDot, MunchGhost, Death, LevelComplete;
+    public static SoundEffectInstance Siren, PowerDot, MunchDot, MunchGhost, Retreating, Death, LevelComplete;
 
     static Sounds()
     {
@@ -15,6 +15,12 @@ static class Sounds
         MunchGhost = FromFile("munch_ghost");
         Death = FromFile("death");
         LevelComplete = FromFile("level_complete");
+        Retreating = FromFile("retreating");
+
+        Siren.IsLooped = true;
+        Retreating.IsLooped = true;
+        PowerDot.IsLooped = true;
+        MunchDot.Volume = 0.4f;
     }
 
     static SoundEffectInstance FromFile(string fileName)
@@ -31,5 +37,6 @@ static class Sounds
         MunchGhost!.Stop();
         Death!.Stop();
         LevelComplete!.Stop();
+        Retreating!.Stop();
     }
 }

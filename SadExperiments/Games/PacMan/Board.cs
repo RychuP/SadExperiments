@@ -1,10 +1,26 @@
 ﻿using GoRogue.Pathing;
+using GoRogue.Random;
 using SadConsole.Entities;
 using SadExperiments.Games.PacMan.Ghosts;
+using SadExperiments.Games.PacMan.Ghosts.Behaviours;
 using SadRogue.Primitives.GridViews;
 
 namespace SadExperiments.Games.PacMan;
 
+// Pac-Dot = 10 Pts
+// Power Pellet = 50 Pts
+// 1st Ghost = 200 Pts
+// 2nd Ghost = 400 Pts
+// 3rd Ghost = 800 Pts
+// 4th Ghost = 1600 Pts
+// Cherry = 100 Pts
+// Strawberry = 300 Pts
+// Orange = 500 Pts
+// Apple = 700 Pts
+// Melon = 1000 Pts
+// Galaxian = 2000 Pts
+// Bell = 3000 Pts
+// Key = 5000 Pts
 class Board : ScreenSurface
 {
     #region Fields
@@ -30,7 +46,6 @@ class Board : ScreenSurface
         Position = (1, 2);
         Font = Fonts.Maze;
         FontSize = Game.DefaultFontSize;
-        Sounds.Siren.IsLooped = true;
 
         // astar
         var walkabilityView = new WalkabilityView(this);
@@ -148,8 +163,15 @@ class Board : ScreenSurface
             {
                 if (child is Ghost ghost && Player.HitBox.Intersects(ghost.HitBox))
                 {
-                    OnPlayerCaught();
-                    return;
+                    if (ghost.Mode == GhostMode.Frightened)
+                    {
+                        OnGhostEaten(ghost);
+                    }
+                    else if (ghost.Mode != GhostMode.Eaten)
+                    {
+                        OnPlayerCaught();
+                        return;
+                    }
                 }
             }
         }
@@ -183,10 +205,109 @@ class Board : ScreenSurface
         toPosition = toPosition.PixelLocationToSurface(FontSize);
         Point ghostPosition = currentGhostPosition.PixelLocationToSurface(FontSize);
         var path = _aStar.ShortestPath(ghostPosition, toPosition);
-        if (path != null && path.Length > 1)
-            return path.GetStepWithStart(1).SurfaceLocationToPixel(FontSize);
+        if (path != null)
+        {
+            if (path.Length > 1)
+                return path.GetStepWithStart(1).SurfaceLocationToPixel(FontSize);
+            else
+                return currentGhostPosition;
+        }
         else
-            return currentGhostPosition;
+            throw new ArgumentException("Given ghost position does not produce a valid path to the player");
+    }
+
+    public Point GetPositionToGhostHouse(Point currentGhostPosition)
+    {
+        var position = currentGhostPosition.PixelLocationToSurface(FontSize);
+        var destination = GhostHouse.EntrancePosition.PixelLocationToSurface(FontSize);
+        var path = _aStar.ShortestPath(position, destination);
+        if (path != null)
+        {
+            if (path.Length > 1)
+                return path.GetStepWithStart(1).SurfaceLocationToPixel(FontSize);
+            else
+                return GhostHouse.EntrancePosition;
+        }
+        else
+            throw new ArgumentException("Given ghost position does not produce a valid path to the ghost house.");
+    }
+
+    // returns direction to player
+    public Direction GetDirectionToPlayer(Point ghostPosition) =>
+        Direction.GetCardinalDirection(ghostPosition, Player.ToPosition);
+
+    public static Direction GetRandomTurn(Direction direction)
+    {
+        return GlobalRandom.DefaultRNG.NextInt(0, 2) switch
+        {
+            0 => direction + 2,
+            _ => direction - 2
+        };
+    }
+
+    // returns a valid destination as close to the desired direction as possible
+    public Destination GetDestination(Point currentPosition, Direction desiredDirection, Direction currentDirection)
+    {
+        // desired and current directions are different
+        if (desiredDirection != currentDirection)
+        {
+            // try the new direction
+            var position = GetNextPosition(currentPosition, desiredDirection);
+            if (position != currentPosition)
+                return new Destination(position, desiredDirection);
+
+            else
+            {
+                // try the current direction
+                position = GetNextPosition(currentPosition, currentDirection);
+                if (position != currentPosition)
+                    return new Destination(position, currentDirection);
+
+                else
+                {
+                    // try the remaining direction
+                    var direction = desiredDirection.Inverse();
+                    position = GetNextPosition(currentPosition, direction);
+                    if (position != currentPosition)
+                        return new Destination(position, direction);
+
+                    else
+                        // dead end without a valid turn? this shouldn't happen...
+                        throw new InvalidOperationException("Can't find a valid destination from given directions.");
+                }
+            }
+        }
+
+        // desired and current directions are the same
+        else
+        {
+            // try the current direction
+            var position = GetNextPosition(currentPosition, currentDirection);
+            if (position != currentPosition)
+                return new Destination(position, currentDirection);
+
+            else
+            {
+                // try a random turn
+                var direction = GetRandomTurn(currentDirection);
+                position = GetNextPosition(currentPosition, direction);
+                if (position != currentPosition)
+                    return new Destination(position, direction);
+
+                else
+                {
+                    // try the remaining direction
+                    direction = direction.Inverse();
+                    position = GetNextPosition(currentPosition, direction);
+                    if (position != currentPosition)
+                        return new Destination(position, direction);
+
+                    else
+                        // dead end without a valid turn? this shouldn't happen...
+                        throw new InvalidOperationException("Can't find a valid destination from given directions.");
+                }
+            }
+        }
     }
 
     public Point GetNextPosition(Point currentPosition, Direction direction)
@@ -261,13 +382,14 @@ class Board : ScreenSurface
         _removedDots.Clear();
 
         // add sprites
-        Children.Clear();
+        RemoveSprites();
         Children.Add(Player);
         Children.Add(GhostHouse.Ghosts);
 
         // add a small pause at the beginning
         SadComponents.Add(new Pause());
 
+        Sounds.StopAll();
         Sounds.Siren.Play();
     }
 
@@ -280,6 +402,12 @@ class Board : ScreenSurface
     {
         foreach (var ghost in GhostHouse.Ghosts)
             Children.Remove(ghost);
+    }
+
+    void RemoveSprites()
+    {
+        RemoveGhosts();
+        Children.Remove(Player);
     }
 
     void ChangeMazeColor(Color color)
@@ -325,23 +453,28 @@ class Board : ScreenSurface
         DotEaten?.Invoke(this, new DotEventArgs(dot));
     }
 
-    void OnGhostEaten(int value)
+    void OnGhostEaten(Ghost ghost)
     {
-        GhostEaten?.Invoke(this, new ScoreEventArgs(value));
+        ghost.Mode = GhostMode.Eaten;
+        Sounds.MunchGhost.Play();
+        //SadComponents.Add(new Pause(0.2d));
+        GhostEaten?.Invoke(this, new ScoreEventArgs(GhostHouse.Value));
     }
 
+    // new board is to be created after the level is complete
     void OnLevelComplete()
     {
         _playingLevelCompleteAnimation = true;
         Player.AnimationIsOn = false;
         RemoveGhosts();
+        Children.Remove(GhostHouse);
         Sounds.StopAll();
         Sounds.LevelComplete.Play();
     }
 
     void OnLevelCompleteAnimationFinished()
     {
-        Children.Clear();
+        RemoveSprites();
         LevelComplete?.Invoke(this, EventArgs.Empty);
     }
     #endregion Methods

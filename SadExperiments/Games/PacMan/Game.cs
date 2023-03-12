@@ -7,6 +7,7 @@ class Game : Page, IRestartable
 {
     #region Fields
     public const double FontSizeMultiplier = 2;
+    public const double SpriteSpeed = 2d;
     const int LivesStart = 3;
 
     public static readonly Point DefaultFontSize = new Point(8, 8) * FontSizeMultiplier;

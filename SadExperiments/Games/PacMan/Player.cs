@@ -46,11 +46,11 @@ class Player : Sprite
         if (NextDirection != Direction.None)
         {
             // try going in the next direction
-            if (TrySetToPosition(NextDirection))
+            if (TrySetDestination(NextDirection))
                 NextDirection = Direction.None;
 
             // try to continue in the prev direction
-            else if (!TrySetToPosition(Direction))
+            else if (!TrySetDestination(Direction))
             {
                 // wrong inputs... just stop
                 Direction = Direction.None;
@@ -62,7 +62,7 @@ class Player : Sprite
         else if (Direction != Direction.None)
         {
             // if it's not valid, just stop
-            if (!TrySetToPosition(Direction))
+            if (!TrySetDestination(Direction))
                 Direction = Direction.None;
         }
     }

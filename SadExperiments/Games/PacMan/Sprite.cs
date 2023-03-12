@@ -13,7 +13,6 @@ abstract class Sprite : ScreenSurface
     Direction _nextDirection = Direction.None;
 
     // movement data
-    Point _start = Point.Zero;
     Point _fromPosition = Point.None;
     Point _toPosition = Point.None;
     Point _currentPosition = Point.None;
@@ -45,17 +44,13 @@ abstract class Sprite : ScreenSurface
         HitBox = new Rectangle(0, 0, Game.DefaultFontSize.X, Game.DefaultFontSize.Y);
     }
 
-    public Point Start
-    {
-        get => _start;
-        set => _start = value;
-    }
+    public Point Start { get; set; } = Point.Zero;
 
     protected double Speed { get; set; } = 1d;
 
     public Rectangle HitBox { get; private set; }
 
-    public bool AnimationIsOn { get; set; } = false;
+    public bool AnimationIsOn { get; set; } = true;
 
     protected int AnimationRow
     {
@@ -183,7 +178,7 @@ abstract class Sprite : ScreenSurface
         if (_timeElapsed >= _animationSpeed)
         {
             _timeElapsed = TimeSpan.Zero;
-            Surface[0].Glyph = _firstFrameIndex + _animationColumn + _currentAnimFrame * 4;
+            Surface[0].Glyph = GetAnimationGlyph(_animationColumn, _currentAnimFrame);
             _currentAnimFrame = _currentAnimFrame == 0 ? 1 : 0;
             Surface.IsDirty = true;
         }
@@ -191,7 +186,11 @@ abstract class Sprite : ScreenSurface
         base.Update(delta);
     }
 
-    protected bool TrySetToPosition(Direction direction)
+    // extracted to a method to allow for a custom freightened ghost animation
+    protected virtual int GetAnimationGlyph(int animationColumn, int animationFrame) =>
+        _firstFrameIndex + animationColumn + animationFrame * 4;
+
+    protected bool TrySetDestination(Direction direction)
     {
         if (Parent is not Board board)
             throw new InvalidOperationException("Trying to find a destination when not assigned to a board.");
@@ -262,7 +261,7 @@ abstract class Sprite : ScreenSurface
         {
             AnimationIsOn = true;
             FromPosition = CurrentPosition = Start;
-            if (Direction != Direction.None && !TrySetToPosition(Direction))
+            if (Direction != Direction.None && !TrySetDestination(Direction))
                 throw new InvalidOperationException("Invalid start. Sprite unable to go in the given direction.");
         }
         else if (oldParent is Board)
