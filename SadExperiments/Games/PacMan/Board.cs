@@ -4,6 +4,7 @@ using SadConsole.Entities;
 using SadExperiments.Games.PacMan.Ghosts;
 using SadExperiments.Games.PacMan.Ghosts.Behaviours;
 using SadRogue.Primitives.GridViews;
+using ShaiRandom.Generators;
 
 namespace SadExperiments.Games.PacMan;
 
@@ -279,6 +280,44 @@ class Board : ScreenSurface
             throw new ArgumentException("Given ghost position does not produce a valid path to the ghost house.");
     }
 
+    public Point GetNextPosition(Point currentPosition, Direction direction)
+    {
+        Point surfacePosition = currentPosition.PixelLocationToSurface(FontSize);
+
+        if (direction == Direction.None)
+            return currentPosition;
+
+        Point position = surfacePosition + direction;
+        // check maze locations
+        if (IsWalkable(position))
+            return position.SurfaceLocationToPixel(FontSize);
+        else
+            return currentPosition;
+    }
+
+    // returns next pixel destination on the path to the given surface destination
+    public Point GetNextPosition(Point currentGhostPosition, Point pixelDestination)
+    {
+        var surfaceDestination = pixelDestination.PixelLocationToSurface(FontSize);
+        return GetNextPathPosition(currentGhostPosition, surfaceDestination);
+    }
+
+    // returns next pixel destination on the path to the given surface destination
+    Point GetNextPathPosition(Point currentPixelPosition, Point surfaceDestination)
+    {
+        var surfacePosition = currentPixelPosition.PixelLocationToSurface(FontSize);
+        var path = _aStar.ShortestPath(surfacePosition, surfaceDestination);
+        if (path != null)
+        {
+            if (path.Length > 1)
+                return path.GetStepWithStart(1).SurfaceLocationToPixel(FontSize);
+            else
+                return surfaceDestination.SurfaceLocationToPixel(FontSize);
+        }
+        else
+            throw new ArgumentException("Given ghost position does not produce a valid path to the ghost house.");
+    }
+
     // returns direction to player
     public Direction GetDirectionToPlayer(Point ghostPosition) =>
         Direction.GetCardinalDirection(ghostPosition, Player.ToPosition);
@@ -290,6 +329,28 @@ class Board : ScreenSurface
             0 => direction + 2,
             _ => direction - 2
         };
+    }
+
+    public Dot? GetRandomDot(Rectangle area)
+    {
+        var dots = _renderer.Entities.Where(e => e is Dot d && area.Contains(d.Position)).ToArray();
+        if (dots.Length == 0) 
+            return null;
+        else
+        {
+            int index = GlobalRandom.DefaultRNG.RandomIndex(dots);
+            return dots[index] as Dot;
+        }
+    }
+
+    // returns a valid position for the given area
+    public Point GetRandomPosition(Rectangle area)
+    {
+        Point position;
+        do 
+            position = GlobalRandom.DefaultRNG.RandomPosition(area);
+        while (!IsWalkable(position));
+        return position;
     }
 
     // returns a valid destination as close to the desired direction as possible
@@ -355,21 +416,6 @@ class Board : ScreenSurface
                 }
             }
         }
-    }
-
-    public Point GetNextPosition(Point currentPosition, Direction direction)
-    {
-        Point surfacePosition = currentPosition.PixelLocationToSurface(FontSize);
-
-        if (direction == Direction.None)
-            return currentPosition;
-
-        Point position = surfacePosition + direction;
-        // check maze locations
-        if (IsWalkable(position))
-            return position.SurfaceLocationToPixel(FontSize);
-        else
-            return currentPosition;
     }
 
     public IEdible? GetConsumable(Point pixelPosition)

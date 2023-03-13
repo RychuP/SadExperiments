@@ -8,7 +8,6 @@ class Blinky : Ghost
     {
         AnimationRow = 2;
 
-        ScatterBehaviour = new ScatterTopRightCorner();
         ChaseBehaviour = new ChaseAggressive();
         FrightenedBehaviour = new FrightenedWandering();
         EatenBehaviour = new EatenRunningHome();
@@ -16,9 +15,12 @@ class Blinky : Ghost
 
     protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
     {
-        if (newParent is Board)
+        if (newParent is Board board)
         {
             Direction = Board.GetRandomTurn(Direction.Down);
+
+            if (board.Parent is not Game)
+                ScatterBehaviour = new ScatterTopRightCorner(board.Surface.Area);
         }
         base.OnParentChanged(oldParent, newParent);
     }

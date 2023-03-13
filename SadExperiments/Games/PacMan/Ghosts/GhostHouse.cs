@@ -1,5 +1,4 @@
 using SadConsole.Components;
-using SadConsole.Effects;
 using SadExperiments.Games.PacMan.Ghosts;
 
 namespace SadExperiments.Games.PacMan;

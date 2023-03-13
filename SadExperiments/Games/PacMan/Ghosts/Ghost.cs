@@ -19,7 +19,7 @@ abstract class Ghost : Sprite
     #endregion Constructors
 
     #region Properties
-    protected IScatterBehaviour? ScatterBehaviour { get; init; } 
+    protected IScatterBehaviour? ScatterBehaviour { get; set; } 
     protected IChaseBehaviour? ChaseBehaviour { get; init; }
     protected IFrightenedBehaviour? FrightenedBehaviour { get; init; }
     protected IEatenBehaviour? EatenBehaviour { get; init; }
@@ -87,10 +87,10 @@ abstract class Ghost : Sprite
 
     protected virtual void Board_OnFirstStart(object? o, EventArgs e)
     {
-        if (o is Board board && board.Parent is Game game)
+        if (o is Board board && board.Parent is Game)
         {
-            // to set proper speed
-            Mode = GhostMode.Chase;
+            // repeat mode to set a proper speed taking into account game level
+            Mode = GhostMode.Scatter;
         }
         else
             throw new InvalidOperationException("Board is not assigned to a Game.");
@@ -126,7 +126,7 @@ abstract class Ghost : Sprite
         if (newParent is Board board)
         {
             // TODO: replace with scatter
-            Mode = GhostMode.Chase;
+            Mode = GhostMode.Scatter;
 
             if (board.Parent is not Game)
                 board.FirstStart += Board_OnFirstStart;

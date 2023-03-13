@@ -7,10 +7,10 @@ class Game : Page, IRestartable
 {
     #region Fields
     public const double FontSizeMultiplier = 2d;
-    public const double SpriteSpeed = 2d;
+    public const double SpriteSpeed = 2.5d;
     public const int  MaxDifficultyLevel = 21;
     const int LivesStart = 3;
-    const int LevelStart = 2;
+    const int LevelStart = 1;
 
     public static readonly Point DefaultFontSize = new Point(8, 8) * FontSizeMultiplier;
     readonly GameOverWindow _gameOverWindow = new();

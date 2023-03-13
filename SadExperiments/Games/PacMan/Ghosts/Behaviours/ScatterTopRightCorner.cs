@@ -1,9 +1,10 @@
 namespace SadExperiments.Games.PacMan.Ghosts.Behaviours;
 
-class ScatterTopRightCorner : IScatterBehaviour
+class ScatterTopRightCorner : ScatterBase
 {
-    public Destination Scatter(Board board, Point ghostPosition, Direction ghostDirection)
+    public ScatterTopRightCorner(Rectangle boardArea)
     {
-        throw new NotImplementedException();
+        var bisection = boardArea.BisectHorizontally();
+        Area = bisection.Rect1.BisectVertically().Rect2;
     }
 }

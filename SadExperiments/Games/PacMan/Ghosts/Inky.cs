@@ -8,9 +8,18 @@ class Inky : Ghost
     {
         AnimationRow = 6;
 
-        ScatterBehaviour = new ScatterBottomRightCorner();
         ChaseBehaviour = new ChaseRandom();
         FrightenedBehaviour = new FrightenedWandering();
         EatenBehaviour = new EatenRunningHome();
+    }
+
+    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
+    {
+        if (newParent is Board board)
+        {
+            if (board.Parent is not Game)
+                ScatterBehaviour = new ScatterBottomRightCorner(board.Surface.Area);
+        }
+        base.OnParentChanged(oldParent, newParent);
     }
 }

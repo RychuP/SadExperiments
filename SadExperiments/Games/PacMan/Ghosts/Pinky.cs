@@ -8,9 +8,18 @@ class Pinky : Ghost
     {
         AnimationRow = 4;
 
-        ScatterBehaviour = new ScatterTopLeftCorner();
         ChaseBehaviour = new ChaseAmbush();
         FrightenedBehaviour = new FrightenedWandering();
         EatenBehaviour = new EatenRunningHome();
+    }
+
+    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
+    {
+        if (newParent is Board board)
+        {
+            if (board.Parent is not Game)
+                ScatterBehaviour = new ScatterTopLeftCorner(board.Surface.Area);
+        }
+        base.OnParentChanged(oldParent, newParent);
     }
 }

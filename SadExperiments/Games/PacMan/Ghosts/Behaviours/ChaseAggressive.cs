@@ -5,7 +5,7 @@ class ChaseAggressive : IChaseBehaviour
     public Destination Chase(Board board, Point ghostPosition, Direction ghostDirection)
     {
         var positionLeadingToPlayer = board.GetPositionToPlayer(ghostPosition);
-        var desiredDirection = Direction.GetDirection(ghostPosition, positionLeadingToPlayer);
+        var desiredDirection = Direction.GetCardinalDirection(ghostPosition, positionLeadingToPlayer);
 
         // check astar direction
         if (desiredDirection != ghostDirection.Inverse() && desiredDirection != Direction.None)
