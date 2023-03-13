@@ -29,6 +29,9 @@ class Board : ScreenSurface
     readonly Renderer _renderer = new();
     readonly AStar _aStar;
 
+    // allows slowing down pacman each time they eat a dot
+    bool _dotEatenThisFrame = false;
+
     // custom gameplay feature
     readonly bool ReplenishDotsOnLiveLost = false;
     readonly List<Dot> _removedDots;
@@ -39,7 +42,8 @@ class Board : ScreenSurface
     const int WallColorChangeMax = 6;
     int _wallColorChangeCount = 0;
 
-    ScreenSurface _debug;
+    // debug screen
+    readonly ScreenSurface _debug;
     #endregion Fields
 
     #region Constructors
@@ -177,10 +181,23 @@ class Board : ScreenSurface
         {
             // update all sprite positions
             foreach (var child in Children)
-                if (child is Sprite actor)
+                if (child is Sprite sprite)
                 {
-                    actor.UpdatePosition();
-                    if (_playingLevelCompleteAnimation) return;
+                    if (sprite is Ghost)
+                        sprite.UpdatePosition();
+
+                    else if (sprite is Player)
+                    {
+                        // don't update the player's position for one frame after eating a dot
+                        if (_dotEatenThisFrame)
+                            _dotEatenThisFrame = false;
+                        else
+                            sprite.UpdatePosition();
+
+                        // check if all dots are eaten
+                        if (_playingLevelCompleteAnimation) 
+                            return;
+                    }
                 }
 
             // check for collisions
@@ -368,14 +385,7 @@ class Board : ScreenSurface
     public void RemoveDot(Dot dot)
     {
         _renderer.Remove(dot);
-        if (ReplenishDotsOnLiveLost)
-            _removedDots.Add(dot);
-        _renderer.IsDirty = true;
         OnDotEaten(dot);
-        if (_renderer.Entities.Count == 0)
-            OnLevelComplete();
-        else
-            Sounds.MunchDot.Play();
     }
 
     // adds dots to the map
@@ -497,6 +507,22 @@ class Board : ScreenSurface
 
     void OnDotEaten(Dot dot)
     {
+        // add the dot to removed dots if needed
+        if (ReplenishDotsOnLiveLost)
+            _removedDots.Add(dot);
+
+        // mark renderer to redraw
+        _renderer.IsDirty = true;
+
+        // mark pacman to stop for one frame
+        _dotEatenThisFrame = true;
+
+        // check if all the dots are eaten
+        if (_renderer.Entities.Count == 0)
+            OnLevelComplete();
+        else
+            Sounds.MunchDot.Play();
+
         DotEaten?.Invoke(this, new DotEventArgs(dot));
     }
 
