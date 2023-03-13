@@ -92,7 +92,7 @@ class Board : ScreenSurface
         _debug = new(Program.Width, 1)
         {
             Parent = this,
-            Position = (0, -1)
+            Position = (-3, -1)
         };
     }
     #endregion Constructors
@@ -239,7 +239,9 @@ class Board : ScreenSurface
         }
 
         // debug info
-        _debug.Surface.Print(0, 0, $"Player: {Player.Speed}, Blinky: {GhostHouse.Blinky.Speed}     ");
+        //string text = $"Player Speed: {Player.Speed}, Blinky Speed: {GhostHouse.Blinky.Speed}, " +
+        string text = $"{GhostHouse.CurrentMode}";
+        _debug.Surface.Print(0, 0, text.Align(HorizontalAlignment.Center, Program.Width));
 
         base.Update(delta);
     }
@@ -474,7 +476,10 @@ class Board : ScreenSurface
         Children.Add(Player);
         Children.Add(GhostHouse.Ghosts);
 
-        // add small pause at the beginning
+        // restart ghost house timers
+        GhostHouse.Restart();
+
+        // add a small pause at the beginning
         AddPauseWithSoundCallback();
     }
 

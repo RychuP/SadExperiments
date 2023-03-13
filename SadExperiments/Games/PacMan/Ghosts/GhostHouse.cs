@@ -9,10 +9,27 @@ class GhostHouse : ScreenObject
     #region Fields
     const int Width = 7;
     const int Height = 4;
-    const double FrightenedTime = 6d;
-    readonly Timer _timer = new(TimeSpan.FromSeconds(FrightenedTime));
     readonly Rectangle _area;
+
+    // power dot timer
+    readonly Timer _powerDotTimer = new(TimeSpan.FromSeconds(5d));
+    const double FrightenedTime = 6d;
     int _ghostsEaten = 0;
+
+    // ghost mode change change timer
+    readonly Timer _modeTimer = new(TimeSpan.FromSeconds(5d));
+    const int ModeChangeMax = 7;
+    int _currentModeTimeSlot = 0;
+    GhostMode _currentMode = GhostMode.Scatter;
+    readonly double[,] _modeTimeSlots = new double[,]
+    {
+        { 7, 20, 7, 20, 5, 20, 5 },
+        { 7, 20, 7, 20, 5, 1033, 1/60d },
+        { 5, 20, 5, 20, 5, 1037, 1/60d },
+    };
+
+    // ghost release timer
+    readonly Timer _releaseTimer = new(TimeSpan.FromSeconds(5d));
     #endregion Fields
 
     #region Constructors
@@ -34,11 +51,17 @@ class GhostHouse : ScreenObject
         Clyde = new(CenterPosition + (2, 0) * fontSize - (Convert.ToInt32(fontSize.X * 0.4d), 0));
         Ghosts = new Ghost[] { Blinky, Pinky, Inky, Clyde };
 
-        // setup timer 
-        _timer.Repeat = false;
-        _timer.IsPaused = true;
-        _timer.TimerElapsed += Timer_OnTimerElapsed;
-        SadComponents.Add(_timer);
+        // setup power dot timer 
+        _powerDotTimer.Repeat = false;
+        _powerDotTimer.IsPaused = true;
+        _powerDotTimer.TimerElapsed += PowerDotTimer_OnTimerElapsed;
+        SadComponents.Add(_powerDotTimer);
+
+        // setup ghost mode change timer
+        _modeTimer.Repeat = false;
+        _modeTimer.IsPaused = true;
+        _modeTimer.TimerElapsed += ModeTimer_OnTimerElapsed;
+        SadComponents.Add(_modeTimer);
 
         // event handlers
         foreach (var ghost in Ghosts)
@@ -54,6 +77,15 @@ class GhostHouse : ScreenObject
     public Point EntrancePosition { get; init; }
     public Point CenterPosition { get; init; }
     public Ghost[] Ghosts { get; init; }
+    public GhostMode CurrentMode
+    {
+        get => _currentMode;
+        set
+        {
+            _currentMode = value;
+            OnCurrentModeChanged(_currentMode);
+        }
+    }
 
     // value of the last ghost eaten
     public int Value =>
@@ -64,6 +96,28 @@ class GhostHouse : ScreenObject
     // checks if the ghost is inside the ghost house
     bool IsInside(Ghost ghost) =>
         _area.Intersects(ghost.HitBox);
+
+    void SetModeTimer(int gameLevel)
+    {
+        _modeTimer.TimerAmount = TimeSpan.FromSeconds(gameLevel switch
+        {
+            >= 5 => _modeTimeSlots[2, _currentModeTimeSlot],
+            >= 2 => _modeTimeSlots[1, _currentModeTimeSlot],
+            _ => _modeTimeSlots[0, _currentModeTimeSlot]
+        });
+    }
+
+    public void Restart()
+    {
+        if (Parent is Board board && board.Parent is Game game)
+        {
+            _powerDotTimer.IsPaused = true;
+            _modeTimer.Restart();
+            _currentModeTimeSlot = 0;
+            CurrentMode = GhostMode.Scatter;
+            SetModeTimer(game.Level);
+        }
+    }
 
     void Board_OnGhostEaten(object? o, EventArgs e)
     {
@@ -77,8 +131,9 @@ class GhostHouse : ScreenObject
 
     void Board_OnLiveLost(object? o, EventArgs e)
     {
-        if (!_timer.IsPaused)
+        if (!_powerDotTimer.IsPaused)
             OnPowerDotDepleted();
+        _modeTimer.IsPaused = true;
     }
 
     void Board_OnDotEaten(object? o, DotEventArgs e)
@@ -87,12 +142,47 @@ class GhostHouse : ScreenObject
             OnPowerDotStarted();
     }
 
-    void Timer_OnTimerElapsed(object? o, EventArgs e)
+    void Board_OnFirstStart(object? o, EventArgs e)
+    {
+        _modeTimer.Restart();
+    }
+
+    void PowerDotTimer_OnTimerElapsed(object? o, EventArgs e)
     {
         foreach (var ghost in Ghosts)
             if (ghost.Mode != GhostMode.Eaten && ghost.Mode != GhostMode.Idle)
-                ghost.Mode = GhostMode.Chase;
+                ghost.Mode = CurrentMode;
         OnPowerDotDepleted();
+    }
+
+    void ModeTimer_OnTimerElapsed(object? o, EventArgs e)
+    {
+        if (Parent is Board board && board.Parent is Game game)
+        {
+            if (++_currentModeTimeSlot >= ModeChangeMax)
+            {
+                // indefinite chase mode
+                CurrentMode = GhostMode.Scatter;
+                _modeTimer.IsPaused = true;
+            }
+            else
+            {
+                // set mode
+                int reminder = _currentModeTimeSlot % 2;
+                CurrentMode = reminder switch
+                {
+                    0 => GhostMode.Scatter,
+                    _ => GhostMode.Chase
+                };
+
+                // set time
+                SetModeTimer(game.Level);
+
+                _modeTimer.Restart();
+            }
+        }
+        else
+            throw new InvalidOperationException("Timer is running but the board is not assigned to a Game.");
     }
 
     void Ghost_OnModeChanged(object? o, GhostModeEventArgs e)
@@ -112,18 +202,28 @@ class GhostHouse : ScreenObject
 
     protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
     {
-        if (newParent is Board board)
+        if (newParent is Board board && board.Parent is not Game)
         {
             board.DotEaten += Board_OnDotEaten;
             board.GhostEaten += Board_OnGhostEaten;
             board.LiveLost += Board_OnLiveLost;
+            board.FirstStart += Board_OnFirstStart;
         }
         base.OnParentChanged(oldParent, newParent);
     }
 
+    void OnCurrentModeChanged(GhostMode newMode)
+    {
+        foreach (var ghost in Ghosts)
+        {
+            if (ghost.Mode == GhostMode.Scatter || ghost.Mode == GhostMode.Chase)
+                ghost.Mode = newMode;
+        }
+    }
+
     void OnPowerDotDepleted()
     {
-        _timer.IsPaused = true;
+        _powerDotTimer.IsPaused = true;
         PowerDotDepleted?.Invoke(this, EventArgs.Empty);
     }
 
@@ -135,8 +235,8 @@ class GhostHouse : ScreenObject
         {
             // start power dot timer
             double amount = (double)(Game.MaxDifficultyLevel - game.Level + 1) / Game.MaxDifficultyLevel;
-            _timer.TimerAmount = TimeSpan.FromSeconds(FrightenedTime * amount);
-            _timer.Restart();
+            _powerDotTimer.TimerAmount = TimeSpan.FromSeconds(FrightenedTime * amount);
+            _powerDotTimer.Restart();
 
             // set counter
             _ghostsEaten = 0;

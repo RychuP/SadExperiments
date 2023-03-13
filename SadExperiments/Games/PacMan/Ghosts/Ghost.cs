@@ -23,6 +23,7 @@ abstract class Ghost : Sprite
     protected IChaseBehaviour? ChaseBehaviour { get; init; }
     protected IFrightenedBehaviour? FrightenedBehaviour { get; init; }
     protected IEatenBehaviour? EatenBehaviour { get; init; }
+    protected IAwakeBehaviour? AwakeBehaviour { get; init; }
 
     public GhostMode Mode
     {
@@ -87,12 +88,7 @@ abstract class Ghost : Sprite
 
     protected virtual void Board_OnFirstStart(object? o, EventArgs e)
     {
-        if (o is Board board && board.Parent is Game)
-        {
-            // repeat mode to set a proper speed taking into account game level
-            Mode = GhostMode.Scatter;
-        }
-        else
+        if (o is not Board board || board.Parent is not Game)
             throw new InvalidOperationException("Board is not assigned to a Game.");
     }
 
@@ -115,6 +111,10 @@ abstract class Ghost : Sprite
             case GhostMode.Eaten:
                 Speed = Game.SpriteSpeed * 2;
                 break;
+
+            case GhostMode.Awake:
+                Speed = Game.SpriteSpeed * SpeedMultiplier;
+                break;
         }
 
         var args = new GhostModeEventArgs(prevMode, newMode);
@@ -125,20 +125,16 @@ abstract class Ghost : Sprite
     {
         if (newParent is Board board)
         {
-            // TODO: replace with scatter
-            Mode = GhostMode.Scatter;
-
             if (board.Parent is not Game)
                 board.FirstStart += Board_OnFirstStart;
         }
         base.OnParentChanged(oldParent, newParent);
     }
+
     protected override void OnToPositionReached()
     {
         if (Parent is not Board board) return;
-
-        // TODO: remove this line when other ghosts are implemented
-        if (this is not Blinky) return;
+        if (Mode == GhostMode.Idle) return;
 
         // keep this here (portal check)
         base.OnToPositionReached();
@@ -149,22 +145,29 @@ abstract class Ghost : Sprite
             GhostMode.Chase => ChaseBehaviour?.Chase(board, FromPosition, Direction),
             GhostMode.Frightened => FrightenedBehaviour?.Frightened(board, FromPosition, Direction),
             GhostMode.Eaten => EatenBehaviour?.RunBackHome(board, FromPosition, Direction),
+            GhostMode.Awake => AwakeBehaviour?.LeaveHouse(board, FromPosition),
             _ => null
         };
 
         if (destination != null)
         {
-            // ghost reached the center of the house in eaten mode
+            // ghost is in the center of the house and leaving
             if (destination.Position == board.GhostHouse.CenterPosition && destination.Direction == Direction.None)
             {
+                // set coordinates back to the entrance
+                destination = new Destination(board.GhostHouse.EntrancePosition, Direction.Up);
+
+                // revenge the ghosts death or current mode ?
                 if (Mode == GhostMode.Eaten)
-                {
-                    // set coordinates back to the entrance
-                    destination = new Destination(board.GhostHouse.EntrancePosition, Direction.Up);
-                    Mode = GhostMode.Chase;
-                }
+                    Mode = board.GhostHouse.CurrentMode;
+
+                // set current mode
+                else if (Mode == GhostMode.Awake)
+                    Mode = board.GhostHouse.CurrentMode;
+
+                // this shouldn't happen
                 else
-                    throw new ArgumentException("Special case of destination is reserved for eaten behaviour.");
+                    throw new ArgumentException("Special case of destination is reserved for house leaving behaviour.");
             }
 
             Direction = destination.Direction;
@@ -180,7 +183,7 @@ abstract class Ghost : Sprite
 
 enum GhostMode
 {
-    Idle, Scatter, Chase, Frightened, Eaten
+    Idle, Awake, Scatter, Chase, Frightened, Eaten
 }
 
 class GhostModeEventArgs : EventArgs

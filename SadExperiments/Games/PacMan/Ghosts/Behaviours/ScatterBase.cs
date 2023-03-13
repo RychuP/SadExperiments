@@ -30,6 +30,8 @@ abstract class ScatterBase : IScatterBehaviour
         {
             if (desiredDirection == ghostDirection.Inverse())
                 desiredDirection = Board.GetRandomTurn(ghostDirection);
+            else if (desiredDirection == Direction.None)
+                desiredDirection = ghostDirection;
             return board.GetDestination(ghostPosition, desiredDirection, ghostDirection);
         }
     }

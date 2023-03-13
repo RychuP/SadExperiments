@@ -8,18 +8,18 @@ class Clyde : Ghost
     {
         AnimationRow = 8;
 
-        ChaseBehaviour = new ChasePatrol();
-        FrightenedBehaviour = new FrightenedWandering();
+        //ChaseBehaviour = new ChasePatrol();
+        ChaseBehaviour = new ChaseAggressive();
         EatenBehaviour = new EatenRunningHome();
+        AwakeBehaviour = new WakenUpBehaviour();
+        FrightenedBehaviour = new FrightenedWandering();
     }
 
     protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
     {
-        if (newParent is Board board)
-        {
-            if (board.Parent is not Game)
-                ScatterBehaviour = new ScatterBottomLeftCorner(board.Surface.Area);
-        }
+        // create scatter behaviour once before the board is assigned to a game
+        if (newParent is Board board && board.Parent is not Game)
+            ScatterBehaviour = new ScatterBottomLeftCorner(board.Surface.Area);
         base.OnParentChanged(oldParent, newParent);
     }
 }
