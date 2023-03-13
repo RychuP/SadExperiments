@@ -29,8 +29,9 @@ abstract class Ghost : Sprite
         get => _mode;
         set
         {
+            var prevMode = _mode;
             _mode = value;
-            OnModeChanged(_mode);
+            OnModeChanged(prevMode, _mode);
         }
     }
 
@@ -84,10 +85,25 @@ abstract class Ghost : Sprite
             return base.GetAnimationGlyph(animationColumn, animationFrame);
     }
 
-    protected virtual void OnModeChanged(GhostMode newMode)
+    protected virtual void Board_OnFirstStart(object? o, EventArgs e)
+    {
+        if (o is Board board && board.Parent is Game game)
+        {
+            // to set proper speed
+            Mode = GhostMode.Chase;
+        }
+        else
+            throw new InvalidOperationException("Board is not assigned to a Game.");
+    }
+
+    protected virtual void OnModeChanged(GhostMode prevMode, GhostMode newMode)
     {
         switch (newMode)
         {
+            case GhostMode.Scatter:
+                Speed = Game.SpriteSpeed * SpeedMultiplier;
+                break;
+
             case GhostMode.Chase:
                 Speed = Game.SpriteSpeed * SpeedMultiplier;
                 break;
@@ -100,6 +116,9 @@ abstract class Ghost : Sprite
                 Speed = Game.SpriteSpeed * 2;
                 break;
         }
+
+        var args = new GhostModeEventArgs(prevMode, newMode);
+        ModeChanged?.Invoke(this, args);
     }
 
     protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
@@ -114,18 +133,6 @@ abstract class Ghost : Sprite
         }
         base.OnParentChanged(oldParent, newParent);
     }
-
-    protected virtual void Board_OnFirstStart(object? o, EventArgs e)
-    {
-        if (o is Board board && board.Parent is Game game)
-        {
-            // to set proper speed
-            Mode = GhostMode.Chase;
-        }
-        else
-            throw new InvalidOperationException("Board is not assigned to a Game.");
-    }
-
     protected override void OnToPositionReached()
     {
         if (Parent is not Board board) return;
@@ -165,9 +172,21 @@ abstract class Ghost : Sprite
         }
     }
     #endregion Methods
+
+    #region Events
+    public event EventHandler<GhostModeEventArgs>? ModeChanged;
+    #endregion Events
 }
 
 enum GhostMode
 {
     Idle, Scatter, Chase, Frightened, Eaten
+}
+
+class GhostModeEventArgs : EventArgs
+{
+    public GhostMode PrevMode { get; init; }
+    public GhostMode NewMode { get; init; }
+    public GhostModeEventArgs(GhostMode prevMode, GhostMode newMode) =>
+        (PrevMode, NewMode) = (prevMode, newMode);
 }

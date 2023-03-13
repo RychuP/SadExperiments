@@ -238,7 +238,7 @@ class Board : ScreenSurface
         }
 
         // debug info
-        //_debug.Surface.Print(0, 0, $"Player: {Player.Speed}, Blinky: {GhostHouse.Blinky.Speed}     ");
+        _debug.Surface.Print(0, 0, $"Player: {Player.Speed}, Blinky: {GhostHouse.Blinky.Speed}     ");
 
         base.Update(delta);
     }

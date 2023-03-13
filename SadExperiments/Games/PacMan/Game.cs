@@ -8,7 +8,7 @@ class Game : Page, IRestartable
     #region Fields
     public const double FontSizeMultiplier = 2d;
     public const double SpriteSpeed = 2d;
-    public const int MaxDifficultyLevel = 21;
+    public const int  MaxDifficultyLevel = 21;
     const int LivesStart = 3;
     const int LevelStart = 2;
 

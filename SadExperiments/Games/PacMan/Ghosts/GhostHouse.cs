@@ -1,4 +1,5 @@
 using SadConsole.Components;
+using SadConsole.Effects;
 using SadExperiments.Games.PacMan.Ghosts;
 
 namespace SadExperiments.Games.PacMan;
@@ -9,7 +10,7 @@ class GhostHouse : ScreenObject
     #region Fields
     const int Width = 7;
     const int Height = 4;
-    const double FrightenedTime = 7d;
+    const double FrightenedTime = 6d;
     readonly Timer _timer = new(TimeSpan.FromSeconds(FrightenedTime));
     readonly Rectangle _area;
     int _ghostsEaten = 0;
@@ -34,11 +35,15 @@ class GhostHouse : ScreenObject
         Clyde = new(CenterPosition + (2, 0) * fontSize - (Convert.ToInt32(fontSize.X * 0.4d), 0));
         Ghosts = new Ghost[] { Blinky, Pinky, Inky, Clyde };
 
-        // event handlers
+        // setup timer 
         _timer.Repeat = false;
         _timer.IsPaused = true;
         _timer.TimerElapsed += Timer_OnTimerElapsed;
         SadComponents.Add(_timer);
+
+        // event handlers
+        foreach (var ghost in Ghosts)
+            ghost.ModeChanged += Ghost_OnModeChanged;
     }
     #endregion Constructors
 
@@ -91,6 +96,21 @@ class GhostHouse : ScreenObject
         OnPowerDotDepleted();
     }
 
+    void Ghost_OnModeChanged(object? o, GhostModeEventArgs e)
+    {
+        // a ghost got eaten - play retreating sound
+        if (e.NewMode == GhostMode.Eaten)
+            Sounds.Retreating.Play();
+
+        // a ghost respawned - check if there are any ghosts left in the eaten state
+        else if (e.PrevMode == GhostMode.Eaten)
+        {
+            // no eaten ghosts left - stop the sound
+            if (!Ghosts.Any(g => g.Mode == GhostMode.Eaten))
+                Sounds.Retreating.Stop();
+        }
+    }
+
     protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
     {
         if (newParent is Board board)
@@ -115,7 +135,7 @@ class GhostHouse : ScreenObject
         if (game.Level < Game.MaxDifficultyLevel)
         {
             // start power dot timer
-            double amount = (Game.MaxDifficultyLevel - game.Level + 1) / Game.MaxDifficultyLevel;
+            double amount = (double)(Game.MaxDifficultyLevel - game.Level + 1) / Game.MaxDifficultyLevel;
             _timer.TimerAmount = TimeSpan.FromSeconds(FrightenedTime * amount);
             _timer.Restart();
 
