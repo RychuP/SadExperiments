@@ -1,32 +1,62 @@
+using SadExperiments.Games.Tetris;
+
 namespace SadExperiments.Games.PacMan;
 
 class Player : Sprite
 {
     #region Fields
+    // animation data
     const int DeathAnimStartIndex = 48;
     const int DeathAnimEndIndex = 63;
-    readonly TimeSpan _animationSpeed = TimeSpan.FromSeconds(13 / 60d);
+    readonly TimeSpan _animationSpeed = TimeSpan.FromSeconds(0.22d);
     TimeSpan _timeElapsed = TimeSpan.Zero;
     int _deathAnimCurrentIndex = 0;
+
+    // cached premove for the next tile/junction
+    Direction _nextDirection = Direction.None;
     #endregion Fields
 
     #region Constructors
-    public Player(Point start) : base(start)
+    public Player(Board board, Point start) : base(board, start)
     {
         AnimationRow = 0;
+        AnimationColumn = 1;
+        Speed = Game.SpriteSpeed * board.Game.Level switch
+        {
+            >= Game.MaxDifficultyLevel => 0.9d,
+            >= 5 => 1d,
+            >= 2 => 0.9d,
+            _ => 0.8d
+        };
+        Parent = board;
     }
     #endregion Constructors
 
     #region Properties
     public bool IsDead { get; private set; }
+
+    public Direction NextDirection
+    {
+        get => _nextDirection;
+        set
+        {
+            if (_nextDirection == value) return;
+
+            var prevNextDirection = _nextDirection;
+            _nextDirection = value;
+            OnNextDirectionChanged(prevNextDirection, _nextDirection);
+        }
+    }
     #endregion Properties
 
     #region Methods
-    public override void Update(TimeSpan delta)
+    public override void UpdateAnimation(TimeSpan delta)
     {
         if (!IsDead)
+        {
             // do a normal animation update
-            base.Update(delta);
+            base.UpdateAnimation(delta);
+        }
         else
         {
             // play death animation
@@ -54,74 +84,104 @@ class Player : Sprite
         Surface.IsDirty = true;
     }
 
-    void Board_OnGameStart(object? o, EventArgs e)
+    // used only with the player sprite
+    virtual protected void OnNextDirectionChanged(Direction prevNextDirection, Direction newNextDirection)
     {
-        if (o is Board board && board.Parent is Game game)
+        if (Parent != Board) return;
+
+        if (newNextDirection != Direction.None)
         {
-            Speed = Game.SpriteSpeed * game.Level switch
+            if (Destination != Destination.None)
             {
-                >= Game.MaxDifficultyLevel => 0.9d,
-                >= 5 => 1d,
-                >= 2 => 0.9d,
-                _ => 0.8d
-            };
+                // check for reversing current direction
+                if (newNextDirection == Destination.Direction.Inverse())
+                {
+                    NextDirection = Direction.None;
+                    var destination = Departure.Position;
+                    Departure = new(Destination.Position);
+                    Destination = new(destination, newNextDirection);
+                }
+            }
+            // check for stopped situations
+            else
+            {
+                var position = Board.GetNextPosition(Departure.Position, newNextDirection);
+                if (position != Departure.Position)
+                {
+                    NextDirection = Direction.None;
+                    Destination = new(position, newNextDirection);
+                }
+            }
         }
-        else
-            throw new InvalidOperationException("Board is not assigned to a Game.");
     }
 
     protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
     {
+        AnimationColumn = 1;
+        base.OnParentChanged(oldParent, newParent);
+
         // prepare to start
-        if (newParent is Board board)
+        if (newParent is Board)
         {
             IsDead = false;
-            Direction = Direction.Left;
             NextDirection = Direction.None;
-
-            if (board.Parent is not Game)
-                board.FirstStart += Board_OnGameStart;
+            if (!TrySetDestination(Direction.Left))
+                throw new InvalidOperationException("Invalid start location for the player.");
         }
-        base.OnParentChanged(oldParent, newParent);
     }
 
-    protected override void OnToPositionReached()
+    protected override void OnDestinationReached(Destination destination)
     {
-        if (Parent is not Board board) return;
-
-        // leave this here (check for portals)
-        base.OnToPositionReached();
-
-        // check if there is a consumable at the current location
-        IEdible? edible = board.GetConsumable(FromPosition);
-        if (edible is Dot dot)
-            board.RemoveDot(dot);
-        else
-            Sounds.MunchDot.Stop();
-
-        // check if the next direction is set
-        if (NextDirection != Direction.None)
+        // check if the position is a portal
+        if (Board.IsPortal(destination.Position, out Portal? portal))
         {
-            // try going in the next direction
-            if (TrySetDestination(NextDirection))
-                NextDirection = Direction.None;
+            if (portal == null)
+                throw new ArgumentException("Portal needs to have a valid matching destination.");
 
-            // try to continue in the prev direction
-            else if (!TrySetDestination(Direction))
+            // teleport to the matching portal on the other side of the board
+            Departure = new(portal.Position);
+
+            // set destination in previous direction
+            if (!TrySetDestination(Destination.Direction))
+                throw new InvalidOperationException("Portal has got no walkable tile in the exit direction.");
+        }
+
+        // position is not a portal
+        else 
+        {
+            // check if there is a consumable at the current location
+            IEdible? edible = Board.GetConsumable(destination.Position);
+            if (edible is Dot dot)
+                Board.RemoveDot(dot);
+            else
+                Sounds.MunchDot.Stop();
+
+            // check if the next direction is set
+            if (NextDirection != Direction.None)
             {
-                // wrong inputs... just stop
-                Direction = Direction.None;
-                NextDirection = Direction.None;
+                // try going in the next direction
+                if (TrySetDestination(NextDirection))
+                    NextDirection = Direction.None;
+
+                // try to continue in the prev direction
+                else if (!TrySetDestination(Destination.Direction))
+                {
+                    // wrong inputs... just stop
+                    Destination = Destination.None;
+                    NextDirection = Direction.None;
+                }
+            }
+
+            // next direction is not set, so try continuing in the prev direction
+            else if (Destination.Direction != Direction.None)
+            {
+                // if it's not valid, just stop
+                if (!TrySetDestination(Destination.Direction))
+                    Destination = Destination.None;
             }
         }
 
-        // next direction is not set, so try continuing in the prev direction
-        else if (Direction != Direction.None)
-        {
-            // if it's not valid, just stop
-            if (!TrySetDestination(Direction))
-                Direction = Direction.None;
-        }
+        base.OnDestinationReached(destination);
     }
 
     protected virtual void OnDeathAnimationFinished()

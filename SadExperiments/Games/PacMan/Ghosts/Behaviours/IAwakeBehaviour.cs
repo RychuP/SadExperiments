@@ -2,5 +2,5 @@
 
 interface IAwakeBehaviour
 {
-    Destination LeaveHouse(Board board, Point ghostPosition);
+    Destination LeaveHouse(Board board, Point position);
 }

@@ -2,5 +2,5 @@
 
 interface IScatterBehaviour
 {
-    Destination Scatter(Board board, Point ghostPosition, Direction ghostDirection);
+    Destination Scatter(Board board, Destination prevDestination);
 }

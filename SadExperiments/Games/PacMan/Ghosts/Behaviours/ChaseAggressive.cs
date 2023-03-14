@@ -2,22 +2,22 @@ namespace SadExperiments.Games.PacMan.Ghosts.Behaviours;
 
 class ChaseAggressive : IChaseBehaviour
 {
-    public Destination Chase(Board board, Point ghostPosition, Direction ghostDirection)
+    public Destination Chase(Board board, Destination prevDestination)
     {
-        var positionLeadingToPlayer = board.GetPositionToPlayer(ghostPosition);
-        var desiredDirection = Direction.GetCardinalDirection(ghostPosition, positionLeadingToPlayer);
+        var nextPosition = board.GetNextPosToPlayer(prevDestination.Position);
+        var desiredDirection = Direction.GetCardinalDirection(prevDestination.Position, nextPosition);
 
         // check astar direction
-        if (desiredDirection != ghostDirection.Inverse() && desiredDirection != Direction.None)
-            return new Destination(positionLeadingToPlayer, desiredDirection);
+        if (desiredDirection != prevDestination.Direction.Inverse() && desiredDirection != Direction.None)
+            return new Destination(nextPosition, desiredDirection);
 
         // find own direction
         else
         {
-            desiredDirection = board.GetDirectionToPlayer(ghostPosition);
-            if (desiredDirection == ghostDirection.Inverse())
-                desiredDirection = Board.GetRandomTurn(ghostDirection);
-            return board.GetDestination(ghostPosition, desiredDirection, ghostDirection);
+            desiredDirection = board.GetDirectionToPlayer(prevDestination.Position);
+            if (desiredDirection == prevDestination.Direction.Inverse())
+                desiredDirection = Board.GetRandomTurn(prevDestination.Direction);
+            return board.GetDestination(prevDestination.Position, desiredDirection, prevDestination.Direction);
         }
     }
 }

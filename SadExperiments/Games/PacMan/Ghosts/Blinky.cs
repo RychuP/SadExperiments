@@ -4,38 +4,29 @@ namespace SadExperiments.Games.PacMan.Ghosts;
 
 class Blinky : Ghost
 {
-    public Blinky(Point start) : base(start)
+    public Blinky(Board board, Point start) : base(board, start)
     {
         AnimationRow = 2;
-
         ChaseBehaviour = new ChaseAggressive();
-        EatenBehaviour = new EatenRunningHome();
-        AwakeBehaviour = new WakenUpBehaviour();
-        FrightenedBehaviour = new FrightenedWandering();
+        ScatterBehaviour = new ScatterTopRightCorner(board.Surface.Area, this);
     }
 
     protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
     {
-        // create scatter behaviour once before the board is assigned to a game
-        if (newParent is Board board)
-        {
-            // leave direction setting here (sprite will set destination)
-            Direction = Board.GetRandomTurn(Direction.Down);
-            Mode = GhostMode.Scatter;
-
-            if (board.Parent is not Game)
-                ScatterBehaviour = new ScatterTopRightCorner(board.Surface.Area);
-        }
         base.OnParentChanged(oldParent, newParent);
+
+        // create scatter behaviour once before the board is assigned to a game
+        if (newParent is Board)
+        {
+            Mode = GhostMode.Scatter;
+            if (!TrySetDestination(Direction.Right))
+                throw new InvalidOperationException("Invalid Blinky start position.");
+            SetCurrentAnimationGlyph();
+        }
     }
 
-    protected override void Board_OnFirstStart(object? o, EventArgs e)
+    protected override void OnCurrentPositionChanged(Point prevPosition, Point newPosition)
     {
-        base.Board_OnFirstStart(o, e);
-        if (o is Board board && board.Parent is Game)
-        {
-            // leave mode setting here (sets proper speed taking into account the game level)
-            Mode = GhostMode.Scatter;
-        }
+        base.OnCurrentPositionChanged(prevPosition, newPosition);
     }
 }

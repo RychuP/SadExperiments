@@ -7,7 +7,7 @@ class Game : Page, IRestartable
 {
     #region Fields
     public const double FontSizeMultiplier = 2d;
-    public const double SpriteSpeed = 2.5d;
+    public const double SpriteSpeed = 2.1d;
     public const int  MaxDifficultyLevel = 21;
     const int LivesStart = 3;
     const int LevelStart = 1;
@@ -17,7 +17,7 @@ class Game : Page, IRestartable
     readonly Header _header = new();
     int _lives = LivesStart;
     int _score = 0;
-    Board _board;
+    Board? _board;
     readonly string mazeFileName = "Maze.txt";
     #endregion Fields
 
@@ -32,7 +32,7 @@ class Game : Page, IRestartable
         Tags = new Tag[] {Tag.SadConsole, Tag.Pixels, Tag.Game, Tag.Renderer};
         #endregion Meta
 
-        _board = CreateBoard(mazeFileName);
+        Children.Add(_header);
         _gameOverWindow.RestartButton.Click += RestartButton_OnClick;
     }
     #endregion Constructors
@@ -82,10 +82,14 @@ class Game : Page, IRestartable
                         dots.Add(new PowerDot(position));
                         goto default;
 
+                    // portal need to face each other (either be on the left or right 
+                    // or top and bottom walls
                     case 'A':
                         tiles[i] = new Portal(position, 'A');
                         break;
-
+                    
+                    // this is due to how the sprites set their paths
+                    // after teleporting
                     case 'B':
                         tiles[i] = new Portal(position, 'B');
                         break;
@@ -109,35 +113,37 @@ class Game : Page, IRestartable
     }
     public void Restart()
     {
-        Level = 1;
-        _score = 0;
-        _lives = LivesStart;
-        _board = CreateBoard(mazeFileName);
+        (Level, _score, _lives) = (1, 0, LivesStart);
         _header.Print(_lives, _score, Level);
-        Children.Clear();
-        Children.Add(_header, _board);
+        
+        if (_board is not null)
+            Children.Remove(_board);
+        CreateBoard(mazeFileName);
+        if (_board is not null)
+            _board.IsFocused = true;
     }
 
-    Board CreateBoard(string fileName)
+    void CreateBoard(string fileName)
     {
         var level = LoadMaze(fileName);
-        var board = new Board(level);
-        board.IsFocused = true;
-        board.DotEaten += Board_OnDotEaten;
-        board.GhostEaten += Board_OnGhostEaten;
-        board.LiveLost += Board_OnLiveLost;
-        board.LevelComplete += Board_OnLevelComplete;
-        return board;
+        _board = new Board(level, this);
+        _board.DotEaten += Board_OnDotEaten;
+        _board.GhostEaten += Board_OnGhostEaten;
+        _board.LiveLost += Board_OnLiveLost;
+        _board.LevelComplete += Board_OnLevelComplete;
     }
 
+    // TODO: this is called twice... investigate
     void Board_OnLiveLost(object? o, EventArgs e)
     {
         if (--_lives == 0)
             OnGameOver();
-        else
+
+        // TODO: "if" check to be removed
+        else if (_lives > 0)        
         {
             _header.PrintLives(_lives);
-            _board.Restart();
+            _board?.Restart();
         }
     }
 
@@ -155,12 +161,10 @@ class Game : Page, IRestartable
 
     void Board_OnLevelComplete(object? o, EventArgs e)
     {
+        if (_board is not null)
+            Children.Remove(_board);
         _header.PrintLevel(++Level);
-
-        // due to OnParentChanged and OnGameStart sprite events, every level a new board needs to be created
-        Children.Remove(_board);
-        _board = CreateBoard(mazeFileName);
-        Children.Add(_board);
+        CreateBoard(mazeFileName);
     }
 
     void RestartButton_OnClick(object? o, EventArgs e)
@@ -180,7 +184,7 @@ class Game : Page, IRestartable
     void OnGameOver()
     {
         Sounds.StopAll();
-        _board.RemoveDots();
+        _board?.RemoveDots();
         _gameOverWindow.Show();
         _gameOverWindow.ShowScore(_score, Level);
         _gameOverWindow.RestartButton.IsFocused = true;

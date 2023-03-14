@@ -2,5 +2,5 @@
 
 interface IChaseBehaviour
 {
-    Destination Chase(Board board, Point ghostPosition, Direction ghostDirection);
+    Destination Chase(Board board, Destination prevDestination);
 }

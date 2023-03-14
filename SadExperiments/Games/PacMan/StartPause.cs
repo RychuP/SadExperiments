@@ -2,15 +2,20 @@ using SadConsole.Instructions;
 
 namespace SadExperiments.Games.PacMan;
 
-class Pause : InstructionSet
+class StartPause : InstructionSet
 {
-    readonly Action? _callback;
-
-    public Pause(double duration = 1d, Action? callback = null)
+    public StartPause()
     {
-        _callback = callback;
         RemoveOnFinished = true;
-        Instructions.AddFirst(new Wait(TimeSpan.FromSeconds(duration)));
+        Sounds.StopAll();
+        Sounds.Start.Play();
+        Instructions.AddFirst(
+            new CodeInstruction((o, t) => {
+                if (Sounds.Start.State == Microsoft.Xna.Framework.Audio.SoundState.Stopped)
+                    return true;
+                return false;
+            })
+        );
     }
 
     public override void OnAdded(IScreenObject host)
@@ -25,7 +30,8 @@ class Pause : InstructionSet
         if (host is Board board)
         {
             board.IsPaused = false;
-            _callback?.Invoke();
+            board.GhostHouse.StartTimers();
+            Sounds.Siren.Play();
         }
         base.OnRemoved(host);
     }

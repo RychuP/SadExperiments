@@ -2,5 +2,5 @@
 
 interface IEatenBehaviour
 {
-    Destination RunBackHome(Board board, Point ghostPosition, Direction ghostDirection);
+    Destination RunBackHome(Board board, Destination prevDestination);
 }

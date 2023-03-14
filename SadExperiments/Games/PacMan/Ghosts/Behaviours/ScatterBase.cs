@@ -6,65 +6,70 @@ abstract class ScatterBase : IScatterBehaviour
 
     protected Rectangle Area { get; init; } = Rectangle.Empty;
 
-    protected Point ToPosition { get; set; } = Point.None;
+    protected Point Destination { get; set; } = Point.None;
 
-    public virtual Destination Scatter(Board board, Point ghostPosition, Direction ghostDirection)
+    public ScatterBase(Ghost host)
     {
-        if (ToPosition == Point.None)
-        {
-            ToPosition = ghostPosition;
-            SetToPosition(board);
-        }
-        else if (ToPosition == ghostPosition)
-            SetToPosition(board);
+        host.ModeChanged += Ghost_OnModeChanged;
+    }
 
-        var nextPosition = board.GetNextPosition(ghostPosition, ToPosition);
-        var desiredDirection = Direction.GetCardinalDirection(ghostPosition, nextPosition);
+    public virtual Destination Scatter(Board board, Destination prevDestination)
+    {
+        // destination is not set
+        if (Destination == Point.None)
+        {
+            Destination = prevDestination.Position;
+            SetDestination(board);
+        }
+
+        // destination is reached
+        else if (Destination == prevDestination.Position)
+            SetDestination(board);
+
+        var nextPosition = board.GetNextPosition(prevDestination.Position, Destination);
+        var desiredDirection = Direction.GetCardinalDirection(prevDestination.Position, nextPosition);
 
         // check astar direction
-        if (desiredDirection != ghostDirection.Inverse() && desiredDirection != Direction.None)
+        if (desiredDirection != prevDestination.Direction.Inverse() && desiredDirection != Direction.None)
             return new Destination(nextPosition, desiredDirection);
 
         // find own direction
         else
         {
-            if (desiredDirection == ghostDirection.Inverse())
-                desiredDirection = Board.GetRandomTurn(ghostDirection);
+            if (desiredDirection == prevDestination.Direction.Inverse())
+                desiredDirection = Board.GetRandomTurn(prevDestination.Direction);
             else if (desiredDirection == Direction.None)
-                desiredDirection = ghostDirection;
-            return board.GetDestination(ghostPosition, desiredDirection, ghostDirection);
+                desiredDirection = prevDestination.Direction;
+            return board.GetDestination(prevDestination.Position, desiredDirection, prevDestination.Direction);
         }
     }
 
-    protected void SetToPosition(Board board)
+    protected void SetDestination(Board board)
     {
         if (Area == Rectangle.Empty)
             throw new InvalidOperationException("Area is not set.");
 
-        // on the second and subsequent runs try patrolling around dots if they are not too close to each other
-        if (ToPosition != Point.None)
+        // try patrolling around dots if they are not too close to each other
+        Dot? dot = board.GetRandomDot(Area);
+        if (dot != null && Distance.Chebyshev.Calculate(dot.Position, Destination) > MinimalDistanceBetweenPatrolDots)
         {
-            Dot? dot = board.GetRandomDot(Area);
-            if (dot != null && Distance.Chebyshev.Calculate(dot.Position, ToPosition) > MinimalDistanceBetweenPatrolDots)
-            {
-                ToPosition = dot.Position.SurfaceLocationToPixel(board.FontSize);
-                return;
-            }
+            Destination = dot.Position;
+            return;
         }
 
-        // find a random position that is different than current ToPosition
+        // find a random position that is different than current destination
         Point position;
         do
             position = board.GetRandomPosition(Area);
-        while (ToPosition != position);
+        while (Destination != position);
 
-        // change destination surface to pixel position
-        ToPosition = position.SurfaceLocationToPixel(board.FontSize);
+        // change destination to new position
+        Destination = position;
     }
 
     protected void Ghost_OnModeChanged(object? o, GhostModeEventArgs e)
     {
         if (e.PrevMode == GhostMode.Scatter)
-            ToPosition = Point.None;
+            Destination = Point.None;
     }
 }

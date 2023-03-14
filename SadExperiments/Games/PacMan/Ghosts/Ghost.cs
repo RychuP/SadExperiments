@@ -12,9 +12,13 @@ abstract class Ghost : Sprite
     #endregion Fields
 
     #region Constructors
-    public Ghost(Point start) : base(start)
+    public Ghost(Board board, Point start) : base(board, start)
     {
         AnimationSpeed = 0.25d;
+        EatenBehaviour = new EatenRunningHome();
+        AwakeBehaviour = new WakenUpBehaviour();
+        IdleBehaviour = new IdleWaitingBehaviour();
+        FrightenedBehaviour = new FrightenedWandering();
     }
     #endregion Constructors
 
@@ -23,6 +27,7 @@ abstract class Ghost : Sprite
     protected IChaseBehaviour? ChaseBehaviour { get; init; }
     protected IFrightenedBehaviour? FrightenedBehaviour { get; init; }
     protected IEatenBehaviour? EatenBehaviour { get; init; }
+    protected IIdleBehaviour? IdleBehaviour { get; init; }
     protected IAwakeBehaviour? AwakeBehaviour { get; init; }
 
     public GhostMode Mode
@@ -40,18 +45,13 @@ abstract class Ghost : Sprite
     {
         get
         {
-            if (Parent is Board board && board.Parent is Game game)
+            return Board.Game.Level switch
             {
-                return game.Level switch
-                {
-                    >= Game.MaxDifficultyLevel => 0.95d,
-                    >= 5 => 0.95d,
-                    >= 2 => 0.85d,
-                    _ => 0.75d,
-                };
-            }
-            else
-                return 0.95d;
+                >= Game.MaxDifficultyLevel => 0.95d,
+                >= 5 => 0.95d,
+                >= 2 => 0.85d,
+                _ => 0.75d,
+            };
         }
     }
 
@@ -59,18 +59,13 @@ abstract class Ghost : Sprite
     {
         get
         {
-            if (Parent is Board board && board.Parent is Game game)
+            return Board.Game.Level switch
             {
-                return game.Level switch
-                {
-                    >= Game.MaxDifficultyLevel => 0.95d,
-                    >= 5 => 0.60d,
-                    >= 2 => 0.55d,
-                    _ => 0.50d,
-                };
-            }
-            else
-                return 0.95d;
+                >= Game.MaxDifficultyLevel => 0.95d,
+                >= 5 => 0.60d,
+                >= 2 => 0.55d,
+                _ => 0.50d,
+            };
         }
     }
     #endregion Properties
@@ -84,12 +79,6 @@ abstract class Ghost : Sprite
             return EatenAnimationRow * 4 + animationColumn;
         else
             return base.GetAnimationGlyph(animationColumn, animationFrame);
-    }
-
-    protected virtual void Board_OnFirstStart(object? o, EventArgs e)
-    {
-        if (o is not Board board || board.Parent is not Game)
-            throw new InvalidOperationException("Board is not assigned to a Game.");
     }
 
     protected virtual void OnModeChanged(GhostMode prevMode, GhostMode newMode)
@@ -117,62 +106,67 @@ abstract class Ghost : Sprite
                 break;
         }
 
+        if (prevMode == GhostMode.Idle && newMode == GhostMode.Awake && AwakeBehaviour is not null)
+            Destination = AwakeBehaviour.LeaveHouse(Board, Start);
+
         var args = new GhostModeEventArgs(prevMode, newMode);
         ModeChanged?.Invoke(this, args);
     }
 
-    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
+    protected override void OnDestinationReached(Destination prevDestination)
     {
-        if (newParent is Board board)
-        {
-            if (board.Parent is not Game)
-                board.FirstStart += Board_OnFirstStart;
-        }
-        base.OnParentChanged(oldParent, newParent);
-    }
-
-    protected override void OnToPositionReached()
-    {
-        if (Parent is not Board board) return;
         if (Mode == GhostMode.Idle) return;
 
-        // keep this here (portal check)
-        base.OnToPositionReached();
-
-        Destination? destination = Mode switch
+        // check if the position is a portal
+        if (Board.IsPortal(prevDestination.Position, out Portal? portal))
         {
-            GhostMode.Scatter => ScatterBehaviour?.Scatter(board, FromPosition, Direction),
-            GhostMode.Chase => ChaseBehaviour?.Chase(board, FromPosition, Direction),
-            GhostMode.Frightened => FrightenedBehaviour?.Frightened(board, FromPosition, Direction),
-            GhostMode.Eaten => EatenBehaviour?.RunBackHome(board, FromPosition, Direction),
-            GhostMode.Awake => AwakeBehaviour?.LeaveHouse(board, FromPosition),
-            _ => null
-        };
+            if (portal == null)
+                throw new ArgumentException("Portal needs to have a valid matching destination.");
 
-        if (destination != null)
-        {
-            // ghost is in the center of the house and leaving
-            if (destination.Position == board.GhostHouse.CenterPosition && destination.Direction == Direction.None)
-            {
-                // set coordinates back to the entrance
-                destination = new Destination(board.GhostHouse.EntrancePosition, Direction.Up);
+            // teleport to the matching portal on the other side of the board
+            Departure = new(portal.Position);
 
-                // revenge the ghosts death or current mode ?
-                if (Mode == GhostMode.Eaten)
-                    Mode = board.GhostHouse.CurrentMode;
-
-                // set current mode
-                else if (Mode == GhostMode.Awake)
-                    Mode = board.GhostHouse.CurrentMode;
-
-                // this shouldn't happen
-                else
-                    throw new ArgumentException("Special case of destination is reserved for house leaving behaviour.");
-            }
-
-            Direction = destination.Direction;
-            ToPosition = destination.Position;
+            // set destination in previous direction
+            if (!TrySetDestination(Destination.Direction))
+                throw new InvalidOperationException("Portal has got no walkable tile in the exit direction.");
         }
+
+        // position is not a portal
+        else
+        {
+            Destination? nullable = Mode switch
+            {
+                GhostMode.Scatter => ScatterBehaviour?.Scatter(Board, prevDestination),
+                GhostMode.Chase => ChaseBehaviour?.Chase(Board, prevDestination),
+                GhostMode.Frightened => FrightenedBehaviour?.Frightened(Board, prevDestination),
+                GhostMode.Eaten => EatenBehaviour?.RunBackHome(Board, prevDestination),
+                GhostMode.Awake => AwakeBehaviour?.LeaveHouse(Board, Departure.Position),
+                _ => IdleBehaviour?.Idle()
+            };
+
+            if (nullable is Destination newDestination && newDestination != Destination.None)
+            {
+                // ghost is in the center of the house and leaving
+                if (newDestination.Position == Board.GhostHouse.EntrancePosition && newDestination.Direction == Direction.Up)
+                {
+                    // set current mode
+                    Mode = Board.GhostHouse.CurrentMode;
+                }
+
+                Destination = newDestination;
+            }
+        }
+
+        base.OnDestinationReached(prevDestination);
+    }
+
+    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
+    {
+        AnimationColumn = 0;
+        base.OnParentChanged(oldParent, newParent);
+
+        if (newParent is Board)
+            Mode = GhostMode.Idle;
     }
     #endregion Methods
 
@@ -184,12 +178,4 @@ abstract class Ghost : Sprite
 enum GhostMode
 {
     Idle, Awake, Scatter, Chase, Frightened, Eaten
-}
-
-class GhostModeEventArgs : EventArgs
-{
-    public GhostMode PrevMode { get; init; }
-    public GhostMode NewMode { get; init; }
-    public GhostModeEventArgs(GhostMode prevMode, GhostMode newMode) =>
-        (PrevMode, NewMode) = (prevMode, newMode);
 }

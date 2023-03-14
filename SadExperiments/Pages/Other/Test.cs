@@ -4,10 +4,18 @@ class Test : Page
 {
     public Test()
     {
-        double i = 2.7d;
-        double x = i % 1;
-        Surface.Print(0, 0, $"{x}");
-        int y = Convert.ToInt32(i - x);
-        Surface.Print(0, 1, y.ToString() );
+        var child = new Child();
+        Children.Add(child);
+        Children.Remove(child);
+        Children.Add(child);
+    }
+}
+
+class Child : ScreenSurface
+{
+    public Child() : base(1, 1) { }
+    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
+    {
+        base.OnParentChanged(oldParent, newParent);
     }
 }

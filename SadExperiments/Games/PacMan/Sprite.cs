@@ -4,137 +4,112 @@ namespace SadExperiments.Games.PacMan;
 
 abstract class Sprite : ScreenSurface
 {
+    #region Fields
     static readonly Point DefaultFontSize = Game.DefaultFontSize + new Point(3, 3) * Game.FontSizeMultiplier;
-    Direction _direction = Direction.None;
-
-    // cached premove for the next tile/junction
-    Direction _nextDirection = Direction.None;
 
     // movement data
-    Point _fromPosition = Point.None;
-    Point _toPosition = Point.None;
+    Departure _departure;
+    Destination _destination = Destination.None;
     Point _currentPosition = Point.None;
     double _distanceTravelled = 0;
-    bool _isTeleporting = false;
 
-    // sprites occupy more space than a board tile (their position is offsetted a few pixels)
+    // sprites occupy more space than a tile (their actual position is offsetted a few pixels)
     readonly Point _positionOffset;
 
     // two frame animation data
-    TimeSpan _animationSpeed = TimeSpan.FromSeconds((double)8 / 60);
+    TimeSpan _animationSpeed = TimeSpan.FromSeconds(0.15d);
     TimeSpan _timeElapsed = TimeSpan.Zero;
-    int _currentAnimFrame = 0;
-    int _animationColumn = 0;
-    // first frame on the left of the animation row
-    int _firstFrameIndex = 0;
+    int _currentAnimFrame = 0;                                  // either 0 or 1
+    int _animationColumn = 0;                                   // between 0 - 3 (represents cardinal directions)
+    int _firstFrameIndex = 0;                                   // first frame on the left of the animation row
+    #endregion Fields
 
-    public Sprite(Point start) : base(1, 1)
+    #region Constructors
+    public Sprite(Board board, Point start) : base(1, 1)
     {
         Font = Fonts.Sprites;
         FontSize = DefaultFontSize;
         UsePixelPositioning = true;
         Start = start;
+        Board = board;
 
         // calculate sprite position offset
         int offset = Convert.ToInt32(1.5 * Game.FontSizeMultiplier);
         _positionOffset = (offset, offset);
 
+        // collision detector
         HitBox = new Rectangle(0, 0, Game.DefaultFontSize.X, Game.DefaultFontSize.Y);
     }
+    #endregion Constructors
 
-    public Point Start { get; set; } = Point.Zero;
-
+    #region Properties
+    protected Board Board { get; init; }
+    public Point Start { get; init; } 
     public double Speed { get; protected set; } = Game.SpriteSpeed;
-
     public Rectangle HitBox { get; private set; }
 
-    public bool AnimationIsOn { get; set; } = true;
-
     protected int AnimationRow
-    {
-        set => _firstFrameIndex = value * 4;
-    }
+        { set => _firstFrameIndex = value * 4; }
 
     protected double AnimationSpeed
-    {
-        set => _animationSpeed = TimeSpan.FromSeconds(value);
-    }
+        { set => _animationSpeed = TimeSpan.FromSeconds(value); }
 
-    // direction in which the sprite is currently going
-    public Direction Direction
+    protected int AnimationColumn
+        {  set => _animationColumn = value; }
+
+    public Departure Departure
     {
-        get => _direction;
+        get => _departure;
         protected set
         {
-            if (_direction == value) return;
-            if (_isTeleporting) return;
+            if (_departure == value) return;
 
-            var prevDirection = _direction;
-            _direction = value;
-            OnDirectionChanged(prevDirection, _direction);
+            var prevDeparture = _departure;
+            _departure = value;
+
+            OnDepartureChanged(prevDeparture, _departure);
         }
     }
 
-    public Direction NextDirection
+    public Destination Destination
     {
-        get => _nextDirection;
-        set
-        {
-            if (_nextDirection == value) return;
-            if (_isTeleporting) return;
-
-            var prevNextDirection = _nextDirection;
-            _nextDirection = value;
-            OnNextDirectionChanged(prevNextDirection, _nextDirection);
-        }
-    }
-
-    // surface cell pixel position from where the sprite is going
-    public Point FromPosition
-    {
-        get => _fromPosition;
+        get => _destination;
         protected set
         {
-            if (_fromPosition == value) return;
-            
-            _fromPosition = value;
-        }
-    }
+            if (_destination == value) 
+                return;
 
-    // surface cell pixel position to where the sprite is heading
-    public Point ToPosition
-    {
-        get => _toPosition;
-        protected set
-        {
-            if (_toPosition == value) return;
-            else if (value != Point.None)
+            else if (value != Destination.None &&
+                value.Position != Board.GhostHouse.PinkyPosition &&       // ignore ghosts position
+                value.Position != Board.GhostHouse.InkyPosition &&        // which are pixel
+                value.Position != Board.GhostHouse.ClydePosition)
             {
-                if (FromPosition == Point.None)
-                    throw new InvalidOperationException("FromPosition is not set.");
-                else if (Direction == Direction.None)
-                    throw new InvalidOperationException("Direction is not set.");
-                else
+                if (Departure == Departure.None)
+                    throw new InvalidOperationException("Departure is not set.");
+
+                else if (Departure.Position != Board.GhostHouse.PinkyPosition)
                 {
-                    if (Direction == Direction.Up || Direction == Direction.Down)
+                    if (value.Direction == Direction.Up || value.Direction == Direction.Down)
                     {
-                        if (FromPosition.X != value.X)
+                        if (Departure.Position.X != value.Position.X)
                             throw new ArgumentException("Vertical movement can only happen in a straight line.");
                     }
-                    else if (Direction == Direction.Left || Direction == Direction.Right)
+                    else if (value.Direction == Direction.Left || value.Direction == Direction.Right)
                     {
-                        if (FromPosition.Y != value.Y)
+                        if (Departure.Position.Y != value.Position.Y)
                             throw new ArgumentException("Horizontal movement can only happen in a straight line.");
                     }
-                    else
-                        throw new InvalidOperationException("Only cardinal directions allowed.");
                 }
             }
-            _toPosition = value;
+
+            var prevDestination = _destination;
+            _destination = value;
+
+            OnDestinationChanged(prevDestination, _destination);
         }
     }
 
-    // current pixel position interpolating between FromPos and ToPos
+    // current pixel position interpolating between departure and destination
     public Point CurrentPosition
     {
         get => _currentPosition;
@@ -144,14 +119,16 @@ abstract class Sprite : ScreenSurface
 
             var prevCurPos = _currentPosition;
             _currentPosition = value;
+
             OnCurrentPositionChanged(prevCurPos, _currentPosition);
         }
     }
+    #endregion Properties
 
-    // used for movement
+    #region Methods
     public void UpdatePosition()
     {
-        if (FromPosition != ToPosition && Direction != Direction.None)
+        if (Departure != Departure.None && Destination != Destination.None && Departure != Destination)
         {
             _distanceTravelled += Speed;
 
@@ -161,18 +138,15 @@ abstract class Sprite : ScreenSurface
                 int distance = Convert.ToInt32(_distanceTravelled - reminder);
                 _distanceTravelled = reminder;
 
-                int x = Direction.DeltaX * distance;
-                int y = Direction.DeltaY * distance;
+                int x = Destination.Direction.DeltaX * distance;
+                int y = Destination.Direction.DeltaY * distance;
                 CurrentPosition += (x, y);
             }
         }
     }
 
-    // used to display sprite animation
-    public override void Update(TimeSpan delta)
+    public virtual void UpdateAnimation(TimeSpan delta)
     {
-        if (!AnimationIsOn) return;
-
         _timeElapsed += delta;
         if (_timeElapsed >= _animationSpeed)
         {
@@ -181,9 +155,10 @@ abstract class Sprite : ScreenSurface
             _currentAnimFrame = _currentAnimFrame == 0 ? 1 : 0;
             Surface.IsDirty = true;
         }
-
-        base.Update(delta);
     }
+
+    protected void SetCurrentAnimationGlyph() =>
+        Surface[0].Glyph = GetAnimationGlyph(_animationColumn, _currentAnimFrame);
 
     // extracted to a method to allow for a custom freightened ghost animation
     protected virtual int GetAnimationGlyph(int animationColumn, int animationFrame) =>
@@ -191,92 +166,80 @@ abstract class Sprite : ScreenSurface
 
     protected bool TrySetDestination(Direction direction)
     {
-        if (Parent is not Board board)
-            throw new InvalidOperationException("Trying to find a destination when not assigned to a board.");
+        if (direction == Direction.None)
+            throw new ArgumentException("Direction is required.");
 
-        var position = board.GetNextPosition(FromPosition, direction);
-        if (position != FromPosition)
+        if (Departure == Departure.None)
+            throw new InvalidOperationException("Departure is not set.");
+
+        var position = Board.GetNextPosition(Departure.Position, direction);
+        if (position != Departure.Position)
         {
-            Direction = direction;
-            ToPosition = position;
+            Destination = new Destination(position, direction);
             return true;
         }
         else
             return false;
     }
 
-    virtual protected void OnToPositionReached()
+    virtual protected void OnDepartureChanged(Departure prevDeparture, Departure newDeparture)
     {
-        if (Parent is not Board board) return;
-
-        if (board.IsPortal(FromPosition, out Portal? destination))
+        if (newDeparture.Position != Destination.Position)
         {
-            if (destination == null) return;
-            _isTeleporting = true;
-            ToPosition = Point.None;
-            FromPosition = CurrentPosition = destination.Position.SurfaceLocationToPixel(board.FontSize);
+            if (Departure.Position == Board.GhostHouse.PinkyPosition ||
+                Departure.Position == Board.GhostHouse.InkyPosition ||
+                Departure.Position == Board.GhostHouse.ClydePosition)
+                    CurrentPosition = newDeparture.Position;
+             else
+                CurrentPosition = newDeparture.PixelPosition;
         }
-        else if (_isTeleporting)
-            _isTeleporting = false;
-
-        ToPositionReached?.Invoke(this, EventArgs.Empty);
     }
 
-    virtual protected void OnCurrentPositionChanged(Point prevCurPos, Point newCurPos)
+    virtual protected void OnCurrentPositionChanged(Point prevPosition, Point newPosition)
     {
+        if (newPosition == Point.None || prevPosition == newPosition)
+            return;
+
         // move the sprite to a new position
-        Position = newCurPos - _positionOffset;
+        Position = newPosition - _positionOffset;
 
         // calculate distance to the destination
-        if (ToPosition != Point.None)
+        if (Destination != Destination.None && Departure != Destination)
         {
-            int distance = Direction.Type switch
+            var destination = (Destination.Position == Board.GhostHouse.PinkyPosition ||
+                Destination.Position == Board.GhostHouse.InkyPosition ||
+                Destination.Position == Board.GhostHouse.ClydePosition) ?
+                    Destination.Position : Destination.PixelPosition;
+
+            int distance = Destination.Direction.Type switch
             {
-                Direction.Types.Up => newCurPos.Y - ToPosition.Y,
-                Direction.Types.Down => ToPosition.Y - newCurPos.Y,
-                Direction.Types.Left => newCurPos.X - ToPosition.X,
-                Direction.Types.Right => ToPosition.X - newCurPos.X,
+                Direction.Types.Up => newPosition.Y - destination.Y,
+                Direction.Types.Down => destination.Y - newPosition.Y,
+                Direction.Types.Left => newPosition.X - destination.X,
+                Direction.Types.Right => destination.X - newPosition.X,
                 _ => int.MaxValue
             };
 
             // check if the destination is reached
             if (distance <= 0)
             {
-                FromPosition = ToPosition;
-                OnToPositionReached();
+                Departure = new(Destination.Position);
+                OnDestinationReached(Destination);
             }
         }
 
         // move the hit box
-        HitBox = HitBox.WithPosition(newCurPos);
+        HitBox = HitBox.WithPosition(newPosition);
 
         // invoke event
         CurrentPositionChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
+    protected virtual void OnDestinationChanged(Destination prevDestination, Destination newDestination)
     {
-        if (newParent is Board)
+        if (newDestination.Direction != Direction.None)
         {
-            AnimationIsOn = true;
-            FromPosition = CurrentPosition = Start;
-            if (Direction != Direction.None && !TrySetDestination(Direction))
-                throw new InvalidOperationException("Invalid start. Sprite unable to go in the given direction.");
-        }
-        else if (oldParent is Board)
-        {
-            _fromPosition = Point.None;
-            _toPosition = Point.None;
-            _currentPosition = Point.None;
-        }
-        base.OnParentChanged(oldParent, newParent);
-    }
-
-    virtual protected void OnDirectionChanged(Direction prevDirection, Direction newDirection)
-    {
-        if (newDirection != Direction.None)
-        {
-            _animationColumn = newDirection.Type switch
+            _animationColumn = newDestination.Direction.Type switch
             {
                 Direction.Types.Up => 2,
                 Direction.Types.Down => 3,
@@ -284,41 +247,33 @@ abstract class Sprite : ScreenSurface
                 _ => 0
             };
         }
-        DirectionChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    // used only with the player sprite
-    virtual protected void OnNextDirectionChanged(Direction prevNextDirection, Direction newNextDirection)
+    virtual protected void OnDestinationReached(Destination destination)
     {
-        if (newNextDirection != Direction.None)
-        {
-            if (Direction != Direction.None)
-            {
-                // check for reversing current direction
-                if (newNextDirection == Direction.Inverse())
-                {
-                    Direction = newNextDirection;
-                    NextDirection = Direction.None;
-                    var temp = FromPosition;
-                    FromPosition = ToPosition;
-                    ToPosition = temp;
-                }
-            }
-            // check for stopped situations
-            else if (FromPosition == ToPosition && Parent is Board board)
-            {
-                var position = board.GetNextPosition(FromPosition, newNextDirection);
-                if (position != FromPosition)
-                {
-                    Direction = newNextDirection;
-                    NextDirection = Direction.None;
-                    ToPosition = position;
-                }
-            }
-        }
+        DestinationReached?.Invoke(this, EventArgs.Empty);
     }
 
-    public event EventHandler? ToPositionReached;
+    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
+    {
+        if (newParent is Board)
+        {
+            Departure = new(Start);
+            Surface[0].Glyph = GetAnimationGlyph(_animationColumn, _currentAnimFrame);
+            Surface.IsDirty = true;
+        }
+        else
+        {
+            Departure = Departure.None;
+            Destination = Destination.None;
+        }
+
+        base.OnParentChanged(oldParent, newParent);
+    }
+    #endregion Methods
+
+    #region Events
+    public event EventHandler? DestinationReached;
     public event EventHandler? CurrentPositionChanged;
-    public event EventHandler? DirectionChanged;
+    #endregion Events
 }
