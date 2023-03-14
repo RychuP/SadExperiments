@@ -29,7 +29,7 @@ class Header : ScreenSurface
 
     public void PrintScore(int score)
     {
-        Surface.Print(_scorePosition, _scoreTitle + $"{score:000}");
+        Surface.Print(_scorePosition, _scoreTitle + $"{score:000}    ");
     }
 
     public void PrintLives(int lives)
