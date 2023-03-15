@@ -47,7 +47,8 @@ class Game : Page, IRestartable
         // read the blueprint file
         string path = Path.Combine("Resources", "Other", "PacMan", fileName);
         var text = File.ReadAllText(path);
-        string[] lines = text.Split("\r\n");
+        string lineEnd = text.Contains("\r\n") ? "\r\n" : "\n";
+        string[] lines = text.Split(lineEnd);
         int width = lines[0].Length;
         int height = lines.Length;
 
