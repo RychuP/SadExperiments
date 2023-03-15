@@ -1,5 +1,3 @@
-using SadExperiments.Games.PacMan.Ghosts;
-
 namespace SadExperiments.Games.PacMan;
 
 abstract class Sprite : ScreenSurface
@@ -48,14 +46,14 @@ abstract class Sprite : ScreenSurface
     public double Speed { get; protected set; } = Game.SpriteSpeed;
     public Rectangle HitBox { get; private set; }
 
-    protected int AnimationRow
-        { set => _firstFrameIndex = value * 4; }
-
     protected double AnimationSpeed
         { set => _animationSpeed = TimeSpan.FromSeconds(value); }
 
     protected int AnimationColumn
         {  set => _animationColumn = value; }
+
+    protected int AnimationRow
+    { set => _firstFrameIndex = value * 4; }
 
     public Departure Departure
     {
@@ -80,14 +78,14 @@ abstract class Sprite : ScreenSurface
                 return;
 
             else if (value != Destination.None &&
-                value.Position != Board.GhostHouse.PinkyPosition &&       // ignore ghosts position
-                value.Position != Board.GhostHouse.InkyPosition &&        // which are pixel
-                value.Position != Board.GhostHouse.ClydePosition)
+                value.Position != Board.GhostHouse.CenterSpot &&       // ignore ghosts position
+                value.Position != Board.GhostHouse.LeftSpot &&        // which are pixel
+                value.Position != Board.GhostHouse.RightSpot)
             {
                 if (Departure == Departure.None)
                     throw new InvalidOperationException("Departure is not set.");
 
-                else if (Departure.Position != Board.GhostHouse.PinkyPosition)
+                else if (Departure.Position != Board.GhostHouse.CenterSpot)
                 {
                     if (value.Direction == Direction.Up || value.Direction == Direction.Down)
                     {
@@ -186,9 +184,9 @@ abstract class Sprite : ScreenSurface
     {
         if (newDeparture.Position != Destination.Position)
         {
-            if (Departure.Position == Board.GhostHouse.PinkyPosition ||
-                Departure.Position == Board.GhostHouse.InkyPosition ||
-                Departure.Position == Board.GhostHouse.ClydePosition)
+            if (Departure.Position == Board.GhostHouse.CenterSpot ||
+                Departure.Position == Board.GhostHouse.LeftSpot ||
+                Departure.Position == Board.GhostHouse.RightSpot)
                     CurrentPosition = newDeparture.Position;
              else
                 CurrentPosition = newDeparture.PixelPosition;
@@ -206,9 +204,9 @@ abstract class Sprite : ScreenSurface
         // calculate distance to the destination
         if (Destination != Destination.None && Departure != Destination)
         {
-            var destination = (Destination.Position == Board.GhostHouse.PinkyPosition ||
-                Destination.Position == Board.GhostHouse.InkyPosition ||
-                Destination.Position == Board.GhostHouse.ClydePosition) ?
+            var destination = (Destination.Position == Board.GhostHouse.CenterSpot ||
+                Destination.Position == Board.GhostHouse.LeftSpot ||
+                Destination.Position == Board.GhostHouse.RightSpot) ?
                     Destination.Position : Destination.PixelPosition;
 
             int distance = Destination.Direction.Type switch
@@ -259,6 +257,7 @@ abstract class Sprite : ScreenSurface
         if (newParent is Board)
         {
             Departure = new(Start);
+            _currentAnimFrame = 0;
             Surface[0].Glyph = GetAnimationGlyph(_animationColumn, _currentAnimFrame);
             Surface.IsDirty = true;
         }

@@ -5,14 +5,14 @@ class WakenUpBehaviour : IAwakeBehaviour
     public Destination LeaveHouse(Board board, Point position)
     {
         var house = board.GhostHouse;
-        var nextPosition = position == house.ClydePosition || 
-                position == house.InkyPosition ? 
-                    house.PinkyPosition : house.EntrancePosition;
+        var nextPosition = position == house.RightSpot || 
+                position == house.LeftSpot ? 
+                    house.CenterSpot : house.EntrancePosition;
 
-        if (nextPosition == house.PinkyPosition)
+        if (nextPosition == house.CenterSpot)
         {
             var direction = Direction.GetCardinalDirection(position, nextPosition);
-            return new Destination(house.PinkyPosition, direction);
+            return new Destination(house.CenterSpot, direction);
         }
         else
             return new Destination(house.EntrancePosition, Direction.Up);

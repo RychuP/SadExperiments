@@ -9,7 +9,7 @@ class GhostHouse : ScreenObject
     #region Fields
     const int Width = 7;
     const int Height = 4;
-    readonly Rectangle _area;
+    readonly Rectangle _pixelArea;
     readonly Board _board;
 
     // power dot timer
@@ -42,19 +42,20 @@ class GhostHouse : ScreenObject
         // calculate positions
         var fontSize = Game.DefaultFontSize;
         Point pixelPos = spawnerPosition.SurfaceLocationToPixel(fontSize);
-        PinkyPosition = pixelPos + (3, 1) * fontSize + (0, fontSize.Y / 2);
-        InkyPosition = PinkyPosition - (2, 0) * fontSize + (Convert.ToInt32(fontSize.X * 0.4d), 0);
-        ClydePosition = PinkyPosition + (2, 0) * fontSize - (Convert.ToInt32(fontSize.X * 0.4d), 0);
+        CenterSpot = pixelPos + (3, 1) * fontSize + (0, fontSize.Y / 2);
+        LeftSpot = CenterSpot - (2, 0) * fontSize + (Convert.ToInt32(fontSize.X * 0.4d), 0);
+        RightSpot = CenterSpot + (2, 0) * fontSize - (Convert.ToInt32(fontSize.X * 0.4d), 0);
         EntrancePosition = spawnerPosition + (3, -1);
 
         // calculate area
-        _area = new(pixelPos.X, pixelPos.Y, Width * fontSize.X, Height * fontSize.Y);
+        _pixelArea = new(pixelPos.X, pixelPos.Y, Width * fontSize.X, Height * fontSize.Y);
+        TileArea = new(spawnerPosition.X, spawnerPosition.Y, Width, Height);
 
         // create ghosts
         Blinky = new(board, EntrancePosition);
-        Pinky = new(board, PinkyPosition);
-        Inky = new(board, InkyPosition);
-        Clyde = new(board, ClydePosition);
+        Pinky = new(board, CenterSpot);
+        Inky = new(board, LeftSpot);
+        Clyde = new(board, RightSpot);
         Ghosts = new Ghost[] { Blinky, Pinky, Inky, Clyde };
         foreach (var ghost in Ghosts)
             ghost.ModeChanged += Ghost_OnModeChanged;
@@ -74,9 +75,9 @@ class GhostHouse : ScreenObject
 
     #region Properties
     public Point EntrancePosition { get; init; }    // in cells
-    public Point PinkyPosition { get; init; }       // in pixels
-    public Point InkyPosition { get; init; }        // in pixels
-    public Point ClydePosition { get; init; }       // in pixels
+    public Point CenterSpot { get; init; }          // in pixels
+    public Point LeftSpot { get; init; }            // in pixels
+    public Point RightSpot { get; init; }           // in pixels
     public Blinky Blinky { get; init; }
     public Inky Inky { get; init; }
     public Pinky Pinky { get; init; }
@@ -87,11 +88,15 @@ class GhostHouse : ScreenObject
         get => _currentMode;
         set
         {
+            if (_currentMode == value) return;
             var prevMode = _currentMode;
             _currentMode = value;
             OnCurrentModeChanged(prevMode, _currentMode);
         }
     }
+
+    // off limits for scatter behaviour
+    public Rectangle TileArea { get; init; }
 
     // value of the last ghost eaten
     public int Value =>
@@ -101,7 +106,10 @@ class GhostHouse : ScreenObject
     #region Methods
     // checks if the ghost is inside the ghost house
     bool IsInside(Ghost ghost) =>
-        _area.Intersects(ghost.HitBox);
+        _pixelArea.Intersects(ghost.HitBox);
+
+    public int ModeChangesCount =>
+        _currentModeTimeSlot;
 
     void AddTimerToSadComponents(Timer timer, EventHandler handler)
     {
@@ -143,7 +151,7 @@ class GhostHouse : ScreenObject
         }
     }
 
-    public void UnpauseTimers()
+    public void UnpausePrevRunningTimers()
     {
         foreach (var timer in _pausedTimers)
             timer.IsPaused = false;
@@ -153,6 +161,9 @@ class GhostHouse : ScreenObject
 
     void SetModeTimer(int gameLevel)
     {
+        if (_currentModeTimeSlot < 0 || _currentModeTimeSlot >= _modeTimeSlots.Length)
+            throw new IndexOutOfRangeException("Invalid index.");
+
         _modeTimer.TimerAmount = TimeSpan.FromSeconds(gameLevel switch
         {
             >= 5 => _modeTimeSlots[2, _currentModeTimeSlot],
@@ -202,24 +213,18 @@ class GhostHouse : ScreenObject
         if (++_currentModeTimeSlot >= ModeChangeMax)
         {
             // indefinite chase mode
-            CurrentMode = GhostMode.Scatter;
+            CurrentMode = GhostMode.Chase;
             _modeTimer.IsPaused = true;
+            return;
         }
-        else
-        {
-            // set mode
-            int reminder = _currentModeTimeSlot % 2;
-            CurrentMode = reminder switch
-            {
-                0 => GhostMode.Scatter,
-                _ => GhostMode.Chase
-            };
 
-            // set time
-            SetModeTimer(_board.Game.Level);
+        // set mode
+        CurrentMode = CurrentMode == GhostMode.Scatter ? GhostMode.Chase : GhostMode.Scatter;
 
-            _modeTimer.Restart();
-        }
+        // set time
+         SetModeTimer(_board.Game.Level);
+
+        _modeTimer.Restart();
     }
 
     void ReleaseTimer_OnTimerElapsed(object? o, EventArgs e)

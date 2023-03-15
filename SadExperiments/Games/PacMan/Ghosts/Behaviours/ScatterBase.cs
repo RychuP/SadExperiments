@@ -57,11 +57,11 @@ abstract class ScatterBase : IScatterBehaviour
             return;
         }
 
-        // find a random position that is different than current destination
+        //find a random position that is different than current destination
         Point position;
         do
             position = board.GetRandomPosition(Area);
-        while (Destination != position);
+        while (Destination != position && !board.IsReachable(position));
 
         // change destination to new position
         Destination = position;

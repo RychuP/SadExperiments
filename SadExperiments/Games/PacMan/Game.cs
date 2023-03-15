@@ -133,13 +133,11 @@ class Game : Page, IRestartable
         _board.LevelComplete += Board_OnLevelComplete;
     }
 
-    // TODO: this is called twice... investigate
     void Board_OnLiveLost(object? o, EventArgs e)
     {
         if (--_lives == 0)
             OnGameOver();
 
-        // TODO: "if" check to be removed
         else if (_lives > 0)        
         {
             _header.PrintLives(_lives);
@@ -184,7 +182,10 @@ class Game : Page, IRestartable
     void OnGameOver()
     {
         Sounds.StopAll();
-        _board?.RemoveDots();
+        if (_board is not null)
+        {
+            _board.RemoveDots();
+        }
         _gameOverWindow.Show();
         _gameOverWindow.ShowScore(_score, Level);
         _gameOverWindow.RestartButton.IsFocused = true;

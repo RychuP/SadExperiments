@@ -1,5 +1,6 @@
 ﻿using GoRogue.Pathing;
 using GoRogue.Random;
+using SadConsole.Effects;
 using SadConsole.Entities;
 using SadExperiments.Games.PacMan.Ghosts;
 using SadRogue.Primitives.GridViews;
@@ -28,6 +29,7 @@ class Board : ScreenSurface
     readonly AdjacencyRule _adjacencyRule = AdjacencyRule.EightWay;
     readonly Renderer _renderer = new();
     readonly AStar _aStar;
+    bool _isPaused = true;
 
     // allows slowing down pacman each time they eat a dot
     bool _dotEatenThisFrame = false;
@@ -54,7 +56,7 @@ class Board : ScreenSurface
         // debug surface
         _debug = new(Program.Width, 1)
         {
-            //Parent = this,
+            Parent = this,
             Position = (-3, -1)
         };
 
@@ -100,13 +102,28 @@ class Board : ScreenSurface
     public Game Game { get; init; }
     public Player Player { get; init; }
     public GhostHouse GhostHouse { get; init; }
-    public bool IsPaused { get; set; }
+    public bool IsPaused
+    {
+        get => _isPaused;
+        set
+        {
+            _isPaused = value;
+            if (_isPaused)
+                GhostHouse.PauseRunningTimers();
+            else
+                GhostHouse.UnpausePrevRunningTimers();
+        }
+    }
     #endregion Properties
 
     #region Methods
     // checks if the position is valid and walkable
     public bool IsWalkable(Point position) =>
         Surface.Area.Contains(position) && Surface[position.ToIndex(Surface.Width)] is Floor;
+
+    // checks if the position is reachable from the player start point
+    public bool IsReachable(Point position) =>
+        _aStar.ShortestPath(Player.Start, position) is not null;
 
     // checks if the position is a portal and returns a matching portal destination if found
     public bool IsPortal(Point position, out Portal? matchingPortalDestination)
@@ -168,77 +185,93 @@ class Board : ScreenSurface
     {
         if (GamePlayIsOn())
         {
-            // update all sprite positions
-            foreach (var child in Children)
-                if (child is Sprite sprite)
-                {
-                    sprite.UpdateAnimation(delta);
-
-                    if (sprite is Ghost)
-                        sprite.UpdatePosition();
-
-                    else if (sprite is Player player)
-                    {
-                        // don't update the player's position for one frame after eating a dot
-                        if (_dotEatenThisFrame)
-                            _dotEatenThisFrame = false;
-                        else
-                            player.UpdatePosition();
-
-                        // check if all dots are eaten
-                        if (_playingLevelCompleteAnimation) 
-                            return;
-                    }
-                }
-
-            // check for collisions
-            foreach (var ghost in GhostHouse.Ghosts)
-            {
-                if (Player.HitBox.Intersects(ghost.HitBox))
-                {
-                    if (ghost.Mode == GhostMode.Frightened)
-                    {
-                        OnGhostEaten(ghost);
-                    }
-                    else if (ghost.Mode != GhostMode.Eaten)
-                    {
-                        OnPlayerCaught();
-                        return;
-                    }
-                }
-            }
-        }
-
-        else if (_playingLevelCompleteAnimation)
-        {
-            _animationTimeDelta += delta;
-            if (_animationTimeDelta >= _colorChangeDuration)
-            {
-                if (++_wallColorChangeCount <= WallColorChangeMax)
-                {
-                    var color = _wallColorChangeCount % 2 == 0 ? Appearances.Wall.Foreground : Appearances.WallFlash;
-                    _animationTimeDelta = TimeSpan.Zero;
-                    ChangeMazeColor(color);
-                }
-                else
-                {
-                    _playingLevelCompleteAnimation = false;
-                    OnLevelCompleteAnimationFinished();
-                }
-            }
+            UpdateSpritePositions(delta);
+            
+            if (!_playingLevelCompleteAnimation)
+                CheckForSpriteCollisions();
         }
 
         else if (Player.IsDead)
+            Player.PlayDeathAnimation(delta);
+
+        else if (_playingLevelCompleteAnimation)
+            PlayLevelCompleteAnimation(delta);
+        
+        // debug info
+        if (!IsPaused)
         {
-            Player.UpdateAnimation(delta);
+            _secondCounter += delta;
+            string text = $"    Mode Changes: {GhostHouse.ModeChangesCount}, Seconds: {_secondCounter.Seconds:000}";
+            int x = _debug.Surface.Width - text.Length - 3;
+            _debug.Surface.Print(x, 0, text);
         }
 
-        _secondCounter += delta;
-        string text = $"    Seconds: {_secondCounter.Seconds:000}";
-        int x = _debug.Surface.Width - text.Length - 3;
-        _debug.Surface.Print(x, 0, text);
-
         base.Update(delta);
+    }
+
+    void PlayLevelCompleteAnimation(TimeSpan delta)
+    {
+        _animationTimeDelta += delta;
+        if (_animationTimeDelta >= _colorChangeDuration)
+        {
+            if (++_wallColorChangeCount <= WallColorChangeMax)
+            {
+                var color = _wallColorChangeCount % 2 == 0 ? Appearances.Wall.Foreground : Appearances.WallFlash;
+                _animationTimeDelta = TimeSpan.Zero;
+                ChangeMazeColor(color);
+            }
+            else
+            {
+                _playingLevelCompleteAnimation = false;
+                OnLevelCompleteAnimationFinished();
+            }
+        }
+    }
+
+    void UpdateSpritePositions(TimeSpan delta)
+    {
+        foreach (var child in Children)
+        {
+            if (child is Sprite sprite)
+            {
+                sprite.UpdateAnimation(delta);
+
+                if (sprite is Ghost)
+                    sprite.UpdatePosition();
+
+                else if (sprite is Player player)
+                {
+                    // don't update the player's position for one frame after eating a dot
+                    if (_dotEatenThisFrame)
+                        _dotEatenThisFrame = false;
+                    else
+                        player.UpdatePosition();
+
+                    // check if all dots are eaten
+                    if (_playingLevelCompleteAnimation)
+                        return;
+                }
+            }
+        }
+    }
+
+    void CheckForSpriteCollisions()
+    {
+        foreach (var ghost in GhostHouse.Ghosts)
+        {
+            if (Player.HitBox.Intersects(ghost.HitBox))
+            {
+                if (ghost.Mode == GhostMode.Frightened)
+                {
+                    OnGhostEaten(ghost);
+                }
+                else if (ghost.Mode != GhostMode.Eaten)
+                {
+                    OnPlayerCaught();
+                    return;
+                }
+            }
+        }
     }
 
     void TogglePause() =>
@@ -461,6 +494,7 @@ class Board : ScreenSurface
     public void RemoveDots()
     {
         _renderer.RemoveAll();
+        _renderer.IsDirty = true;
     }
 
     void RemoveAll()
@@ -504,7 +538,7 @@ class Board : ScreenSurface
     void GhostHouse_OnModeChanged(object? o, GhostModeEventArgs e)
     {
         _secondCounter = TimeSpan.Zero;
-        var text = $"PrevMode: {e.PrevMode}, NewMode: {e.NewMode}        ";
+        var text = $"Prev: {e.PrevMode}, New: {e.NewMode}        ";
         _debug.Surface.Print(3, 0, text);
     }
 

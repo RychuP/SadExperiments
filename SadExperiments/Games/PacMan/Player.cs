@@ -50,29 +50,35 @@ class Player : Sprite
     #endregion Properties
 
     #region Methods
-    public override void UpdateAnimation(TimeSpan delta)
+    //public override void UpdateAnimation(TimeSpan delta)
+    //{
+    //    if (!IsDead)
+    //    {
+    //        // do a normal animation update
+    //        base.UpdateAnimation(delta);
+    //    }
+    //    else
+    //    {
+    //        // play death animation
+            
+    //    }
+    //}
+
+    public void PlayDeathAnimation(TimeSpan delta)
     {
-        if (!IsDead)
+        _timeElapsed += delta;
+        if (_timeElapsed >= _animationSpeed)
         {
-            // do a normal animation update
-            base.UpdateAnimation(delta);
-        }
-        else
-        {
-            // play death animation
-            _timeElapsed += delta;
-            if (_timeElapsed >= _animationSpeed)
+            if (_deathAnimCurrentIndex == DeathAnimEndIndex)
             {
-                if (_deathAnimCurrentIndex == DeathAnimEndIndex)
-                {
-                    OnDeathAnimationFinished();
-                }
-                else
-                {
-                    _timeElapsed = TimeSpan.Zero;
-                    Surface[0].Glyph = ++_deathAnimCurrentIndex;
-                    Surface.IsDirty = true;
-                }
+                _deathAnimCurrentIndex++;
+                OnDeathAnimationFinished();
+            }
+            else if (_deathAnimCurrentIndex < DeathAnimEndIndex)
+            {
+                _timeElapsed = TimeSpan.Zero;
+                Surface[0].Glyph = ++_deathAnimCurrentIndex;
+                Surface.IsDirty = true;
             }
         }
     }

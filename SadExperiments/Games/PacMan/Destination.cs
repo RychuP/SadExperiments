@@ -23,7 +23,7 @@ readonly struct Destination : IEquatable<Destination>
         if (position != Point.None && direction == Direction.None)
             throw new ArgumentException("Direction is required for the given position.");
         else if (!direction.IsCardinal())
-            throw new ArgumentException("This game accepts only cardinal directions.");
+            throw new ArgumentException("Only cardinal directions are allowed.");
 
         Direction = direction;
         if (position != Point.None)
