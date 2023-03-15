@@ -4,6 +4,9 @@ class ChaseAggressive : IChaseBehaviour
 {
     public Destination Chase(Board board, Destination prevDestination)
     {
+        if (prevDestination.Position == board.GhostHouse.CenterSpot)
+            return new Destination(board.GhostHouse.EntrancePosition, Direction.Up);
+
         var nextPosition = board.GetNextPosToPlayer(prevDestination.Position);
         var desiredDirection = Direction.GetCardinalDirection(prevDestination.Position, nextPosition);
 

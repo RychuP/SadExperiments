@@ -15,6 +15,12 @@ abstract class ScatterBase : IScatterBehaviour
 
     public virtual Destination Scatter(Board board, Destination prevDestination)
     {
+        if (prevDestination.Position == board.GhostHouse.CenterSpot)
+        {
+            Destination = board.GhostHouse.EntrancePosition;
+            return new Destination(board.GhostHouse.EntrancePosition, Direction.Up);
+        }
+
         // destination is not set
         if (Destination == Point.None)
         {
