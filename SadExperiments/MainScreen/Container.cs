@@ -44,8 +44,8 @@ sealed class Container : ScreenObject
     readonly Page[] _pages =
     {
         //new Test(),
-        new Games.PacMan.Game(),
         new WelcomePage(),
+        new Games.PacMan.Game(),
         new Games.Tetris.Game(),
         new Fluid(),
         new AnimatedGlobe(),

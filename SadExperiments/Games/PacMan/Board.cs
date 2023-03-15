@@ -56,7 +56,7 @@ class Board : ScreenSurface
         // debug surface
         _debug = new(Program.Width, 1)
         {
-            Parent = this,
+            //Parent = this,
             Position = (-3, -1)
         };
 
@@ -151,11 +151,12 @@ class Board : ScreenSurface
     public override bool ProcessKeyboard(Keyboard keyboard)
     {
         // TODO: remove or change this when debug finished
-        if (keyboard.HasKeysPressed && keyboard.IsKeyPressed(Keys.P))
-        {
-            TogglePause();
-        }
-        else if (GamePlayIsOn() && keyboard.HasKeysDown)
+        //if (keyboard.HasKeysPressed && keyboard.IsKeyPressed(Keys.P))
+        //{
+        //    TogglePause();
+        //}
+        //else 
+        if (GamePlayIsOn() && keyboard.HasKeysDown)
         {
             if (keyboard.IsKeyDown(Keys.Right))
             {
