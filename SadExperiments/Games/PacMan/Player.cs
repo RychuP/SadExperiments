@@ -136,7 +136,7 @@ class Player : Sprite
         }
     }
 
-    protected override void OnDestinationReached(Destination destination)
+    protected override void OnDestinationReached(Departure departure, Destination destination)
     {
         // check if the position is a portal
         if (Board.IsPortal(destination.Position, out Portal? portal))
@@ -148,7 +148,7 @@ class Player : Sprite
             Departure = new(portal.Position);
 
             // set destination in previous direction
-            if (!TrySetDestination(Destination.Direction))
+            if (!TrySetDestination(destination.Direction))
                 throw new InvalidOperationException("Portal has got no walkable tile in the exit direction.");
         }
 
@@ -187,7 +187,7 @@ class Player : Sprite
             }
         }
 
-        base.OnDestinationReached(destination);
+        base.OnDestinationReached(departure, destination);
     }
 
     protected virtual void OnDeathAnimationFinished()

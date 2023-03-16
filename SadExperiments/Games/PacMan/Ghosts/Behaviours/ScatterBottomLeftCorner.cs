@@ -1,6 +1,6 @@
 namespace SadExperiments.Games.PacMan.Ghosts.Behaviours;
 
-class ScatterBottomLeftCorner : ScatterBase
+class ScatterBottomLeftCorner : ScatterBaseBehaviour
 {
     public ScatterBottomLeftCorner(Rectangle boardArea, Ghost host) : base(host)
     {

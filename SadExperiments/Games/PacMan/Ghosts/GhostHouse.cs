@@ -296,6 +296,10 @@ class GhostHouse : ScreenObject
                 ghost.Mode = newMode;
         }
 
+        // debug
+        if (prevMode == GhostMode.Chase)
+            _board.TurnOffHighlight();
+
         var args = new GhostModeEventArgs(prevMode, newMode);
         ModeChanged?.Invoke(this, args);
     }

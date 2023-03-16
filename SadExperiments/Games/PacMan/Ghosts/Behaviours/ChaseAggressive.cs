@@ -1,26 +1,10 @@
 namespace SadExperiments.Games.PacMan.Ghosts.Behaviours;
 
-class ChaseAggressive : IChaseBehaviour
+class ChaseAggressive : ChaseBaseBehaviour
 {
-    public Destination Chase(Board board, Destination prevDestination)
+    public override Destination Chase(Board board, Point position, Direction direction)
     {
-        if (prevDestination.Position == board.GhostHouse.CenterSpot)
-            return new Destination(board.GhostHouse.EntrancePosition, Direction.Up);
-
-        var nextPosition = board.GetNextPosToPlayer(prevDestination.Position);
-        var desiredDirection = Direction.GetCardinalDirection(prevDestination.Position, nextPosition);
-
-        // check astar direction
-        if (desiredDirection != prevDestination.Direction.Inverse() && desiredDirection != Direction.None)
-            return new Destination(nextPosition, desiredDirection);
-
-        // find own direction
-        else
-        {
-            desiredDirection = board.GetDirectionToPlayer(prevDestination.Position);
-            if (desiredDirection == prevDestination.Direction.Inverse())
-                desiredDirection = Board.GetRandomTurn(prevDestination.Direction);
-            return board.GetDestination(prevDestination.Position, desiredDirection, prevDestination.Direction);
-        }
+        var destination = board.GetPlayerPosition();
+        return Navigate(board, position, direction, destination);
     }
 }

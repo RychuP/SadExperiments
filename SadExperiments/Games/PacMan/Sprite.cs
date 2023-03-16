@@ -149,14 +149,16 @@ abstract class Sprite : ScreenSurface
         if (_timeElapsed >= _animationSpeed)
         {
             _timeElapsed = TimeSpan.Zero;
-            Surface[0].Glyph = GetAnimationGlyph(_animationColumn, _currentAnimFrame);
-            _currentAnimFrame = _currentAnimFrame == 0 ? 1 : 0;
-            Surface.IsDirty = true;
+            SetCurrentAnimationGlyph();
         }
     }
 
-    protected void SetCurrentAnimationGlyph() =>
+    protected void SetCurrentAnimationGlyph()
+    {
         Surface[0].Glyph = GetAnimationGlyph(_animationColumn, _currentAnimFrame);
+        _currentAnimFrame = _currentAnimFrame == 0 ? 1 : 0;
+        Surface.IsDirty = true;
+    }
 
     // extracted to a method to allow for a custom freightened ghost animation
     protected virtual int GetAnimationGlyph(int animationColumn, int animationFrame) =>
@@ -221,8 +223,9 @@ abstract class Sprite : ScreenSurface
             // check if the destination is reached
             if (distance <= 0)
             {
+                var departedFrom = Departure;
                 Departure = new(Destination.Position);
-                OnDestinationReached(Destination);
+                OnDestinationReached(departedFrom, Destination);
             }
         }
 
@@ -247,7 +250,8 @@ abstract class Sprite : ScreenSurface
         }
     }
 
-    virtual protected void OnDestinationReached(Destination destination)
+    // departure - where the sprite departed from, destination - where the sprite arrived
+    virtual protected void OnDestinationReached(Departure departure, Destination destination)
     {
         DestinationReached?.Invoke(this, EventArgs.Empty);
     }
@@ -258,8 +262,7 @@ abstract class Sprite : ScreenSurface
         {
             Departure = new(Start);
             _currentAnimFrame = 0;
-            Surface[0].Glyph = GetAnimationGlyph(_animationColumn, _currentAnimFrame);
-            Surface.IsDirty = true;
+            SetCurrentAnimationGlyph();
         }
         else
         {

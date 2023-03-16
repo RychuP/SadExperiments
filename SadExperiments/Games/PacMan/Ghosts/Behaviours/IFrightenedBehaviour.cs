@@ -2,5 +2,5 @@
 
 interface IFrightenedBehaviour
 {
-    Destination Frightened(Board board, Destination prevDestination);
+    Destination Frightened(Board board, Point position, Direction direction);
 }

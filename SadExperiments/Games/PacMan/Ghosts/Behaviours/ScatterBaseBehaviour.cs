@@ -1,6 +1,6 @@
 namespace SadExperiments.Games.PacMan.Ghosts.Behaviours;
 
-abstract class ScatterBase : IScatterBehaviour
+abstract class ScatterBaseBehaviour : IScatterBehaviour
 {
     const double MinimalDistanceBetweenPatrolDots = 4d;
 
@@ -8,14 +8,14 @@ abstract class ScatterBase : IScatterBehaviour
 
     protected Point Destination { get; set; } = Point.None;
 
-    public ScatterBase(Ghost host)
+    public ScatterBaseBehaviour(Ghost host)
     {
         host.ModeChanged += Ghost_OnModeChanged;
     }
 
-    public virtual Destination Scatter(Board board, Destination prevDestination)
+    public virtual Destination Scatter(Board board, Point position, Direction direction)
     {
-        if (prevDestination.Position == board.GhostHouse.CenterSpot)
+        if (position == board.GhostHouse.CenterSpot)
         {
             Destination = board.GhostHouse.EntrancePosition;
             return new Destination(board.GhostHouse.EntrancePosition, Direction.Up);
@@ -24,29 +24,29 @@ abstract class ScatterBase : IScatterBehaviour
         // destination is not set
         if (Destination == Point.None)
         {
-            Destination = prevDestination.Position;
+            Destination = position;
             SetDestination(board);
         }
 
         // destination is reached
-        else if (Destination == prevDestination.Position)
+        else if (Destination == position)
             SetDestination(board);
 
-        var nextPosition = board.GetNextPosition(prevDestination.Position, Destination);
-        var desiredDirection = Direction.GetCardinalDirection(prevDestination.Position, nextPosition);
+        var nextPosition = board.GetNextPosition(position, Destination);
+        var desiredDirection = Direction.GetCardinalDirection(position, nextPosition);
 
         // check astar direction
-        if (desiredDirection != prevDestination.Direction.Inverse() && desiredDirection != Direction.None)
+        if (desiredDirection != direction.Inverse() && desiredDirection != Direction.None)
             return new Destination(nextPosition, desiredDirection);
 
         // find own direction
         else
         {
-            if (desiredDirection == prevDestination.Direction.Inverse())
-                desiredDirection = Board.GetRandomTurn(prevDestination.Direction);
+            if (desiredDirection == direction.Inverse())
+                desiredDirection = Board.GetRandomTurn(direction);
             else if (desiredDirection == Direction.None)
-                desiredDirection = prevDestination.Direction;
-            return board.GetDestination(prevDestination.Position, desiredDirection, prevDestination.Direction);
+                desiredDirection = direction;
+            return board.GetDestination(position, desiredDirection, direction);
         }
     }
 

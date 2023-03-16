@@ -4,14 +4,14 @@ namespace SadExperiments.Games.PacMan.Ghosts.Behaviours;
 
 class FrightenedWandering : IFrightenedBehaviour
 {
-    public Destination Frightened(Board board, Destination prevDestination)
+    public Destination Frightened(Board board, Point position, Direction direction)
     {
-        var randomTurn = Board.GetRandomTurn(prevDestination.Direction);
+        var randomTurn = Board.GetRandomTurn(direction);
         var desiredDirection = GlobalRandom.DefaultRNG.NextInt(0, 2) switch
         {
             0 => randomTurn,
-            _ => prevDestination.Direction
+            _ => direction
         };
-        return board.GetDestination(prevDestination.Position, desiredDirection, prevDestination.Direction);
+        return board.GetDestination(position, desiredDirection, direction);
     }
 }

@@ -1,9 +1,23 @@
 namespace SadExperiments.Games.PacMan.Ghosts.Behaviours;
 
-class ChasePatrol : IChaseBehaviour
+class ChasePatrol : ChaseBaseBehaviour
 {
-    public Destination Chase(Board board, Destination prevDestination)
+    const int PatrolRadius = 7;
+
+    public ChasePatrol(Ghost host)
     {
-        throw new NotImplementedException();
+        host.ModeChanged += Ghost_OnModeChanged;
+    }
+
+    public override Destination Chase(Board board, Point position, Direction direction)
+    {
+        if (ToPosition == Point.None || ToPosition == position)
+        {
+            var playerPos = board.GetPlayerPosition();
+            Rectangle playerArea = new(playerPos, PatrolRadius, PatrolRadius);
+            ToPosition = GetRandValidPosInArea(board, playerArea);
+        }
+
+        return Navigate(board, position, direction, ToPosition);
     }
 }

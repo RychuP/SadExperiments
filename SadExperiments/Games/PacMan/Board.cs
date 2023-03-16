@@ -1,11 +1,9 @@
 ﻿using GoRogue.Pathing;
 using GoRogue.Random;
-using SadConsole.Effects;
 using SadConsole.Entities;
 using SadExperiments.Games.PacMan.Ghosts;
 using SadRogue.Primitives.GridViews;
 using ShaiRandom.Generators;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace SadExperiments.Games.PacMan;
 
@@ -45,9 +43,10 @@ class Board : ScreenSurface
     const int WallColorChangeMax = 6;
     int _wallColorChangeCount = 0;
 
-    // debug screen
+    // debug
     readonly ScreenSurface _debug;
-    TimeSpan _secondCounter = TimeSpan.Zero;
+    TimeSpan _secondsCounter = TimeSpan.Zero;
+    Point _prevHighlightedTile = Point.None;
     #endregion Fields
 
     #region Constructors
@@ -95,6 +94,11 @@ class Board : ScreenSurface
 
         // small pause at the beginning
         SadComponents.Add(new StartPause());
+
+        //Point test = (0, 1);
+        //int i = test.ToIndex(Surface.Width);
+        //bool bar = IsWalkable(test);
+        //bool foo = IsReachable(test);
     }
     #endregion Constructors
 
@@ -201,8 +205,8 @@ class Board : ScreenSurface
         // debug info
         if (!IsPaused)
         {
-            _secondCounter += delta;
-            string text = $"    Mode Changes: {GhostHouse.ModeChangesCount}, Seconds: {_secondCounter.Seconds:000}";
+            _secondsCounter += delta;
+            string text = $"    Mode Changes: {GhostHouse.ModeChangesCount}, Seconds: {_secondsCounter.Seconds:000}";
             int x = _debug.Surface.Width - text.Length - 3;
             _debug.Surface.Print(x, 0, text);
         }
@@ -278,17 +282,28 @@ class Board : ScreenSurface
     void TogglePause() =>
         IsPaused = !IsPaused;
 
-    public Point GetNextPosToPlayer(Point ghostPosition)
+    // returns a tile position which is closest to the player current pixel position
+    public Point GetPlayerPosition()
     {
-        Point destination;
-        if (Player.Destination == Destination.None)
-            destination = Player.Departure.Position;
-        else
+        if (Player.Departure != Departure.None)
         {
-            destination = Player.Destination.Position != ghostPosition ?
-                Player.Destination.Position : Player.Departure.Position;
+            if (Player.Destination != Destination.None)
+            {
+                var pos = Player.CurrentPosition;
+                var dep = Player.Departure.PixelPosition;
+                var dest = Player.Destination.PixelPosition;
+                var distToDestination = Distance.Manhattan.Calculate(pos, dest);
+                var distToDeparture = Distance.Manhattan.Calculate(pos, dep);
+                if (distToDeparture > distToDestination)
+                    return Player.Destination.Position;
+                else
+                    return Player.Departure.Position;
+            }
+            else
+                return Player.Departure.Position;
         }
-        return GetNextPosition(ghostPosition, destination);
+        else
+            throw new InvalidOperationException("Player departure position is not set.");
     }
 
     public Point GetNextPosToGHouse(Point ghostPosition) =>
@@ -442,6 +457,27 @@ class Board : ScreenSurface
             return null;
     }
 
+    public void HighlightTile(Point position)
+    {
+        if (Surface.Area.Contains(position))
+        {
+            if (_prevHighlightedTile != Point.None)
+                TurnOffHighlight();
+
+            Surface.SetBackground(position.X, position.Y, Color.LightPink);
+            _prevHighlightedTile = position;
+        }
+    }
+
+    public void TurnOffHighlight()
+    {
+        if (_prevHighlightedTile != Point.None)
+        {
+            (int x, int y) = _prevHighlightedTile;
+            Surface.SetBackground(x, y, Color.Transparent);
+        }
+    }
+
     public void RemoveDot(Dot dot)
     {
         _renderer.Remove(dot);
@@ -490,6 +526,10 @@ class Board : ScreenSurface
 
         // add a small pause at the beginning
         SadComponents.Add(new StartPause());
+
+        // debug
+        TurnOffHighlight();
+        _prevHighlightedTile = Point.None;
     }
 
     public void RemoveDots()
@@ -538,7 +578,7 @@ class Board : ScreenSurface
 
     void GhostHouse_OnModeChanged(object? o, GhostModeEventArgs e)
     {
-        _secondCounter = TimeSpan.Zero;
+        _secondsCounter = TimeSpan.Zero;
         var text = $"Prev: {e.PrevMode}, New: {e.NewMode}        ";
         _debug.Surface.Print(3, 0, text);
     }

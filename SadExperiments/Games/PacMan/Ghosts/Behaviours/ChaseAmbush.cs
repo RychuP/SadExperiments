@@ -1,9 +1,26 @@
 namespace SadExperiments.Games.PacMan.Ghosts.Behaviours;
 
-class ChaseAmbush : IChaseBehaviour
+class ChaseAmbush : ChaseBaseBehaviour
 {
-    public Destination Chase(Board board, Destination prevDestination)
+    public override Destination Chase(Board board, Point position, Direction direction)
     {
-        throw new NotImplementedException();
+        // find a valid position up to 4 tiles in front of the player
+        Point ambushPosition = board.GetPlayerPosition();
+        var playerDirection = board.Player.Destination.Direction;
+        if (playerDirection != Direction.None)
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                var testPosition = ambushPosition + playerDirection;
+                if (board.IsWalkable(testPosition))
+                    ambushPosition = testPosition;
+                else
+                    break;
+            }
+        }
+
+        //board.HighlightTile(ambushPosition);
+
+        return Navigate(board, position, direction, ambushPosition);
     }
 }

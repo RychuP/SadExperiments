@@ -113,12 +113,12 @@ abstract class Ghost : Sprite
         ModeChanged?.Invoke(this, args);
     }
 
-    protected override void OnDestinationReached(Destination prevDestination)
+    protected override void OnDestinationReached(Departure departure, Destination destination)
     {
         if (Mode == GhostMode.Idle) return;
 
         // check if the position is a portal
-        if (Board.IsPortal(prevDestination.Position, out Portal? portal))
+        if (Board.IsPortal(destination.Position, out Portal? portal))
         {
             if (portal == null)
                 throw new ArgumentException("Portal needs to have a valid matching destination.");
@@ -136,11 +136,11 @@ abstract class Ghost : Sprite
         {
             Destination? nullable = Mode switch
             {
-                GhostMode.Scatter => ScatterBehaviour?.Scatter(Board, prevDestination),
-                GhostMode.Chase => ChaseBehaviour?.Chase(Board, prevDestination),
-                GhostMode.Frightened => FrightenedBehaviour?.Frightened(Board, prevDestination),
-                GhostMode.Eaten => EatenBehaviour?.RunBackHome(Board, prevDestination),
-                GhostMode.Awake => AwakeBehaviour?.LeaveHouse(Board, Departure.Position),
+                GhostMode.Scatter => ScatterBehaviour?.Scatter(Board, destination.Position, destination.Direction),
+                GhostMode.Chase => ChaseBehaviour?.Chase(Board, destination.Position, destination.Direction),
+                GhostMode.Frightened => FrightenedBehaviour?.Frightened(Board, destination.Position, destination.Direction),
+                GhostMode.Eaten => EatenBehaviour?.RunBackHome(Board, destination.Position),
+                GhostMode.Awake => AwakeBehaviour?.LeaveHouse(Board, destination.Position),
                 _ => IdleBehaviour?.Idle()
             };
 
@@ -148,16 +148,13 @@ abstract class Ghost : Sprite
             {
                 // ghost is in the center of the house and leaving
                 if (newDestination.Position == Board.GhostHouse.EntrancePosition && newDestination.Direction == Direction.Up)
-                {
-                    // set current mode
                     Mode = Board.GhostHouse.CurrentMode;
-                }
 
                 Destination = newDestination;
             }
         }
 
-        base.OnDestinationReached(prevDestination);
+        base.OnDestinationReached(departure, destination);
     }
 
     protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)

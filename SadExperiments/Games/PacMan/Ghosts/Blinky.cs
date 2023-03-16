@@ -15,18 +15,12 @@ class Blinky : Ghost
     {
         base.OnParentChanged(oldParent, newParent);
 
-        // create scatter behaviour once before the board is assigned to a game
         if (newParent is Board)
         {
             Mode = GhostMode.Scatter;
             if (!TrySetDestination(Direction.Right))
-                throw new InvalidOperationException("Invalid Blinky start position.");
+                throw new InvalidOperationException("Invalid Blinky start location.");
             SetCurrentAnimationGlyph();
         }
-    }
-
-    protected override void OnCurrentPositionChanged(Point prevPosition, Point newPosition)
-    {
-        base.OnCurrentPositionChanged(prevPosition, newPosition);
     }
 }

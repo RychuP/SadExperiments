@@ -20,6 +20,7 @@ static class Sounds
 
         Siren.IsLooped = true;
         Retreating.IsLooped = true;
+        MunchDot.IsLooped = true;
         PowerDot.IsLooped = true;
         MunchDot.Volume = 0.4f;
     }
