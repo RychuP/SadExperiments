@@ -44,7 +44,7 @@ class Board : ScreenSurface
     int _wallColorChangeCount = 0;
 
     // debug
-    readonly ScreenSurface _debug;
+    readonly ScreenSurface _debug = new(Program.Width, 1);
     TimeSpan _secondsCounter = TimeSpan.Zero;
     Point _prevHighlightedTile = Point.None;
     #endregion Fields
@@ -53,11 +53,11 @@ class Board : ScreenSurface
     public Board(Level level, Game game) : base(level.Width, level.Height, level.Tiles)
     {
         // debug surface
-        _debug = new(Program.Width, 1)
+        if (IsDebugging)
         {
-            //Parent = this,
-            Position = (-3, -1)
-        };
+            _debug.Position = (-3, -1);
+            Children.Add(_debug);
+        }
 
         // setup
         IsFocused = true;
@@ -94,11 +94,6 @@ class Board : ScreenSurface
 
         // small pause at the beginning
         SadComponents.Add(new StartPause());
-
-        //Point test = (0, 1);
-        //int i = test.ToIndex(Surface.Width);
-        //bool bar = IsWalkable(test);
-        //bool foo = IsReachable(test);
     }
     #endregion Constructors
 
@@ -106,6 +101,7 @@ class Board : ScreenSurface
     public Game Game { get; init; }
     public Player Player { get; init; }
     public GhostHouse GhostHouse { get; init; }
+    public bool IsDebugging { get; init; } = false;
     public bool IsPaused
     {
         get => _isPaused;
@@ -113,9 +109,9 @@ class Board : ScreenSurface
         {
             _isPaused = value;
             if (_isPaused)
-                GhostHouse.PauseRunningTimers();
+                OnPaused();
             else
-                GhostHouse.UnpausePrevRunningTimers();
+                OnResumed();
         }
     }
     #endregion Properties
@@ -154,13 +150,10 @@ class Board : ScreenSurface
 
     public override bool ProcessKeyboard(Keyboard keyboard)
     {
-        // TODO: remove or change this when debug finished
-        //if (keyboard.HasKeysPressed && keyboard.IsKeyPressed(Keys.P))
-        //{
-        //    TogglePause();
-        //}
-        //else 
-        if (GamePlayIsOn() && keyboard.HasKeysDown)
+        if (IsDebugging && keyboard.HasKeysPressed && keyboard.IsKeyPressed(Keys.P))
+            TogglePause();
+
+        else if (GamePlayIsOn() && keyboard.HasKeysDown)
         {
             if (keyboard.IsKeyDown(Keys.Right))
             {
@@ -203,7 +196,7 @@ class Board : ScreenSurface
             PlayLevelCompleteAnimation(delta);
         
         // debug info
-        if (!IsPaused)
+        if (IsDebugging && !IsPaused)
         {
             _secondsCounter += delta;
             string text = $"    Mode Changes: {GhostHouse.ModeChangesCount}, Seconds: {_secondsCounter.Seconds:000}";
@@ -347,10 +340,6 @@ class Board : ScreenSurface
         else
             throw new ArgumentException("Provided position does not produce a valid path to the destination.");
     }
-
-    // returns direction to player
-    public Direction GetDirectionToPlayer(Point ghostPosition) =>
-        Direction.GetCardinalDirection(ghostPosition, Player.Destination.Position);
 
     public static Direction GetRandomTurn(Direction direction)
     {
@@ -528,8 +517,11 @@ class Board : ScreenSurface
         SadComponents.Add(new StartPause());
 
         // debug
-        TurnOffHighlight();
-        _prevHighlightedTile = Point.None;
+        if (IsDebugging)
+        {
+            TurnOffHighlight();
+            _prevHighlightedTile = Point.None;
+        }
     }
 
     public void RemoveDots()
@@ -630,9 +622,9 @@ class Board : ScreenSurface
     void OnGhostEaten(Ghost ghost)
     {
         ghost.Mode = GhostMode.Eaten;
-        Sounds.MunchGhost.Play();
-        //SadComponents.Add(new Pause(0.2d));
-        GhostEaten?.Invoke(this, new ScoreEventArgs(GhostHouse.Value));
+        ghost.ShowValue(GhostHouse.Value);
+        SadComponents.Add(new GhostEatenPause());
+        GhostEaten?.Invoke(this, new GhostEventArgs(ghost, GhostHouse.Value));
     }
 
     // new board is to be created after the level is complete
@@ -644,6 +636,16 @@ class Board : ScreenSurface
         Sounds.LevelComplete.Play();
     }
 
+    void OnPaused()
+    {
+        Paused?.Invoke(this, EventArgs.Empty);
+    }
+
+    void OnResumed()
+    {
+        Resumed?.Invoke(this, EventArgs.Empty);
+    }
+
     void OnLevelCompleteAnimationFinished()
     {
         RemoveAll();
@@ -653,20 +655,10 @@ class Board : ScreenSurface
 
     #region Events
     public event EventHandler<DotEventArgs>? DotEaten;
-    public event EventHandler<ScoreEventArgs>? GhostEaten;
+    public event EventHandler<GhostEventArgs>? GhostEaten;
     public event EventHandler? LiveLost;
     public event EventHandler? LevelComplete;
+    public event EventHandler? Paused;
+    public event EventHandler? Resumed;
     #endregion Events
-}
-
-class ScoreEventArgs : EventArgs
-{
-    public int Value { get; init; }
-    public ScoreEventArgs(int value) => Value = value;
-}
-
-class DotEventArgs : EventArgs
-{
-    public Dot Dot { get; init; }
-    public DotEventArgs(Dot dot) => Dot = dot;
 }

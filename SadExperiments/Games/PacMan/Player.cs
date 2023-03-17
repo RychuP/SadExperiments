@@ -7,7 +7,7 @@ class Player : Sprite
     #region Fields
     // animation data
     const int DeathAnimStartIndex = 48;
-    const int DeathAnimEndIndex = 63;
+    const int DeathAnimEndIndex = 59;
     readonly TimeSpan _animationSpeed = TimeSpan.FromSeconds(0.22d);
     TimeSpan _timeElapsed = TimeSpan.Zero;
     int _deathAnimCurrentIndex = 0;
@@ -50,24 +50,10 @@ class Player : Sprite
     #endregion Properties
 
     #region Methods
-    //public override void UpdateAnimation(TimeSpan delta)
-    //{
-    //    if (!IsDead)
-    //    {
-    //        // do a normal animation update
-    //        base.UpdateAnimation(delta);
-    //    }
-    //    else
-    //    {
-    //        // play death animation
-            
-    //    }
-    //}
-
     public void PlayDeathAnimation(TimeSpan delta)
     {
         _timeElapsed += delta;
-        if (_timeElapsed >= _animationSpeed)
+        if (_timeElapsed >= _animationSpeed && _deathAnimCurrentIndex <= DeathAnimEndIndex)
         {
             if (_deathAnimCurrentIndex == DeathAnimEndIndex)
             {
@@ -185,6 +171,11 @@ class Player : Sprite
                 if (!TrySetDestination(Destination.Direction))
                     Destination = Destination.None;
             }
+
+            if (Destination == Destination.None 
+                && Sounds.MunchDot.State != Microsoft.Xna.Framework.Audio.SoundState.Stopped)
+                    Sounds.MunchDot.Stop();
+                
         }
 
         base.OnDestinationReached(departure, destination);

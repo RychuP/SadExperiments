@@ -7,7 +7,7 @@ class Clyde : Ghost
     public Clyde(Board board, Point start) : base(board, start)
     {
         AnimationRow = 8;
-        ChaseBehaviour = new ChasePatrol(this);
+        ChaseBehaviour = new ChaseRandom(this);
         ScatterBehaviour = new ScatterBottomLeftCorner(board.Surface.Area, this);
     }
 }

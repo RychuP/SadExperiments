@@ -18,7 +18,7 @@ class Game : Page, IRestartable
     int _lives = LivesStart;
     int _score = 0;
     Board? _board;
-    readonly string mazeFileName = "Maze.txt";
+    readonly string mazeFileName = "Maze";
     #endregion Fields
 
     #region Constructors
@@ -124,8 +124,13 @@ class Game : Page, IRestartable
             _board.IsFocused = true;
     }
 
-    void CreateBoard(string fileName)
+    void CreateBoard(string name)
     {
+        string fileName = (Level % 2) switch
+        {
+            0 => $"{name}2.txt",
+            _ => $"{name}1.txt"
+        };
         var level = LoadMaze(fileName);
         _board = new Board(level, this);
         _board.DotEaten += Board_OnDotEaten;
@@ -152,7 +157,7 @@ class Game : Page, IRestartable
         _header.PrintScore(_score);
     }
 
-    void Board_OnGhostEaten(object? o, ScoreEventArgs e)
+    void Board_OnGhostEaten(object? o, GhostEventArgs e)
     {
         _score += e.Value;
         _header.PrintScore(_score);

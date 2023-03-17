@@ -1,3 +1,4 @@
+using SadConsole.Components;
 using SadExperiments.Games.PacMan.Ghosts.Behaviours;
 
 namespace SadExperiments.Games.PacMan.Ghosts;
@@ -6,9 +7,15 @@ namespace SadExperiments.Games.PacMan.Ghosts;
 abstract class Ghost : Sprite
 {
     #region Fields
+    // starting mode
+    GhostMode _mode = GhostMode.Idle;
+
+    // animation rows
     const int FreightenedAnimationRow = 10;
     const int EatenAnimationRow = 11;
-    GhostMode _mode = GhostMode.Idle;
+    
+    // freightened mode
+    bool _whiteFlash = false;
     #endregion Fields
 
     #region Constructors
@@ -71,10 +78,55 @@ abstract class Ghost : Sprite
     #endregion Properties
 
     #region Methods
+    // checks if the ghost overlaps any another ghost going in the same direction
+    bool IsOverlapping()
+    {
+        foreach (var ghost in Board.GhostHouse.Ghosts)
+            if (ghost != this && ghost.Destination.Direction != Destination.Direction && ghost.HitBox.Intersects(HitBox))
+                return true;
+        return false;
+    }
+
+    public bool IsInGhostHouse() =>
+        Board.GhostHouse.PixelArea.Intersects(HitBox);
+
+    public void ShowValue(int value)
+    {
+        Surface[0].Glyph = value switch
+        {
+            1600 => 63,
+            800 => 62,
+            400 => 61,
+            _ => 60
+        };
+        Surface.IsDirty = true;
+    }
+
     protected override int GetAnimationGlyph(int animationColumn, int animationFrame)
     {
         if (Mode == GhostMode.Frightened)
-            return FreightenedAnimationRow * 4 + animationFrame;
+        {
+            // in transiton period alternate between the blue and white animation
+            if (Board.GhostHouse.PowerDotTransition)
+            {
+                if (_whiteFlash)
+                {
+                    if (animationFrame == 1)
+                        _whiteFlash = false;
+                    return FreightenedAnimationRow * 4 + animationFrame + 2;
+                }
+                else
+                {
+                    if (animationFrame == 1)
+                        _whiteFlash = true;
+                    return FreightenedAnimationRow * 4 + animationFrame;
+                }
+            }
+
+            // normal blue mode without flashes
+            else
+                return FreightenedAnimationRow * 4 + animationFrame;
+        }
         else if (Mode == GhostMode.Eaten)
             return EatenAnimationRow * 4 + animationColumn;
         else
@@ -106,8 +158,13 @@ abstract class Ghost : Sprite
                 break;
         }
 
+        // leave house on awake
         if (prevMode == GhostMode.Idle && newMode == GhostMode.Awake && AwakeBehaviour is not null)
             Destination = AwakeBehaviour.LeaveHouse(Board, Start);
+
+        // reset the white flash variable
+        else if (newMode == GhostMode.Frightened)
+            _whiteFlash = true;
 
         var args = new GhostModeEventArgs(prevMode, newMode);
         ModeChanged?.Invoke(this, args);
@@ -134,23 +191,34 @@ abstract class Ghost : Sprite
         // position is not a portal
         else
         {
-            Destination? nullable = Mode switch
+            // if ghost is overlapping another one just do a random turn left or right
+            if (this is not Blinky && IsOverlapping() && !IsInGhostHouse())
             {
-                GhostMode.Scatter => ScatterBehaviour?.Scatter(Board, destination.Position, destination.Direction),
-                GhostMode.Chase => ChaseBehaviour?.Chase(Board, destination.Position, destination.Direction),
-                GhostMode.Frightened => FrightenedBehaviour?.Frightened(Board, destination.Position, destination.Direction),
-                GhostMode.Eaten => EatenBehaviour?.RunBackHome(Board, destination.Position),
-                GhostMode.Awake => AwakeBehaviour?.LeaveHouse(Board, destination.Position),
-                _ => IdleBehaviour?.Idle()
-            };
+                var desiredDirection = Board.GetRandomTurn(destination.Direction);
+                Destination = Board.GetDestination(destination.Position, desiredDirection, destination.Direction);
+            }
 
-            if (nullable is Destination newDestination && newDestination != Destination.None)
+            // get destination from behaviour
+            else
             {
-                // ghost is in the center of the house and leaving
-                if (newDestination.Position == Board.GhostHouse.EntrancePosition && newDestination.Direction == Direction.Up)
-                    Mode = Board.GhostHouse.CurrentMode;
+                Destination? destFromBehaviour = Mode switch
+                {
+                    GhostMode.Scatter => ScatterBehaviour?.Scatter(Board, destination.Position, destination.Direction),
+                    GhostMode.Chase => ChaseBehaviour?.Chase(Board, destination.Position, destination.Direction),
+                    GhostMode.Frightened => FrightenedBehaviour?.Frightened(Board, destination.Position, destination.Direction),
+                    GhostMode.Eaten => EatenBehaviour?.RunBackHome(Board, destination.Position),
+                    GhostMode.Awake => AwakeBehaviour?.LeaveHouse(Board, destination.Position),
+                    _ => IdleBehaviour?.Idle()
+                };
 
-                Destination = newDestination;
+                if (destFromBehaviour is Destination newDestination && newDestination != Destination.None)
+                {
+                    // ghost is in the center of the house and leaving
+                    if (newDestination.Position == Board.GhostHouse.EntrancePosition && newDestination.Direction == Direction.Up)
+                        Mode = Board.GhostHouse.CurrentMode;
+
+                    Destination = newDestination;
+                }
             }
         }
 

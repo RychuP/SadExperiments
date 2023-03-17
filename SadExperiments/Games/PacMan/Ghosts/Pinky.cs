@@ -7,7 +7,7 @@ class Pinky : Ghost
     public Pinky(Board board, Point start) : base(board, start)
     {
         AnimationRow = 4;
-        ChaseBehaviour = new ChaseAmbush();
+        ChaseBehaviour = new ChaseAhead();
         ScatterBehaviour = new ScatterTopLeftCorner(board.Surface.Area, this);
     }
 }

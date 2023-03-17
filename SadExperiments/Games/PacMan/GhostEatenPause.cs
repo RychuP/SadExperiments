@@ -2,16 +2,15 @@ using SadConsole.Instructions;
 
 namespace SadExperiments.Games.PacMan;
 
-class StartPause : InstructionSet
+class GhostEatenPause : InstructionSet
 {
-    public StartPause()
+    public GhostEatenPause()
     {
         RemoveOnFinished = true;
-        Sounds.StopAll();
-        Sounds.Start.Play();
+        Sounds.MunchGhost.Play();
         Instructions.AddFirst(
             new CodeInstruction((o, t) => {
-                if (Sounds.Start.State == Microsoft.Xna.Framework.Audio.SoundState.Stopped)
+                if (Sounds.MunchGhost.State == Microsoft.Xna.Framework.Audio.SoundState.Stopped)
                     return true;
                 return false;
             })
@@ -28,10 +27,7 @@ class StartPause : InstructionSet
     public override void OnRemoved(IScreenObject host)
     {
         if (host is Board board)
-        {
             board.IsPaused = false;
-            Sounds.Siren.Play();
-        }
         base.OnRemoved(host);
     }
 }

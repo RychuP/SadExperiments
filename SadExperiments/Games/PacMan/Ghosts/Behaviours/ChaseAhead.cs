@@ -1,6 +1,6 @@
 namespace SadExperiments.Games.PacMan.Ghosts.Behaviours;
 
-class ChaseAmbush : ChaseBaseBehaviour
+class ChaseAhead : ChaseBaseBehaviour
 {
     public override Destination Chase(Board board, Point position, Direction direction)
     {
@@ -19,7 +19,10 @@ class ChaseAmbush : ChaseBaseBehaviour
             }
         }
 
-        //board.HighlightTile(ambushPosition);
+        if (board.IsDebugging)
+        {
+            //board.HighlightTile(ambushPosition);
+        }
 
         return Navigate(board, position, direction, ambushPosition);
     }

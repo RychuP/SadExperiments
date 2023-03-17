@@ -63,7 +63,7 @@ class ScoreDisplay : ScreenSurface
 
     public void Print(int score)
     {
-        ColoredString text = _title + $"{score:00}";
+        ColoredString text = _title + $"{score}";
         if (text.Length != Surface.Width)
             Resize(text.Length);
         Surface.Print(0, 0, text);
