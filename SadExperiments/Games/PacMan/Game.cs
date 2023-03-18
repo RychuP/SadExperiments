@@ -11,14 +11,17 @@ class Game : Page, IRestartable
     public const int  MaxDifficultyLevel = 21;
     const int LivesStart = 3;
     const int LevelStart = 1;
+    const int ExtraLifeScore = 7000;
+    const int ExtraLifeScoreIncrease = 500;
 
     public static readonly Point DefaultFontSize = new Point(8, 8) * FontSizeMultiplier;
     readonly GameOverWindow _gameOverWindow = new();
     readonly Header _header = new();
+    readonly string mazeFileName = "Maze";
+    int _extraLifeTarget = ExtraLifeScore;
     int _lives = LivesStart;
     int _score = 0;
     Board? _board;
-    readonly string mazeFileName = "Maze";
     #endregion Fields
 
     #region Constructors
@@ -39,6 +42,18 @@ class Game : Page, IRestartable
 
     #region Properties
     public int Level { get; private set; } = LevelStart;
+
+    public int Score
+    {
+        get => _score;
+        set
+        {
+            if (_score == value) return;
+            var prevScore = _score;
+            _score = value;
+            OnScoreChanged(prevScore, value);
+        }
+    }
     #endregion Properties
 
     #region Methods
@@ -115,14 +130,16 @@ class Game : Page, IRestartable
     }
     public void Restart()
     {
-        (Level, _score, _lives) = (1, 0, LivesStart);
-        _header.Print(_lives, _score, Level);
+        (Level, Score, _lives) = (1, 0, LivesStart);
+        _header.Print(_lives, Score, Level);
         
         if (_board is not null)
             Children.Remove(_board);
         CreateBoard(mazeFileName);
         if (_board is not null)
             _board.IsFocused = true;
+
+        _extraLifeTarget = ExtraLifeScore;
     }
 
     void CreateBoard(string name)
@@ -154,14 +171,12 @@ class Game : Page, IRestartable
 
     void Board_OnDotEaten(object? o, DotEventArgs e)
     {
-        _score += e.Dot.Value;
-        _header.PrintScore(_score);
+        Score += e.Dot.Value;
     }
 
     void Board_OnGhostEaten(object? o, GhostEventArgs e)
     {
-        _score += e.Value;
-        _header.PrintScore(_score);
+        Score += e.Value;
     }
 
     void Board_OnLevelComplete(object? o, EventArgs e)
@@ -186,15 +201,24 @@ class Game : Page, IRestartable
         base.OnParentChanged(oldParent, newParent);
     }
 
+    void OnScoreChanged(int prevScore, int newScore)
+    {
+        _header.PrintScore(newScore);
+
+        if (newScore >= _extraLifeTarget)
+        {
+            Sounds.ExtraLife.Play();
+            _lives++;
+            _extraLifeTarget += ExtraLifeScore + Level * ExtraLifeScoreIncrease;
+        }
+    }
+
     void OnGameOver()
     {
         Sounds.StopAll();
-        if (_board is not null)
-        {
-            _board.RemoveDots();
-        }
+        _board?.RemoveDots();
         _gameOverWindow.Show();
-        _gameOverWindow.ShowScore(_score, Level);
+        _gameOverWindow.ShowScore(Score, Level);
         _gameOverWindow.RestartButton.IsFocused = true;
     }
     #endregion Methods
