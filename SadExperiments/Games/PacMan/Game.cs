@@ -29,7 +29,7 @@ class Game : Page, IRestartable
     {
         #region Meta
         Title = "PacMan";
-        Summary = "Work in progress.";
+        Summary = "Clone of the 80's classic.";
         Submitter = Submitter.Rychu;
         Date = new(2023, 02, 28);
         Tags = new Tag[] {Tag.SadConsole, Tag.Pixels, Tag.Game, Tag.Renderer};
