@@ -11,7 +11,7 @@ class Game : Page, IRestartable
     public const int  MaxDifficultyLevel = 21;
     const int LivesStart = 3;
     const int LevelStart = 1;
-    const int ExtraLifeScore = 7000;
+    const int ExtraLifeScore = 6000;
     const int ExtraLifeScoreIncrease = 500;
 
     public static readonly Point DefaultFontSize = new Point(8, 8) * FontSizeMultiplier;
@@ -19,6 +19,7 @@ class Game : Page, IRestartable
     readonly Header _header = new();
     readonly string mazeFileName = "Maze";
     int _extraLifeTarget = ExtraLifeScore;
+    int _level = LevelStart;
     int _lives = LivesStart;
     int _score = 0;
     Board? _board;
@@ -41,17 +42,45 @@ class Game : Page, IRestartable
     #endregion Constructors
 
     #region Properties
-    public int Level { get; private set; } = LevelStart;
+    public int Level
+    {
+        get => _level;
+        set
+        {
+            if (value <= 0)
+                throw new ArgumentException("Level number has to be larger that 0.");
+
+            var prevLevel = _level;
+            _level = value;
+            OnLevelChanged(prevLevel, value);
+        }
+    }
 
     public int Score
     {
         get => _score;
         set
         {
-            if (_score == value) return;
+            if (value < 0)
+                throw new ArgumentException("Score cannot be negative.");
+
             var prevScore = _score;
             _score = value;
             OnScoreChanged(prevScore, value);
+        }
+    }
+
+    public int Lives
+    {
+        get => _lives;
+        set
+        {
+            if (value < 0)
+                throw new ArgumentException("Lives count cannot be negative.");
+
+            var prevLives = _lives;
+            _lives = value;
+            OnLivesChanged(prevLives, value);
         }
     }
     #endregion Properties
@@ -128,10 +157,10 @@ class Game : Page, IRestartable
 
         return new Level(width, height, start, tiles, dots);
     }
+
     public void Restart()
     {
-        (Level, Score, _lives) = (1, 0, LivesStart);
-        _header.Print(_lives, Score, Level);
+        (Lives, Score, Level) = (LivesStart, 0, 1);
         
         if (_board is not null)
             Children.Remove(_board);
@@ -146,44 +175,22 @@ class Game : Page, IRestartable
     {
         string fileName = (Level % 2) switch
         {
-            0 => $"{name}2.txt",
+            1 => $"{name}2.txt",
             _ => $"{name}1.txt"
         };
         var level = LoadMaze(fileName);
         _board = new Board(level, this);
-        _board.DotEaten += Board_OnDotEaten;
-        _board.GhostEaten += Board_OnGhostEaten;
-        _board.LiveLost += Board_OnLiveLost;
+        _board.DotEaten += (o, e) => Score += e.Dot.Value;
+        _board.GhostEaten += (o, e) => Score += e.Value;
+        _board.LiveLost += (o, e) => Lives--;
         _board.LevelComplete += Board_OnLevelComplete;
-    }
-
-    void Board_OnLiveLost(object? o, EventArgs e)
-    {
-        if (--_lives == 0)
-            OnGameOver();
-
-        else if (_lives > 0)        
-        {
-            _header.PrintLives(_lives);
-            _board?.Restart();
-        }
-    }
-
-    void Board_OnDotEaten(object? o, DotEventArgs e)
-    {
-        Score += e.Dot.Value;
-    }
-
-    void Board_OnGhostEaten(object? o, GhostEventArgs e)
-    {
-        Score += e.Value;
     }
 
     void Board_OnLevelComplete(object? o, EventArgs e)
     {
         if (_board is not null)
             Children.Remove(_board);
-        _header.PrintLevel(++Level);
+        Level++;
         CreateBoard(mazeFileName);
     }
 
@@ -211,6 +218,21 @@ class Game : Page, IRestartable
             _lives++;
             _extraLifeTarget += ExtraLifeScore + Level * ExtraLifeScoreIncrease;
         }
+    }
+
+    void OnLivesChanged(int prevLives, int newLives)
+    {
+        _header.PrintLives(newLives);
+
+        if (newLives == 0)
+            OnGameOver();
+        else if (newLives < prevLives)
+            _board?.Restart();
+    }
+
+    void OnLevelChanged(int prevLevel, int newLevel)
+    {
+        _header.PrintLevel(newLevel);
     }
 
     void OnGameOver()

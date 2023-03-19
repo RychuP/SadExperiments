@@ -195,7 +195,16 @@ abstract class Ghost : Sprite
             if (this is not Blinky && IsOverlapping() && !IsInGhostHouse())
             {
                 var desiredDirection = Board.GetRandomTurn(destination.Direction);
-                Destination = Board.GetDestination(destination.Position, desiredDirection, destination.Direction);
+                var randTurnDest = Board.GetDestination(destination.Position, desiredDirection, destination.Direction);
+                
+                // check if the turn produced a valid destination, otherwise try an opposite turn
+                if (randTurnDest.Direction == desiredDirection)
+                    Destination = randTurnDest;
+                else
+                {
+                    desiredDirection = desiredDirection.Inverse();
+                    Destination = Board.GetDestination(destination.Position, desiredDirection, destination.Direction);
+                }
             }
 
             // get destination from behaviour

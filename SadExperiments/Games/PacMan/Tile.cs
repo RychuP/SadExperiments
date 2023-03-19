@@ -15,6 +15,16 @@ class Floor : Tile
     { }
 }
 
+class Portal : Floor
+{
+    public char Id { get; init; }
+
+    public Portal(Point position, char id) : base(position)
+    {
+        Id = id;
+    }
+}
+
 class Spawner : Wall
 {
     public Spawner(Point position) : base(position)

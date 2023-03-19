@@ -18,3 +18,11 @@ class GhostEventArgs : EventArgs
         Value = value;
     }
 }
+
+class GhostModeEventArgs : EventArgs
+{
+    public GhostMode PrevMode { get; init; }
+    public GhostMode NewMode { get; init; }
+    public GhostModeEventArgs(GhostMode prevMode, GhostMode newMode) =>
+        (PrevMode, NewMode) = (prevMode, newMode);
+}

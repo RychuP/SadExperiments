@@ -1,17 +1,19 @@
 using SadConsole.Instructions;
+using Microsoft.Xna.Framework.Audio;
 
 namespace SadExperiments.Games.PacMan;
 
-class StartPause : InstructionSet
+class Pause : InstructionSet
 {
-    public StartPause()
+    public Pause(SoundEffectInstance sound, bool stopAllSounds = false)
     {
         RemoveOnFinished = true;
-        Sounds.StopAll();
-        Sounds.Start.Play();
+        if (stopAllSounds)
+            Sounds.StopAll();
+        sound.Play();
         Instructions.AddFirst(
             new CodeInstruction((o, t) => {
-                if (Sounds.Start.State == Microsoft.Xna.Framework.Audio.SoundState.Stopped)
+                if (sound.State == SoundState.Stopped)
                     return true;
                 return false;
             })
@@ -28,10 +30,25 @@ class StartPause : InstructionSet
     public override void OnRemoved(IScreenObject host)
     {
         if (host is Board board)
-        {
             board.IsPaused = false;
-            Sounds.Siren.Play();
-        }
         base.OnRemoved(host);
     }
+}
+
+class StartPause : Pause
+{
+    public StartPause() : base(Sounds.Start, true) { }
+
+    public override void OnRemoved(IScreenObject host)
+    {
+        if (host is Board)
+            Sounds.Siren.Play();
+        base.OnRemoved(host);
+    }
+}
+
+
+class GhostEatenPause : Pause
+{
+    public GhostEatenPause() : base(Sounds.MunchGhost) { }
 }
