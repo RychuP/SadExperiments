@@ -13,7 +13,7 @@ class BinaryOperationsPage : Page
 
         AddCentered(new BinaryOperations());
 
-        Surface.Print(3, ColoredString.Parser.Parse("Check out also SadConsole's [c:r f:lightgreen]Helpers[c:undo] " +
+        Surface.Print(3, ColoredString.Parser.Parse("Check out SadConsole's [c:r f:lightgreen]Helpers[c:undo] " +
             "class when working with bits."));
         string color = "orange";
         Surface.Print(5, ColoredString.Parser.Parse($"It features useful [c:r f:{color}]SetFlag[c:undo], " +

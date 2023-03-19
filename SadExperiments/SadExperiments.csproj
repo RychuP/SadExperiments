@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Pages\Old\" />
     <Folder Include="Resources\Sounds\PacMan\" />
   </ItemGroup>
 

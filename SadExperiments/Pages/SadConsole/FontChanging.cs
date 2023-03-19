@@ -33,7 +33,7 @@ internal class FontChanging : Page
         Children.Add(c);
         c.Position = new Point(Surface.Width / 2 - c.Width / 2, 2);
 
-        Surface.Print(7, 12, "Glyphs from a font Square10");
+        Surface.Print(7, 12, "Glyphs from the font Square10");
 
         // print some glyphs from the new font
         int x = 6, y = 14, glyphNumber = 48;

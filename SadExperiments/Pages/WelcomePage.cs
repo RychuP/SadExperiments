@@ -1,51 +1,44 @@
-﻿namespace SadExperiments.Pages;
+using SadConsole.Ansi;
+using System.IO;
 
-internal class WelcomePage : Page, IRestartable
+namespace SadExperiments.Pages;
+
+class WelcomePage : Page
 {
-    readonly AnimatedScreenSurface _worm;
-
     public WelcomePage()
     {
-        Title = "Welcome Page";
-        Summary = "Experiments with various features of SadConsole and related libraries.";
+        #region Meta
+        Title = "Sad Experiments";
+        Summary = "Small projects based on SadConsole and related libraries.";
         Submitter = Submitter.Rychu;
         Tags = new Tag[] { Tag.SadConsole, Tag.Animations, Tag.Decorators, Tag.ImageConversion };
+        #endregion Meta
 
-        int currentRow = PrintPrompts(2, new string[] {
-            "Press F1 or F2 to navigate between screens.",
-            "Press F3 to display the list of contents.",
-            "Press F4 for Color Picker and F5 for Character Picker windows.",
-            "Use arrow keys, space button, etc to interact with individual pages."
+        var ansi = new TreeBranch();
+        ansi.Position = (Surface.Width - ansi.Surface.View.Width, 0);
+
+        var logo = new SadExperimentsLogo();
+        logo.Position = (0, HeightPixels - logo.HeightPixels);
+
+        Children.Add(logo, ansi);
+
+        int currentRow = PrintPrompts(3, new string[] {
+            "F1 - Previous page",
+            "F2 - Next page",
+            "F3 - List of contents",
+            "F4 - Color picker",
+            "F5 - Character picker",
         }, Color.White);
-
-        PrintPrompts(currentRow + 4, new string[]
-        {
-            "Take everything with a pinch of salt.",
-            "These are my own attempts at learning the library",
-            "not necessarily examples of the best practice."
-        }, Color.BurlyWood);
 
         // keyboard shortcut decorations
         for (int i = 0; i < Surface.Count; i++)
         {
             if (Surface[i].Glyph == 'F')
             {
-                DecorateLetter(i);
-                DecorateLetter(i + 1);
+                Surface[i].Foreground = Color.LightGreen;
+                Surface[i + 1].Foreground = Color.LightGreen;
             }
         }
-
-        // load the animation of the worm
-        string path = "./Resources/Images/crawlingworm.png";
-        _worm = AnimatedScreenSurface.FromImage("Crawling Worm", path, (1, 9), 0.15f, (0, 1), font: Fonts.ThickSquare8);
-        _worm.FontSize *= 0.5;
-        _worm.UsePixelPositioning = true;
-        _worm.Repeat = true;
-
-        // start the animation
-        Children.Add(_worm);
-        _worm.Start();
-        Restart();
     }
 
     // prints centered prompts starting at the given row
@@ -53,32 +46,53 @@ internal class WelcomePage : Page, IRestartable
     {
         int spacer = 2;
         row -= spacer;
-        Array.ForEach(prompts, t => Surface.Print(row += spacer, t, color));
+        Array.ForEach(prompts, t => Surface.Print(3, row += spacer, t, color));
         return row;
     }
+}
 
-    // changes the color of the letter at Surface[index] and adds underline
-    void DecorateLetter(int index)
+class TreeBranch : ScreenSurface
+{
+    public TreeBranch() : base(47, 23, 80, 35)
     {
-        Surface[index].Foreground = Color.LightGreen;
-        var underline = new ColoredGlyph(Color.LightBlue, Color.Transparent, '_', Mirror.Vertical);
-        var position = Point.FromIndex(index + Width, Width);
-        Surface.SetGlyph(position, underline);
+        string path = Path.Combine("Resources", "Other", "LDA-FALL.ANS");
+        Document doc = new(path);
+        AnsiWriter writer = new(doc, Surface);
+        writer.ReadEntireDocument();
+        Surface.View = Surface.View.ChangePosition(new Point(30, 0));
+
+        var color = "#00aaaa".ToColor();
+        foreach (var cg in Surface)
+        {
+            if (cg.Foreground.GetBrightness() < 0.2)
+                cg.Foreground = Color.DarkSeaGreen;
+            if (cg.Background == color)
+                cg.Background = Color.Black;
+        }
+
+        Surface.Print(66, 19, "\"Fall\"", Color.DarkGray);
+        Surface.Print(66, 20, "by LDA", Color.DarkGray);
+    }
+}
+
+class SadExperimentsLogo : ScreenSurface
+{
+    public SadExperimentsLogo() : base(1, 16)
+    {
+        FontSize *= 0.75d;
+        UsePixelPositioning = true;
+        Surface.SetDefaultColors(Color.White, Color.Black);
     }
 
-    public void Restart()
+    protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
     {
-        _worm.Position = (WidthPixels, _worm.Font.GlyphHeight * 40);
-    }
-
-    public override void Update(TimeSpan delta)
-    {
-        if (_worm.CurrentFrameIndex != 0 || _worm.CurrentFrameIndex == _worm.FrameCount - 1)
-            _worm.Position -= (1, 0);
-
-        if (_worm.Position.X + _worm.WidthPixels <= 0)
-            _worm.Position = _worm.Position.WithX(WidthPixels);
-        
-        base.Update(delta);
+        if (newParent is Page page && Surface is ICellSurfaceResize surface)
+        {
+            int width = page.WidthPixels / FontSize.X + 1;
+            surface.Resize(width, Surface.Height, width, Surface.Height, false);
+            Surface.PrintTheDraw(3, 0, "Sad", Fonts.Destruct);
+            Surface.PrintTheDraw(10, 8, "Experiments", Fonts.Destruct);
+        }
+        base.OnParentChanged(oldParent, newParent);
     }
 }

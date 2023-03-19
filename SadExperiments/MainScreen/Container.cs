@@ -52,32 +52,24 @@ sealed class Container : ScreenObject
         new Donut3dPage(),
         new A_Demo(),
         new LineAlgorithms(),
-        new RectangleBisection(),
-        new AreaPage(),
         new SplashScreens(),
+        new AreaPage(),
+        new MoveAndResize(),
+        new StringParser(),
         new SmoothScrolling(),
         new RectangleManipulation(),
-        new StringParser(),
         new FontChanging(),
-        new KeyboardAndMouse(),
+        new RectangleBisection(),
         new BasicDrawing(),             // tutorial part 1
         new CursorPage(),               // tutorial part 2.1
         new OverlappingConsoles(),      // tutorial part 2.2
         new KeyboardProcessing(),
-        new UpdateAndRender(),
+        new KeyboardAndMouse(),
         new BinaryOperationsPage(),
         new MovableCharacter(),
-        new MoveAndResize(),
         new CheckeredRoom(),
-        new ImageConversion(),
-        new SadCanvasPage(),
         new Instructions(),
-        new EffectsAndDecorators(),
-        //new CellSurfaceResizing(),    // older pages marked for deletion
-        //new EasingFunctions(),
-        //new FocusSetting(),
-        //new SurfaceShifting(),
-        //new CharsAndCursors(),
+        new SadCanvasPage(),
     };
 
     readonly TagSorter _tagSorter = new();

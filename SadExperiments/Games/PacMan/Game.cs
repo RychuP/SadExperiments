@@ -175,7 +175,7 @@ class Game : Page, IRestartable
     {
         string fileName = (Level % 2) switch
         {
-            1 => $"{name}2.txt",
+            0 => $"{name}2.txt",
             _ => $"{name}1.txt"
         };
         var level = LoadMaze(fileName);

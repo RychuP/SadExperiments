@@ -7,7 +7,7 @@ internal class EffectsAndDecorators : Page
     public EffectsAndDecorators()
     {
         Title = "Effects And Decorators";
-        Summary = "Testing different methods of applying effects and decorators.";
+        Summary = "Different methods of applying effects and decorators.";
         Submitter = Submitter.Rychu;
         Tags = new Tag[] { Tag.SadConsole, Tag.CellDecorator, Tag.Color, Tag.Effects, Tag.Decorators };
 
