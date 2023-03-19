@@ -1,5 +1,5 @@
 # SadExperiments
-Small games and projects written with the help of SadConsole and related libraries.
+Small games and other mini projects based on SadConsole and related libraries.
 
 ## Screenshots:
 
