@@ -21,7 +21,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Pages\Old\" />
+    <Compile Remove="Pages\Old\**" />
+    <EmbeddedResource Remove="Pages\Old\**" />
+    <None Remove="Pages\Old\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Resources\Sounds\PacMan\" />
   </ItemGroup>
 
