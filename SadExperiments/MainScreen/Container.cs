@@ -47,6 +47,7 @@ sealed class Container : ScreenObject
         new WelcomePage(),
         new Games.PacMan.Game(),
         new Games.Tetris.Game(),
+        new Games.RogueLike.Game(),
         new Fluid(),
         new AnimatedGlobe(),
         new Donut3dPage(),

@@ -17,17 +17,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Resources\**" LinkBase="Fonts\" CopyToOutputDirectory="PreserveNewest" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="Pages\Old\**" />
-    <EmbeddedResource Remove="Pages\Old\**" />
-    <None Remove="Pages\Old\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Resources\Sounds\PacMan\" />
+    <Content Include="Resources\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>
