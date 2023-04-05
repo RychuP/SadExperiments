@@ -6,7 +6,7 @@ internal abstract class Potion : ConsumableItem
     public Potion(int healthAmount, bool isHarmful, Color color, int weight = 150, int volume = 200) 
         : base('!', color, healthAmount, 10, weight, isHarmful, DefaultVolume, weight) { }
     public override string EffectDescription =>
-        $"drinks {ToString().ToLower()} and {(IsHarmful ? "looses" : "recovers")} ";
+        $"drinks a {ToString().ToLower()} and {(IsHarmful ? "looses" : "recovers")} ";
     public override string ToString() =>
         "Potion";
 }

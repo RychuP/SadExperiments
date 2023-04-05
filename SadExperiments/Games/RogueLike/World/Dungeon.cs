@@ -93,16 +93,20 @@ internal class Dungeon : Map
         }
         else if (keyboard.IsKeyPressed(Keys.D))
         {
-            var item = GetEntityAt<Item>(Player.Position);
-            if (item is null)
+            var items = GetEntitiesAt<Item>(Player.Position);
+            if (items is null)
                 OnFailedAction("There it nothing to pick up here.");
-            else if (item is ICarryable carryable)
-            {
-                if (Player.TryCollect(carryable))
-                    RemoveEntity(item);
-            }
             else
-                OnFailedAction("This type of an item cannot be picked up.");
+            {
+                var item = items.Where(e => e is ICarryable).FirstOrDefault();
+                if (item is ICarryable carryable)
+                {
+                    if (Player.TryCollect(carryable))
+                        RemoveEntity(item as Item);
+                }
+                else
+                    OnFailedAction("This type of an item cannot be picked up.");
+            }
             return true;
         }
         else if (keyboard.IsKeyPressed(Keys.A))

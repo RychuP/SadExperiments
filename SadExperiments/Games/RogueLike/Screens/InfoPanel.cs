@@ -29,6 +29,7 @@ internal class InfoPanel : PanelWithSeparator
     {
         Position = (StatusPanel.Width, Program.Height - StatusPanel.Height);
         dungeon.MapGenerated += Dungeon_OnMapGenerated;
+        dungeon.FailedAction += Dungeon_OnFailedAction;
         dungeon.Player.FailedAction += Actor_OnFailedAction;
         dungeon.Player.Collected += Actor_OnCollected;
         dungeon.Player.Attacked += Actor_OnAttacked;
@@ -113,10 +114,11 @@ internal class InfoPanel : PanelWithSeparator
         Print($"{actor} collects a {e.Item}.");
     }
 
-    void Actor_OnFailedAction(object? o, FailedActionEventArgs e)
-    {
+    void Actor_OnFailedAction(object? o, FailedActionEventArgs e) =>
         Print(e.Message);
-    }
+
+    void Dungeon_OnFailedAction(object? o, FailedActionEventArgs e) =>
+        Print(e.Message);
 
     void Dungeon_OnMapGenerated(object? o, MapGeneratedEventArgs e)
     {
