@@ -1,7 +1,6 @@
-using SadConsole;
-
 namespace SadExperiments.Games.RogueLike.Screens;
 
+// displays player inventory
 internal class InventoryPanel : PanelWithSeparator
 {
     public const int Width = 15;

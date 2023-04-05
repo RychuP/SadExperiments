@@ -31,6 +31,9 @@ internal abstract class Actor : Entity
         }
     }
 
+    public bool IsAlive() =>
+        HP > 0;
+
     public void Attack(Actor other)
     {
         int damage = Power - other.Defense;

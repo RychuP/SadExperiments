@@ -17,7 +17,12 @@ internal class InfoPanel : PanelWithSeparator
         "looses all hp points",
         "gives in to the heavy blow"
     };
-    
+    readonly string[] _welcomeMessages =
+    {
+        "Welcome to the dungeon!",
+        "Orcs, trolls and treasure await.",
+        "Arrow keys to move, space to wait."
+    };
 
     public InfoPanel(Dungeon dungeon) : 
         base(Program.Width - StatusPanel.Width - InventoryPanel.Width, StatusPanel.Height)
@@ -25,6 +30,8 @@ internal class InfoPanel : PanelWithSeparator
         Position = (StatusPanel.Width, Program.Height - StatusPanel.Height);
         dungeon.MapGenerated += Dungeon_OnMapGenerated;
         dungeon.Player.Moved += Player_OnMoved;
+        dungeon.Player.Attacked += Actor_OnAttacked;
+        dungeon.Player.Died += Actor_OnDied;
     }
 
     public void Reset()
@@ -36,20 +43,18 @@ internal class InfoPanel : PanelWithSeparator
 
     void Print(string text)
     {
-        // clear the welcome message
-        if (_currentLine == -1)
-            Surface.Clear();
-
-        // make space for the new line
         if (_currentLine == Surface.Height - 1)
             Surface.ShiftUp();
-
-        // advance pointer
         else 
             _currentLine++;
 
+        // random message color
+        Color color;
+        do color = Program.RandomColor;
+        while (color.GetBrightness() < 0.8f);
+
         // print message
-        Surface.Print(Padding, _currentLine, text.Align(HorizontalAlignment.Left, Surface.Width));
+        Surface.Print(Padding, _currentLine, text.Align(HorizontalAlignment.Left, Surface.Width), color);
     }
 
     void Actor_OnAttacked(object? o, CombatEventArgs e)
@@ -68,6 +73,9 @@ internal class InfoPanel : PanelWithSeparator
         int i = GlobalRandom.DefaultRNG.NextInt(_deathDescriptions.Length);
         string description = _deathDescriptions[i];
         Print($"The {actor} {description} and dies!");
+
+        if (o is Player)
+            Print("Press Enter to try again.");
     }
 
     // shifts up messages after a few player moves
@@ -87,16 +95,15 @@ internal class InfoPanel : PanelWithSeparator
     void Dungeon_OnMapGenerated(object? o, MapGeneratedEventArgs e)
     {
         // print welcome message
-        Surface.Print(Padding, 0, "Welcome to the dungeon!");
-        Surface.Print(Padding, 1, "Orcs, trolls and treasure await.");
-        Surface.Print(Padding, 2, "Arrow keys to move, space to wait.");
+        foreach (var text in _welcomeMessages)
+            Print(text);
 
-        // attach event handlers to actors
+        // attach event handlers to enemies
         foreach (var positionPair in e.Actors)
         {
-            if (positionPair.Item is not Actor actor) continue;
-            actor.Attacked += Actor_OnAttacked;
-            actor.Died += Actor_OnDied;
+            if (positionPair.Item is not Enemy enemy) continue;
+            enemy.Attacked += Actor_OnAttacked;
+            enemy.Died += Actor_OnDied;
         }
     }
 }

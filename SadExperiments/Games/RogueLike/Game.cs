@@ -58,39 +58,17 @@ internal class Game : Page, IRestartable
     {
         if (keyboard.HasKeysPressed)
         {
-            if (keyboard.IsKeyPressed(Keys.Left) || keyboard.IsKeyPressed(Keys.H))
-            {
-                _dungeon.PlayerMoveOrAttack(Direction.Left);
-                return true;
-            }
-            else if (keyboard.IsKeyPressed(Keys.Right) || keyboard.IsKeyPressed(Keys.L))
-            {
-                _dungeon.PlayerMoveOrAttack(Direction.Right);
-                return true;
-            }
-            else if (keyboard.IsKeyPressed(Keys.Up) || keyboard.IsKeyPressed(Keys.K))
-            {
-                _dungeon.PlayerMoveOrAttack(Direction.Up);
-                return true;
-            }
-            else if (keyboard.IsKeyPressed(Keys.Down) || keyboard.IsKeyPressed(Keys.J))
-            {
-                _dungeon.PlayerMoveOrAttack(Direction.Down);
-                return true;
-            }
-            else if (keyboard.IsKeyPressed(Keys.Space))
-            {
-                _dungeon.PlayerWait();
-                return true;
-            }
+            if (_dungeon.Player.IsAlive())
+                _dungeon.ProcessKeyboard(keyboard);
+            else if (keyboard.IsKeyPressed(Keys.Enter))
+                Restart();
+                
         }
         return base.ProcessKeyboard(keyboard);
     }
     #endregion
 
     #region Event Handlers
-    
-
     protected override void OnParentChanged(IScreenObject oldParent, IScreenObject newParent)
     {
         if (newParent is Container)

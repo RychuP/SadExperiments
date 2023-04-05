@@ -34,6 +34,7 @@ internal class Dungeon : Map
 
         // player
         Player.Moved += Player_OnMoved;
+        Player.Died += Actor_OnDied;
 
         // fov
         PlayerFOV.Recalculated += FOV_OnRecalculated;
@@ -63,6 +64,36 @@ internal class Dungeon : Map
     #endregion
 
     #region Methods
+    public bool ProcessKeyboard(Keyboard keyboard)
+    {
+        if (keyboard.IsKeyPressed(Keys.Left) || keyboard.IsKeyPressed(Keys.H))
+        {
+            PlayerMoveOrAttack(Direction.Left);
+            return true;
+        }
+        else if (keyboard.IsKeyPressed(Keys.Right) || keyboard.IsKeyPressed(Keys.L))
+        {
+            PlayerMoveOrAttack(Direction.Right);
+            return true;
+        }
+        else if (keyboard.IsKeyPressed(Keys.Up) || keyboard.IsKeyPressed(Keys.K))
+        {
+            PlayerMoveOrAttack(Direction.Up);
+            return true;
+        }
+        else if (keyboard.IsKeyPressed(Keys.Down) || keyboard.IsKeyPressed(Keys.J))
+        {
+            PlayerMoveOrAttack(Direction.Down);
+            return true;
+        }
+        else if (keyboard.IsKeyPressed(Keys.Space))
+        {
+            PlayerWait();
+            return true;
+        }
+        return false;
+    }
+
     public void Reset()
     {
         Player.Reset();
@@ -102,11 +133,7 @@ internal class Dungeon : Map
     void RemoveAllEntities()
     {
         foreach (var posPair in Entities)
-        {
-            if (posPair.Item is Enemy enemy)
-                enemy.Died -= Enemy_OnDied;
             RemoveEntity(posPair.Item);
-        }
     }
 
     void SpawnPlayer(Point position)
@@ -124,7 +151,7 @@ internal class Dungeon : Map
             {
                 Enemy enemy = GlobalRandom.DefaultRNG.PercentageCheck(80f) ? new Orc() : new Troll();
                 enemy.Position = GlobalRandom.DefaultRNG.RandomPosition(room, pos => WalkabilityView[pos]);
-                enemy.Died += Enemy_OnDied;
+                enemy.Died += Actor_OnDied;
                 AddEntity(enemy);
             }
         }
@@ -150,9 +177,11 @@ internal class Dungeon : Map
 
     void MoveEnemies()
     {
+        // get enemies in view
         var enemies = Entities.GetLayer((int)EntityLayer.Actors).Items
             .Where(o => o is Enemy e && PlayerFOV.CurrentFOV.Contains(e.Position))
-            .Select(o => o as Enemy);
+            .Cast<Enemy>();
+
         foreach (var enemy in enemies)
         {
             if (enemy is null) continue;
@@ -176,12 +205,11 @@ internal class Dungeon : Map
         FOVChanged?.Invoke(this, e);
     }
 
-    void Enemy_OnDied(object? o, EventArgs e)
+    void Actor_OnDied(object? o, EventArgs e)
     {
-        if (o is not Enemy enemy) return;
-        enemy.Died -= Enemy_OnDied;
-        RemoveEntity(enemy);
-        AddEntity(new Corpse(enemy));
+        if (o is not Actor actor) return;
+        RemoveEntity(actor);
+        AddEntity(new Corpse(actor));
     }
 
     void OnMapGenerated(IReadOnlyList<Rectangle> rooms)

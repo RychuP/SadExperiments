@@ -5,7 +5,7 @@ using SadExperiments.Games.RogueLike.World.Entities;
 
 namespace SadExperiments.Games.RogueLike.Screens;
 
-// displays a health bar
+// displays health bars
 internal class StatusPanel : ScreenSurface
 {
     readonly List<Enemy> _trackedEnemies = new(10);
@@ -110,7 +110,6 @@ internal class StatusPanel : ScreenSurface
         foreach (var posPair in e.Actors)
             if (posPair.Item is Enemy enemy)
                 enemy.HPChanged += Enemy_OnHPChanged;
-
     }
 
     void Dungeon_OnFOVChanged(object? o, EventArgs e)

@@ -47,7 +47,8 @@ internal class Renderer : ScreenSurface
             var (x, y) = point - dungeon.View.Position;
             var bg = Color.Transparent;
             if (dungeon.GetTerrainAt(point) is Terrain terrain && dungeon.PlayerExplored[point])
-                bg = dungeon.PlayerFOV.CurrentFOV.Contains(point) ? terrain.LightColor : terrain.DarkColor;
+                bg = dungeon.PlayerFOV.CurrentFOV.Contains(point) && dungeon.Player.IsAlive() ? 
+                    terrain.LightColor : terrain.DarkColor;
             Surface.SetCellAppearance(x, y, new ColoredGlyph(Color.Transparent, bg, 0));
         }
     }
@@ -109,7 +110,18 @@ internal class Renderer : ScreenSurface
     void Dungeon_OnObjectRemoved(object? o, ItemEventArgs<IGameObject> e)
     {
         if (o is not Dungeon dungeon) return;
-        DrawEntityAtPos(dungeon, e.Position);
+
+        // player must have died
+        if (e.Item is Player)
+        {
+            DrawTerrain(dungeon);
+            Surface.Print(Surface.Area.Center - (3, 2), " Game ", Color.White);
+            Surface.Print(Surface.Area.Center + (-3, 2), " Over ", Color.White);
+        }
+
+        // reset the cell when an object in view gets removed
+        else if (dungeon.PlayerFOV.CurrentFOV.Contains(e.Position))
+            DrawEntityAtPos(dungeon, e.Position);
     }
 
     void Dungeon_OnObjectAdded(object? o, ItemEventArgs<IGameObject> e)
