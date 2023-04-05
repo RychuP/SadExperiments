@@ -7,7 +7,7 @@ internal class Player : Actor
     #endregion
 
     #region Constructors
-    public Player() : base('@', Color.Yellow, 30, 2, 5, Potion.DefaultVolume * 6) { }
+    public Player() : base("Player", '@', Color.Yellow, 30, 2, 5, Potion.DefaultVolume * 6) { }
     #endregion
 
     #region Methods
@@ -25,7 +25,5 @@ internal class Player : Actor
         else
             OnFailedAction("There are no heal potions left in the inventory.");
     }
-    public override string ToString() => 
-        "Player";
     #endregion
 }

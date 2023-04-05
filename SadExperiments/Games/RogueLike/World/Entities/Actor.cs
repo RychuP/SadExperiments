@@ -4,8 +4,8 @@ internal abstract class Actor : Entity
 {
     int _hp;
 
-    public Actor(int glyph, Color color, int maxHP, int defense, int power, int capacity) 
-        : base(glyph, color, EntityLayer.Actors, false, true)
+    public Actor(string name, int glyph, Color color, int maxHP, int defense, int power, int capacity) 
+        : base(name, glyph, color, EntityLayer.Actors, false, true)
     {
         (MaxHP, _hp, Defense, Power) = (maxHP, maxHP, defense, power);
         Inventory = new(capacity);

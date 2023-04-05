@@ -33,4 +33,12 @@ public static class Program
 
     public static Color RandomColor => 
         Color.White.GetRandomColor(Game.Instance.Random);
+
+    public static Color GetRandBrightColor(float brightness)
+    {
+        Color color;
+        do color = RandomColor;
+        while (color.GetBrightness() < brightness);
+        return color;
+    }
 }

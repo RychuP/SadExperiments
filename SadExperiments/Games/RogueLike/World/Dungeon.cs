@@ -100,6 +100,8 @@ internal class Dungeon : Map
     {
         if (ActorMoveOrAttack(Player, direction))
             MoveEnemies();
+        else
+            OnFailedAction("That way is blocked.");
     }
 
     void PlayerTryPickUp()
@@ -115,8 +117,8 @@ internal class Dungeon : Map
                 if (Player.TryCollect(carryable))
                     RemoveEntity(item as Item);
             }
-            else
-                OnFailedAction("This type of an item cannot be picked up.");
+            else if (items.First() is Entity entity)
+                OnFailedAction($"You can't pick up a {entity.Name.ToLower()}.");
         }
     }
 

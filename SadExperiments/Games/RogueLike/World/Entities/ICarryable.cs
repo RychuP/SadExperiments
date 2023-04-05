@@ -6,4 +6,5 @@ internal interface ICarryable
     int Volume { get; }
     // in grams
     int Weight { get; }
+    string Name { get; }
 }

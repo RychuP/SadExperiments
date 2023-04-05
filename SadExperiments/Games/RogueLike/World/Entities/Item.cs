@@ -2,13 +2,15 @@ namespace SadExperiments.Games.RogueLike.World.Entities;
 
 internal abstract class Item : Entity
 {
-    public Item(int glyph, Color color) : base(glyph, color, EntityLayer.Items, true, true) { }
+    public Item(string name, int glyph, Color color) : 
+        base(name, glyph, color, EntityLayer.Items, true, true) { }
 }
 
 internal abstract class ConsumableItem : Item, IConsumable, ICarryable
 {
-    public ConsumableItem(int glyph, Color color, int healthAmount, int foodAmount, 
-        int drinkAmount, bool isHarmful, int volume, int weight) : base(glyph, color) =>
+    public ConsumableItem(string name, int glyph, Color color, int healthAmount, int foodAmount, 
+        int drinkAmount, bool isHarmful, int volume, int weight) : 
+        base(name, glyph, color) =>
         (HealthAmount, FoodAmount, DrinkAmount, IsHarmful, Volume, Weight) = 
         (healthAmount, foodAmount, drinkAmount, isHarmful, volume, weight);
     public int HealthAmount { get; init; }
@@ -19,6 +21,4 @@ internal abstract class ConsumableItem : Item, IConsumable, ICarryable
     public int Weight { get; init; }
     public virtual string EffectDescription =>
         string.Empty;
-    public override string ToString() =>
-        "Consumable Item";
 }

@@ -14,7 +14,7 @@ internal class StatusPanel : ScreenSurface
 
     public StatusPanel(Dungeon dungeon) : base(Width, Height)
     {
-        Surface.SetDefaultColors(Colors.PanelFG, Colors.PanelBG);
+        Surface.SetDefaultColors(Colors.DefaultFG, Colors.PanelBG);
         Position = (0, Program.Height - Height);
 
         dungeon.Player.HPChanged += Player_OnHPChanged;
