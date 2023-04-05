@@ -142,7 +142,7 @@ internal class Dungeon : Map
         AddEntity(Player);
     }
 
-    void SpawnMonsters(IReadOnlyList<Rectangle> rooms)
+    void SpawnEnemies(IReadOnlyList<Rectangle> rooms)
     {
         foreach (var room in rooms)
         {
@@ -153,6 +153,21 @@ internal class Dungeon : Map
                 enemy.Position = GlobalRandom.DefaultRNG.RandomPosition(room, pos => WalkabilityView[pos]);
                 enemy.Died += Actor_OnDied;
                 AddEntity(enemy);
+            }
+        }
+    }
+
+    void SpawnHealthPotions(IReadOnlyList<Rectangle> rooms)
+    {
+        // Generate between zero and the max potions per room.
+        foreach (var room in rooms)
+        {
+            int amount = GlobalRandom.DefaultRNG.NextInt(0, MaxPotionsPerRoom + 1);
+            for (int i = 0; i < amount; i++)
+            {
+                var position = GlobalRandom.DefaultRNG.RandomPosition(room, pos => WalkabilityView[pos]);
+                var potion = new HealthPotion { Position = position };
+                AddEntity(potion);
             }
         }
     }
@@ -215,7 +230,8 @@ internal class Dungeon : Map
     void OnMapGenerated(IReadOnlyList<Rectangle> rooms)
     {
         SpawnPlayer(rooms[0].Center);
-        SpawnMonsters(rooms);
+        SpawnEnemies(rooms);
+        SpawnHealthPotions(rooms);
 
         var actors = Entities.GetLayer((int)EntityLayer.Actors);
         var args = new MapGeneratedEventArgs(actors);

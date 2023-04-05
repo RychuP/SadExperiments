@@ -15,6 +15,13 @@ class CombatEventArgs : EventArgs
     }
 }
 
+class ConsumedEventArgs : EventArgs
+{
+    public ConsumableItem Item { get; init; }
+    public ConsumedEventArgs(ConsumableItem item) =>
+        Item = item;
+}
+
 class MapGeneratedEventArgs : EventArgs
 {
     public IReadOnlySpatialMap<IGameObject> Actors { get; init; }

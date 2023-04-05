@@ -42,6 +42,14 @@ internal abstract class Actor : Entity
             other.HP -= damage;
     }
 
+    public void Consume(ConsumableItem consumable)
+    {
+        HP += consumable.IsHarmful ? -consumable.HealthAmount : consumable.HealthAmount;
+
+        var args = new ConsumedEventArgs(consumable);
+        Consumed?.Invoke(this, args);
+    }
+
     void OnAttacked(int damage, Actor other)
     {
         var args = new CombatEventArgs(damage, other);
@@ -49,6 +57,7 @@ internal abstract class Actor : Entity
     }
 
     public event EventHandler<CombatEventArgs>? Attacked;
+    public event EventHandler<ConsumedEventArgs>? Consumed;
     public event EventHandler? HPChanged;
     public event EventHandler? Died;
 }

@@ -61,9 +61,15 @@ internal class InfoPanel : PanelWithSeparator
     {
         if (o is not Actor actor) return;
         if (e.Damage > 0)
-            Print($"{actor} attacks {e.Target} for {e.Damage} damage.");
+            Print($"{actor} attacks {e.Target?.ToString()?.ToLower()} for {e.Damage} damage.");
         else
             Print($"{actor} attacks {e.Target} but does no damage.");
+    }
+
+    void Actor_OnConsumed(object? o, ConsumedEventArgs e)
+    {
+        if (o is not Actor actor) return;
+        Print($"{actor} {e.Item.EffectDescription}");
     }
 
     void Actor_OnDied(object? o, EventArgs e)
@@ -72,7 +78,7 @@ internal class InfoPanel : PanelWithSeparator
 
         int i = GlobalRandom.DefaultRNG.NextInt(_deathDescriptions.Length);
         string description = _deathDescriptions[i];
-        Print($"The {actor} {description} and dies!");
+        Print($"The {actor?.ToString()?.ToLower()} {description} and dies!");
 
         if (o is Player)
             Print("Press Enter to try again.");
