@@ -64,58 +64,28 @@ internal class Dungeon : Map
     #endregion
 
     #region Methods
-    public bool ProcessKeyboard(Keyboard keyboard)
+    public void ProcessKeyboard(Keyboard keyboard)
     {
         if (keyboard.IsKeyPressed(Keys.Left) || keyboard.IsKeyPressed(Keys.H))
-        {
             PlayerMoveOrAttack(Direction.Left);
-            return true;
-        }
-        else if (keyboard.IsKeyPressed(Keys.Right) || keyboard.IsKeyPressed(Keys.L))
-        {
-            PlayerMoveOrAttack(Direction.Right);
-            return true;
-        }
-        else if (keyboard.IsKeyPressed(Keys.Up) || keyboard.IsKeyPressed(Keys.K))
-        {
-            PlayerMoveOrAttack(Direction.Up);
-            return true;
-        }
-        else if (keyboard.IsKeyPressed(Keys.Down) || keyboard.IsKeyPressed(Keys.J))
-        {
-            PlayerMoveOrAttack(Direction.Down);
-            return true;
-        }
-        else if (keyboard.IsKeyPressed(Keys.Space))
-        {
-            PlayerWait();
-            return true;
-        }
-        else if (keyboard.IsKeyPressed(Keys.D))
-        {
-            var items = GetEntitiesAt<Item>(Player.Position);
-            if (items is null)
-                OnFailedAction("There it nothing to pick up here.");
-            else
-            {
-                var item = items.Where(e => e is ICarryable).FirstOrDefault();
-                if (item is ICarryable carryable)
-                {
-                    if (Player.TryCollect(carryable))
-                        RemoveEntity(item as Item);
-                }
-                else
-                    OnFailedAction("This type of an item cannot be picked up.");
-            }
-            return true;
-        }
-        else if (keyboard.IsKeyPressed(Keys.A))
-        {
-            Player.TryConsumeHealthPotion();
-            return true;
-        }
 
-        return false;
+        else if (keyboard.IsKeyPressed(Keys.Right) || keyboard.IsKeyPressed(Keys.L))
+            PlayerMoveOrAttack(Direction.Right);
+
+        else if (keyboard.IsKeyPressed(Keys.Up) || keyboard.IsKeyPressed(Keys.K))
+            PlayerMoveOrAttack(Direction.Up);
+
+        else if (keyboard.IsKeyPressed(Keys.Down) || keyboard.IsKeyPressed(Keys.J))
+            PlayerMoveOrAttack(Direction.Down);
+
+        else if (keyboard.IsKeyPressed(Keys.Space))
+            PlayerWait();
+
+        else if (keyboard.IsKeyPressed(Keys.D))
+            PlayerTryPickUp();
+
+        else if (keyboard.IsKeyPressed(Keys.A))
+            Player.TryConsumeHealthPotion();
     }
 
     public void Reset()
@@ -126,13 +96,31 @@ internal class Dungeon : Map
         Generate();
     }
 
-    public void PlayerMoveOrAttack(Direction direction)
+    void PlayerMoveOrAttack(Direction direction)
     {
         if (ActorMoveOrAttack(Player, direction))
             MoveEnemies();
     }
 
-    public void PlayerWait() =>
+    void PlayerTryPickUp()
+    {
+        var items = GetEntitiesAt<Item>(Player.Position);
+        if (!items.Any())
+            OnFailedAction("There it nothing to pick up here.");
+        else
+        {
+            var item = items.Where(e => e is ICarryable).FirstOrDefault();
+            if (item is ICarryable carryable)
+            {
+                if (Player.TryCollect(carryable))
+                    RemoveEntity(item as Item);
+            }
+            else
+                OnFailedAction("This type of an item cannot be picked up.");
+        }
+    }
+
+    void PlayerWait() =>
         MoveEnemies();
 
     void Generate()

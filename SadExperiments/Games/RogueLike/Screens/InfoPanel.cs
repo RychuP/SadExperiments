@@ -21,7 +21,7 @@ internal class InfoPanel : PanelWithSeparator
         "Welcome to the dungeon!",
         "Orcs, trolls and treasure await.",
         "Arrow keys to move, space to wait,",
-        "D to pick up, A to drink potion."
+        "D to pick up, A to drink a potion."
     };
 
     public InfoPanel(Dungeon dungeon) : 
