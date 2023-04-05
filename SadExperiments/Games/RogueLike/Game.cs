@@ -34,7 +34,7 @@ internal class Game : Page, IRestartable
         // screens
         _infoPanel = new(_dungeon);
         _statusPanel = new(_dungeon);
-        _inventoryPanel = new();
+        _inventoryPanel = new(_dungeon.Player);
         Children.Add(_renderer, _statusPanel, _infoPanel, _inventoryPanel);
 
         // dungeon
@@ -51,6 +51,7 @@ internal class Game : Page, IRestartable
     {
         _infoPanel.Reset();
         _statusPanel.Reset();
+        _inventoryPanel.Reset();
         _dungeon.Reset();
     }
 

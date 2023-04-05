@@ -2,6 +2,7 @@ namespace SadExperiments.Games.RogueLike.Screens;
 
 internal abstract class PanelWithSeparator : ScreenSurface
 {
+    protected const int Padding = 2;
     public PanelWithSeparator(int w, int h) : base(w, h)
     {
         Surface.SetDefaultColors(Colors.PanelFG, Colors.PanelBG);

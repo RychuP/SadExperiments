@@ -7,7 +7,6 @@ namespace SadExperiments.Games.RogueLike.Screens;
 // displays messages
 internal class InfoPanel : PanelWithSeparator
 {
-    const int Padding = 2;
     int _currentLine = -1;
     int _playerMoveCount = 0;
     readonly string[] _deathDescriptions =
@@ -21,7 +20,8 @@ internal class InfoPanel : PanelWithSeparator
     {
         "Welcome to the dungeon!",
         "Orcs, trolls and treasure await.",
-        "Arrow keys to move, space to wait."
+        "Arrow keys to move, space to wait,",
+        "D to pick up, A to drink potion."
     };
 
     public InfoPanel(Dungeon dungeon) : 
@@ -29,9 +29,12 @@ internal class InfoPanel : PanelWithSeparator
     {
         Position = (StatusPanel.Width, Program.Height - StatusPanel.Height);
         dungeon.MapGenerated += Dungeon_OnMapGenerated;
-        dungeon.Player.Moved += Player_OnMoved;
+        dungeon.Player.FailedAction += Actor_OnFailedAction;
+        dungeon.Player.Collected += Actor_OnCollected;
         dungeon.Player.Attacked += Actor_OnAttacked;
         dungeon.Player.Died += Actor_OnDied;
+        dungeon.Player.Moved += Player_OnMoved;
+        dungeon.Player.Consumed += Player_OnConsumed;
     }
 
     public void Reset()
@@ -98,16 +101,35 @@ internal class InfoPanel : PanelWithSeparator
         }
     }
 
+    void Player_OnConsumed(object? o, ConsumedEventArgs e)
+    {
+        if (o is not Player player) return;
+        Print($"{player} {e.Item.EffectDescription}");
+    }
+
+    void Actor_OnCollected(object? o, ItemEventArgs e)
+    {
+        if (o is not Actor actor) return;
+        Print($"{actor} collects a {e.Item}.");
+    }
+
+    void Actor_OnFailedAction(object? o, FailedActionEventArgs e)
+    {
+        Print(e.Message);
+    }
+
     void Dungeon_OnMapGenerated(object? o, MapGeneratedEventArgs e)
     {
         // print welcome message
         foreach (var text in _welcomeMessages)
             Print(text);
 
-        // attach event handlers to enemies
+        // attach event handlers
         foreach (var positionPair in e.Actors)
         {
             if (positionPair.Item is not Enemy enemy) continue;
+            enemy.FailedAction += Actor_OnFailedAction;
+            enemy.Collected += Actor_OnCollected;
             enemy.Attacked += Actor_OnAttacked;
             enemy.Died += Actor_OnDied;
         }

@@ -91,6 +91,26 @@ internal class Dungeon : Map
             PlayerWait();
             return true;
         }
+        else if (keyboard.IsKeyPressed(Keys.D))
+        {
+            var item = GetEntityAt<Item>(Player.Position);
+            if (item is null)
+                OnFailedAction("There it nothing to pick up here.");
+            else if (item is ICarryable carryable)
+            {
+                if (Player.TryCollect(carryable))
+                    RemoveEntity(item);
+            }
+            else
+                OnFailedAction("This type of an item cannot be picked up.");
+            return true;
+        }
+        else if (keyboard.IsKeyPressed(Keys.A))
+        {
+            Player.TryConsumeHealthPotion();
+            return true;
+        }
+
         return false;
     }
 
@@ -227,6 +247,12 @@ internal class Dungeon : Map
         AddEntity(new Corpse(actor));
     }
 
+    void OnFailedAction(string message)
+    {
+        var args = new FailedActionEventArgs(message);
+        FailedAction?.Invoke(this, args);
+    }
+
     void OnMapGenerated(IReadOnlyList<Rectangle> rooms)
     {
         SpawnPlayer(rooms[0].Center);
@@ -241,6 +267,7 @@ internal class Dungeon : Map
 
     #region Events
     public event EventHandler<MapGeneratedEventArgs>? MapGenerated;
+    public event EventHandler<FailedActionEventArgs>? FailedAction;
     public event EventHandler? FOVChanged;
     #endregion
 }

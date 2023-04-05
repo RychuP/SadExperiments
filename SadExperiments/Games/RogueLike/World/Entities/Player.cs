@@ -7,27 +7,25 @@ internal class Player : Actor
     #endregion
 
     #region Constructors
-    public Player() : base('@', Color.Yellow, 30, 2, 5)
-    {
-        
-    }
-    #endregion
-
-    #region Properties
-
+    public Player() : base('@', Color.Yellow, 30, 2, 5, Potion.DefaultVolume * 6) { }
     #endregion
 
     #region Methods
     public void Reset() =>
         HP = MaxHP;
-    public override string ToString() => "Player";
-    #endregion
-
-    #region Event Handlers
-
-    #endregion
-
-    #region Events
-
+    
+    public void TryConsumeHealthPotion()
+    {
+        var potion = Inventory.Items.Where(o => o is HealthPotion p).Cast<HealthPotion>().FirstOrDefault();
+        if (potion is not null)
+        {
+            Inventory.Remove(potion);
+            Consume(potion);
+        }
+        else
+            OnFailedAction("There are no heal potions left in the inventory.");
+    }
+    public override string ToString() => 
+        "Player";
     #endregion
 }

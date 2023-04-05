@@ -1,20 +1,20 @@
-using GoRogue.GameFramework;
-
 namespace SadExperiments.Games.RogueLike.World.Entities;
 
 internal abstract class Actor : Entity
 {
     int _hp;
 
-    public Actor(int glyph, Color color, int maxHP, int defense, int power) 
+    public Actor(int glyph, Color color, int maxHP, int defense, int power, int capacity) 
         : base(glyph, color, EntityLayer.Actors, false, true)
     {
         (MaxHP, _hp, Defense, Power) = (maxHP, maxHP, defense, power);
+        Inventory = new(capacity);
     }
 
     public int MaxHP { get; init; }
     public int Defense { get; init; }
     public int Power { get; init; }
+    public Inventory Inventory { get; init; }
 
     public int HP
     {
@@ -42,11 +42,42 @@ internal abstract class Actor : Entity
             other.HP -= damage;
     }
 
-    public void Consume(ConsumableItem consumable)
+    public void Consume(IConsumable consumable)
     {
         HP += consumable.IsHarmful ? -consumable.HealthAmount : consumable.HealthAmount;
+        OnConsumed(consumable);
+    }
 
-        var args = new ConsumedEventArgs(consumable);
+    public bool TryCollect(ICarryable item)
+    {
+        if (Inventory.Add(item))
+        {
+            OnCollected(item);
+            return true;
+        }
+        else
+        {
+            string message = $"Not enough capacity to fit the {item.ToString()?.ToLower()} in.";
+            OnFailedAction(message);
+            return false;
+        }
+    }
+
+    protected void OnFailedAction(string message)
+    {
+        var args = new FailedActionEventArgs(message);
+        FailedAction?.Invoke(this, args);
+    }
+
+    void OnCollected(ICarryable item)
+    {
+        var args = new ItemEventArgs(item);
+        Collected?.Invoke(this, args);
+    }
+
+    void OnConsumed(IConsumable item)
+    {
+        var args = new ConsumedEventArgs(item);
         Consumed?.Invoke(this, args);
     }
 
@@ -58,6 +89,8 @@ internal abstract class Actor : Entity
 
     public event EventHandler<CombatEventArgs>? Attacked;
     public event EventHandler<ConsumedEventArgs>? Consumed;
+    public event EventHandler<ItemEventArgs>? Collected;
+    public event EventHandler<FailedActionEventArgs>? FailedAction;
     public event EventHandler? HPChanged;
     public event EventHandler? Died;
 }

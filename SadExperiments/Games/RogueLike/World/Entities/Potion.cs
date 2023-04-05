@@ -2,19 +2,20 @@ namespace SadExperiments.Games.RogueLike.World.Entities;
 
 internal abstract class Potion : ConsumableItem
 {
-    public Potion(int healthAmount, int foodAmount, int drinkAmount, bool isHarmful, Color color) 
-        : base('!', color, healthAmount, foodAmount, drinkAmount, isHarmful) { }
+    public const int DefaultVolume = 200;
+    public Potion(int healthAmount, bool isHarmful, Color color, int weight = 150, int volume = 200) 
+        : base('!', color, healthAmount, 10, weight, isHarmful, DefaultVolume, weight) { }
     public override string EffectDescription =>
-        $"drinks {this.ToString().ToLower()} and {(IsHarmful ? "looses" : "recovers")} ";
+        $"drinks {ToString().ToLower()} and {(IsHarmful ? "looses" : "recovers")} ";
     public override string ToString() =>
         "Potion";
 }
 
 internal class HealthPotion : Potion
 {
-    public HealthPotion() : base(4, 0, 1, false, Colors.HealingItem) { }
+    public HealthPotion() : base(4, false, Colors.HealingItem) { }
     public override string EffectDescription => 
-        base.EffectDescription + "HP.";
+        base.EffectDescription + $"{HealthAmount} HP.";
     public override string ToString() =>
         "Heal Potion";
 }
