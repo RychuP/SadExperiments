@@ -5,6 +5,19 @@ namespace SadExperiments.Pages;
 
 class WelcomePage : Page
 {
+    const int PrintColumn = 3;
+    const int FirstPrintRow = 3;
+    const int SpacerBetweenRows = 2;
+    const int IndexOfF6Prompt = 5;
+    readonly string[] _prompts = new string[] {
+            "F1 - Previous page",
+            "F2 - Next page",
+            "F3 - List of contents",
+            "F4 - Color picker",
+            "F5 - Character picker",
+            "F6 - Header mouse over"
+    };
+
     public WelcomePage()
     {
         #region Meta
@@ -22,13 +35,7 @@ class WelcomePage : Page
 
         Children.Add(logo, ansi);
 
-        int currentRow = PrintPrompts(3, new string[] {
-            "F1 - Previous page",
-            "F2 - Next page",
-            "F3 - List of contents",
-            "F4 - Color picker",
-            "F5 - Character picker",
-        }, Color.White);
+        PrintPrompts(_prompts, Color.White);
 
         // keyboard shortcut decorations
         for (int i = 0; i < Surface.Count; i++)
@@ -42,12 +49,19 @@ class WelcomePage : Page
     }
 
     // prints centered prompts starting at the given row
-    int PrintPrompts(int row, string[] prompts, Color color)
+    void PrintPrompts(string[] prompts, Color color)
     {
-        int spacer = 2;
-        row -= spacer;
-        Array.ForEach(prompts, t => Surface.Print(3, row += spacer, t, color));
-        return row;
+        int row = FirstPrintRow - SpacerBetweenRows;
+        Array.ForEach(prompts, t => Surface.Print(PrintColumn, row += SpacerBetweenRows, t, color));
+    }
+
+    public void PrintHeaderMouseOverSetting(bool setting)
+    {
+        int x = _prompts[IndexOfF6Prompt].Length + PrintColumn + 1;
+        int y = FirstPrintRow + SpacerBetweenRows * IndexOfF6Prompt;
+        var color = setting ? Color.LightGreen : Color.Coral;
+        string text = setting ? "ON " : "OFF";
+        Surface.Print(x, y, text, color);
     }
 }
 

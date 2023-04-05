@@ -23,7 +23,7 @@ internal class Player : Actor
             Consume(potion);
         }
         else
-            OnFailedAction("There are no heal potions left in the inventory.");
+            OnFailedAction("You don't have any health potions.");
     }
     #endregion
 }

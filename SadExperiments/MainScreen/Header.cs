@@ -94,20 +94,21 @@ class Header : Console
 
     public override bool ProcessMouse(MouseScreenObjectState state)
     {
-        if (state.IsOnScreenObject && IsMinimized)
+        if (Container.Instance.HeaderMouseOverSetting && state.IsOnScreenObject && IsMinimized)
             Maximize();
         return base.ProcessMouse(state);
     }
 
     protected override void OnMouseEnter(MouseScreenObjectState state)
     {
-        Maximize();
+        if (Container.Instance.HeaderMouseOverSetting)
+            Maximize();
         base.OnMouseEnter(state);
     }
 
     protected override void OnMouseExit(MouseScreenObjectState state)
     {
-        if (!state.IsOnScreenObject)
+        if (Container.Instance.HeaderMouseOverSetting && !state.IsOnScreenObject)
             Minimize();
         base.OnMouseExit(state);
     }

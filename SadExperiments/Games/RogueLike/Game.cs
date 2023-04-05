@@ -1,6 +1,5 @@
 using SadExperiments.Games.RogueLike.World;
 using SadExperiments.Games.RogueLike.Screens;
-using GoRogue.GameFramework;
 
 namespace SadExperiments.Games.RogueLike;
 
@@ -22,7 +21,7 @@ internal class Game : Page, IRestartable
     {
         #region Meta
         Title = "RogueLike Dungeon";
-        Summary = "Unintegrated version of the SadRogue integration example.";
+        Summary = "Unintegrated version of the SadRogue_Integration example game.";
         Submitter = Submitter.Rychu;
         Date = new(2023, 04, 02);
         Tags = new Tag[] { Tag.SadConsole, Tag.GoRogue, Tag.Game };
@@ -36,14 +35,7 @@ internal class Game : Page, IRestartable
         _statusPanel = new(_dungeon);
         _inventoryPanel = new(_dungeon.Player);
         Children.Add(_renderer, _statusPanel, _infoPanel, _inventoryPanel);
-
-        // dungeon
-        //_dungeon.MapGenerated += Dungeon_OnMapGenerated;
     }
-    #endregion
-
-    #region Properties
-
     #endregion
 
     #region Methods
@@ -78,9 +70,5 @@ internal class Game : Page, IRestartable
             GameHost.Instance.Keyboard.InitialRepeatDelay = Container.Instance.DefaultInitialRepeatDelay;
         base.OnParentChanged(oldParent, newParent);
     }
-    #endregion
-
-    #region Events
-
     #endregion
 }

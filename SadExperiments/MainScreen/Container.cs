@@ -40,6 +40,9 @@ sealed class Container : ScreenObject
     // pages filtered by tags
     Page[] _filteredPages = Array.Empty<Page>();
 
+    // header mouse over description showing setting backing field
+    bool _headerMouseOverSetting = true;
+
     // all available pages
     readonly Page[] _pages =
     {
@@ -94,6 +97,9 @@ sealed class Container : ScreenObject
         // create contents list and header
         _contentsList = new();
         _header = new();
+
+        // print the header mouse over setting
+        OnHeaderMouseOverSettingChanged();
 
         // add consoles to children 
         Children.Add(CurrentPage, _header);
@@ -155,6 +161,20 @@ sealed class Container : ScreenObject
     /// Filtered page tags.
     /// </summary>
     public List<Tag> Tags => _tags;
+
+    /// <summary>
+    /// Whether a pop up page description underneath the header should show on mouse over or not.
+    /// </summary>
+    public bool HeaderMouseOverSetting
+    {
+        get => _headerMouseOverSetting;
+        set
+        {
+            if (_headerMouseOverSetting == value) return;
+            _headerMouseOverSetting = value;
+            OnHeaderMouseOverSettingChanged();
+        }
+    }
     #endregion Properties
 
     #region Methods
@@ -193,6 +213,8 @@ sealed class Container : ScreenObject
                     _colorPicker.Show(true);
                 else if (keyboard.IsKeyPressed(Keys.F5))
                     _characterViewer.Show(true);
+                else if (keyboard.IsKeyPressed(Keys.F6))
+                    HeaderMouseOverSetting = !HeaderMouseOverSetting;
             }
         }
         base.Update(delta);
@@ -334,13 +356,18 @@ sealed class Container : ScreenObject
     {
         TagsChanged?.Invoke(this, EventArgs.Empty);
     }
+
+    void OnHeaderMouseOverSettingChanged()
+    {
+        Page? page = Array.Find(_pages, (p) => p is WelcomePage);
+        if (page is WelcomePage wp)
+            wp.PrintHeaderMouseOverSetting(HeaderMouseOverSetting);
+    }
     #endregion Methods
 
     #region Events
     public event EventHandler? PageChanged;
-
     public event EventHandler? PageListChanged;
-
     public event EventHandler? TagsChanged;
     #endregion Events
 }

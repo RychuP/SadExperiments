@@ -100,8 +100,6 @@ internal class Dungeon : Map
     {
         if (ActorMoveOrAttack(Player, direction))
             MoveEnemies();
-        else
-            OnFailedAction("That way is blocked.");
     }
 
     void PlayerTryPickUp()

@@ -73,7 +73,7 @@ class PageCounter : ScreenSurface
     // minimizes header if the mouse falls outside the header zone
     protected override void OnMouseExit(MouseScreenObjectState state)
     {
-        if (Parent is Header header)
+        if (Parent is Header header && Container.Instance.HeaderMouseOverSetting)
         {
             // create the mouse state for the parent and check if the mouse is still on it
             var parentState = new MouseScreenObjectState(header, state.Mouse);
@@ -86,7 +86,7 @@ class PageCounter : ScreenSurface
     // maximizes header since the page counter is part of it
     protected override void OnMouseEnter(MouseScreenObjectState state)
     {
-        if (Parent is Header header && header.IsMinimized)
+        if (Parent is Header header && Container.Instance.HeaderMouseOverSetting && header.IsMinimized)
             header.Maximize();
         base.OnMouseEnter(state);
     }
