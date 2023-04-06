@@ -8,8 +8,7 @@ Small games and other mini projects based on SadConsole and related libraries.
   <br><br>
   <img width="750" src="/ScreenShots/Tetris.gif" alt="Tetris MiniGame" align="center">
   <br><br>
+  <img width="750" src="/ScreenShots/Roguelike.gif" alt="GoRogue Line Algorithms" align="center">
+  <br><br>
   <img width="750" src="/ScreenShots/Fluid.gif" alt="Ascii Fluid Simulation" align="center">
-  <br><br>
-  <img width="750" src="/ScreenShots/Lines.gif" alt="GoRogue Line Algorithms" align="center">
-  <br><br>
 </p>
